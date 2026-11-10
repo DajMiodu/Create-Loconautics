@@ -5,7 +5,7 @@
 <h1 align="center">Create: Loconautics</h1>
 
 <p align="center">
-  <a href="https://discord.gg/C5k86v3wnt"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
+  <a href="https://discord.gg/zBqu9Utret"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
 </p>
 
 Create: Loconautics is a Create addon for NeoForge 1.21.1 that makes Create trains work with Sable. Instead of Create's carriage contraption entities, every train car is a Sable sub level, so a train is a real physics body. It can bump into things, derail, cross portals and carry other sub levels.
@@ -31,7 +31,7 @@ Sable and Simulated are the only hard dependencies. Their jars are not in this r
 
 - Lyc and MDLOP, development
 - Basilforrealss, TugKanTheMan and Hatchet, art
-- The Loconautics staff, testing: ZyxBe, MaxweLi, Bwah, Popochka, GoldenPants, Čipollø and Miat
+- ZyxBe, MaxweLi, Bwah, Popochka, GoldenPants, Čipollø and Miat, testing.
 - The Create team, for the trains this is built around
 - RyanHCode and the Sable team, for the physics
 - Dimforge, for Rapier
