@@ -10,6 +10,7 @@ import com.lycoris.loconautics.content.controls.panel.PanelPartType;
 import com.lycoris.loconautics.content.controls.panel.PanelSlot;
 import com.lycoris.loconautics.content.controls.panel.RedstoneLinkedPart;
 import com.lycoris.loconautics.content.controls.panel.style.PanelStyles;
+import com.lycoris.loconautics.content.transmission.TransmissionBlockEntity;
 import com.lycoris.loconautics.foundation.LoconauticsLang;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import com.lycoris.loconautics.registry.LoconauticsSounds;
@@ -94,6 +95,11 @@ public record SwitchPart(int power, @Nullable BlockPos link, int body, int knobC
         if (link == null || level == null) return;
 
         driveLink(panel, slot, level, link, new SwitchPart(power, null, body, knobColor, style, options), power);
+    }
+
+    @Override
+    public void driveTransmission(TransmissionBlockEntity transmission, int signal) {
+        transmission.driveDirectionFromPanel(signal > 0);
     }
 
     @Override

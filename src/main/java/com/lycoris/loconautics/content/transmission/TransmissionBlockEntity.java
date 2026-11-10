@@ -43,6 +43,16 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
 
     private Boolean computerReversed;
 
+    private static final int PANEL_HOLD_TICKS = 5;
+
+    private int panelSpeed;
+
+    private long panelSpeedTick = -PANEL_HOLD_TICKS - 1;
+
+    private boolean panelReversed;
+
+    private long panelDirectionTick = -PANEL_HOLD_TICKS - 1;
+
     public TransmissionBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
@@ -117,13 +127,26 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
 
     private float computeTargetRPM() {
         if (computerRpm != null) return computerRpm;
-        if (redstonePower == 0) return 0f;
-        return (float) Math.ceil(redstonePower * 256.0 / 15.0);
+        int power = effectivePower();
+        if (power == 0) return 0f;
+        return (float) Math.ceil(power * 256.0 / 15.0);
+    }
+
+    private boolean panelSpeedLive() {
+        return level != null && level.getGameTime() - panelSpeedTick <= PANEL_HOLD_TICKS;
+    }
+
+    private boolean panelDirectionLive() {
+        return level != null && level.getGameTime() - panelDirectionTick <= PANEL_HOLD_TICKS;
+    }
+
+    private int effectivePower() {
+        return panelSpeedLive() ? panelSpeed : redstonePower;
     }
 
     public int getPower() {
         if (computerRpm != null) return Math.round(computerRpm * 15f / 256f);
-        return redstonePower;
+        return effectivePower();
     }
 
     public float getTargetRpm() {
@@ -131,7 +154,27 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
     }
 
     public boolean isReversed() {
-        return computerReversed != null ? computerReversed : directionActive;
+        if (computerReversed != null) return computerReversed;
+        return panelDirectionLive() ? panelReversed : directionActive;
+    }
+
+    public void driveSpeedFromPanel(int signal) {
+        if (level == null || level.isClientSide) return;
+        int clamped = Math.max(0, Math.min(15, signal));
+        long now = level.getGameTime();
+        boolean changed = panelSpeedLive() ? clamped != panelSpeed : clamped != redstonePower;
+        panelSpeed = panelSpeedTick == now ? Math.max(panelSpeed, clamped) : clamped;
+        panelSpeedTick = now;
+        if (changed) kineticRefreshQueued = true;
+    }
+
+    public void driveDirectionFromPanel(boolean reversed) {
+        if (level == null || level.isClientSide) return;
+        long now = level.getGameTime();
+        boolean changed = isReversed() != reversed;
+        panelReversed = panelDirectionTick == now ? panelReversed || reversed : reversed;
+        panelDirectionTick = now;
+        if (changed) kineticRefreshQueued = true;
     }
 
     public boolean isComputerDriven() {
@@ -188,7 +231,12 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
             RotationPropagator.handleAdded(level, worldPosition, this);
         }
         super.tick();
-        if (level == null || level.isClientSide || !kineticRefreshQueued) return;
+        if (level == null || level.isClientSide) return;
+        long age = level.getGameTime();
+        if (age - panelSpeedTick == PANEL_HOLD_TICKS + 1 || age - panelDirectionTick == PANEL_HOLD_TICKS + 1) {
+            kineticRefreshQueued = true;
+        }
+        if (!kineticRefreshQueued) return;
         kineticRefreshQueued = false;
         applyKineticState();
     }

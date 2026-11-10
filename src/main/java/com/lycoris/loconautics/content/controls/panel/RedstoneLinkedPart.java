@@ -1,6 +1,7 @@
 package com.lycoris.loconautics.content.controls.panel;
 
 import com.lycoris.loconautics.content.combustion.SmallEngineBlockEntity;
+import com.lycoris.loconautics.content.transmission.TransmissionBlockEntity;
 import com.simibubi.create.content.redstone.link.RedstoneLinkBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -28,11 +29,19 @@ public interface RedstoneLinkedPart extends PanelPart {
         return signal;
     }
 
+    default void driveTransmission(TransmissionBlockEntity transmission, int signal) {
+        transmission.driveSpeedFromPanel(signal);
+    }
+
     default void driveLink(PanelBlockEntity panel, PanelSlot slot, Level level, BlockPos link,
                            PanelPart unlinked, int signal) {
         SmallEngineBlockEntity engine = SmallEngineBlockEntity.resolve(level, link);
         if (engine != null) {
             engine.driveFromPanel(panel.outputSignal(slot, engineSignal(signal)));
+            return;
+        }
+        if (level.isLoaded(link) && level.getBlockEntity(link) instanceof TransmissionBlockEntity transmission) {
+            driveTransmission(transmission, panel.outputSignal(slot, signal));
             return;
         }
         if (!PanelLink.stillThere(level, link)) {
