@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "L",
+    "B",
+    "G"
+  ],
+  "key": {
+    "L": {
+      "item": "create:redstone_link"
+    },
+    "B": {
+      "item": "create:industrial_iron_block"
+    },
+    "G": {
+      "item": "simulated:directional_gearshift"
+    }
+  },
+  "result": {
+    "id": "loconautics:bearing_axle",
+    "count": 1
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "L",
+    "B",
+    "T"
+  ],
+  "key": {
+    "L": {
+      "item": "create:redstone_link"
+    },
+    "B": {
+      "item": "create:industrial_iron_block"
+    },
+    "T": {
+      "item": "simulated:analog_transmission"
+    }
+  },
+  "result": {
+    "id": "loconautics:transmission",
+    "count": 1
+  }
+}
