@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "ACA"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:iron_ingot"
+    },
+    "B": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "C": {
+      "item": "loconautics:industrial_pipe"
+    }
+  },
+  "result": {
+    "id": "loconautics:hose_connector",
+    "count": 1
+  }
+}

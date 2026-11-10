@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "A",
+    "B"
+  ],
+  "key": {
+    "A": {
+      "item": "create:electron_tube"
+    },
+    "B": {
+      "item": "loconautics:industrial_iron_sheet"
+    }
+  },
+  "result": {
+    "id": "loconautics:gauge_button",
+    "count": 1
+  }
+}

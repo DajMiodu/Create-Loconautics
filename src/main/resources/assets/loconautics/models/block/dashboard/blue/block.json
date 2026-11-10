@@ -1,0 +1,10 @@
+{
+    "loader": "loconautics:connected_variants",
+    "textures": {
+        "particle": "loconautics:block/dashboard/blue"
+    },
+    "single": "loconautics:block/dashboard/blue/single",
+    "start": "loconautics:block/dashboard/blue/start",
+    "middle": "loconautics:block/dashboard/blue/middle",
+    "end": "loconautics:block/dashboard/blue/end"
+}

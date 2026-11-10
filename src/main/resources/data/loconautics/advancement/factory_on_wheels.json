@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:sable_train",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "create:precision_mechanism"
+    },
+    "title": {
+      "translate": "advancement.loconautics.factory_on_wheels"
+    },
+    "description": {
+      "translate": "advancement.loconautics.factory_on_wheels.desc"
+    },
+    "frame": "goal"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

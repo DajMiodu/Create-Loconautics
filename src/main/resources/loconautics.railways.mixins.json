@@ -1,0 +1,17 @@
+{
+  "required": false,
+  "package": "com.lycoris.loconautics.mixin.compat.railways",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BogeyMenuHandlerServerAccessor",
+    "BogeyStylePickUpdatesItemMixin"
+  ],
+  "client": [
+    "BogeyMenuKeyMixin",
+    "BogeyStyleSelectionPacketMixin",
+    "SmokeStackParticleMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

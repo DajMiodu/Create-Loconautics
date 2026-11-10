@@ -1,0 +1,94 @@
+{
+  "variants": {
+    "connected=false,placement=top,facing=north": {
+      "model": "loconautics:block/headstock/top"
+    },
+    "connected=true,placement=top,facing=north": {
+      "model": "loconautics:block/headstock/top"
+    },
+    "connected=false,placement=top,facing=east": {
+      "model": "loconautics:block/headstock/top",
+      "y": 90
+    },
+    "connected=true,placement=top,facing=east": {
+      "model": "loconautics:block/headstock/top",
+      "y": 90
+    },
+    "connected=false,placement=top,facing=south": {
+      "model": "loconautics:block/headstock/top",
+      "y": 180
+    },
+    "connected=true,placement=top,facing=south": {
+      "model": "loconautics:block/headstock/top",
+      "y": 180
+    },
+    "connected=false,placement=top,facing=west": {
+      "model": "loconautics:block/headstock/top",
+      "y": 270
+    },
+    "connected=true,placement=top,facing=west": {
+      "model": "loconautics:block/headstock/top",
+      "y": 270
+    },
+    "connected=false,placement=center,facing=north": {
+      "model": "loconautics:block/headstock/center"
+    },
+    "connected=true,placement=center,facing=north": {
+      "model": "loconautics:block/headstock/center"
+    },
+    "connected=false,placement=center,facing=east": {
+      "model": "loconautics:block/headstock/center",
+      "y": 90
+    },
+    "connected=true,placement=center,facing=east": {
+      "model": "loconautics:block/headstock/center",
+      "y": 90
+    },
+    "connected=false,placement=center,facing=south": {
+      "model": "loconautics:block/headstock/center",
+      "y": 180
+    },
+    "connected=true,placement=center,facing=south": {
+      "model": "loconautics:block/headstock/center",
+      "y": 180
+    },
+    "connected=false,placement=center,facing=west": {
+      "model": "loconautics:block/headstock/center",
+      "y": 270
+    },
+    "connected=true,placement=center,facing=west": {
+      "model": "loconautics:block/headstock/center",
+      "y": 270
+    },
+    "connected=false,placement=bottom,facing=north": {
+      "model": "loconautics:block/headstock/bottom"
+    },
+    "connected=true,placement=bottom,facing=north": {
+      "model": "loconautics:block/headstock/bottom"
+    },
+    "connected=false,placement=bottom,facing=east": {
+      "model": "loconautics:block/headstock/bottom",
+      "y": 90
+    },
+    "connected=true,placement=bottom,facing=east": {
+      "model": "loconautics:block/headstock/bottom",
+      "y": 90
+    },
+    "connected=false,placement=bottom,facing=south": {
+      "model": "loconautics:block/headstock/bottom",
+      "y": 180
+    },
+    "connected=true,placement=bottom,facing=south": {
+      "model": "loconautics:block/headstock/bottom",
+      "y": 180
+    },
+    "connected=false,placement=bottom,facing=west": {
+      "model": "loconautics:block/headstock/bottom",
+      "y": 270
+    },
+    "connected=true,placement=bottom,facing=west": {
+      "model": "loconautics:block/headstock/bottom",
+      "y": 270
+    }
+  }
+}

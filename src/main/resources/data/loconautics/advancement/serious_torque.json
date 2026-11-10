@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:sable_train",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "create:stressometer"
+    },
+    "title": {
+      "translate": "advancement.loconautics.serious_torque"
+    },
+    "description": {
+      "translate": "advancement.loconautics.serious_torque.desc"
+    },
+    "frame": "challenge"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

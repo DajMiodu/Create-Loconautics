@@ -1,0 +1,7 @@
+{
+  "selector": "#loconautics:bogeys",
+
+  "properties": {
+    "sable:mass": 12.0
+  }
+}

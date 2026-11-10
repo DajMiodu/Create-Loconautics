@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "loconautics:block/dashboard/magenta/block"
+    },
+    "facing=east": {
+      "model": "loconautics:block/dashboard/magenta/block",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "loconautics:block/dashboard/magenta/block",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "loconautics:block/dashboard/magenta/block",
+      "y": 270
+    }
+  }
+}

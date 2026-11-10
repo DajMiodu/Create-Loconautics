@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:sable_train",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "loconautics:analog_controller"
+    },
+    "title": {
+      "translate": "advancement.loconautics.heavy_duty"
+    },
+    "description": {
+      "translate": "advancement.loconautics.heavy_duty.desc"
+    },
+    "frame": "goal"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

@@ -1,0 +1,220 @@
+{
+  "variants": {
+    "axis_along_first=false,facing=down,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "y": 90
+    },
+    "axis_along_first=false,facing=down,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "y": 90
+    },
+    "axis_along_first=false,facing=down,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "y": 90
+    },
+    "axis_along_first=false,facing=down,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "y": 90
+    },
+    "axis_along_first=false,facing=east,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "x": 270,
+      "y": 90
+    },
+    "axis_along_first=false,facing=east,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "x": 270,
+      "y": 90
+    },
+    "axis_along_first=false,facing=east,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "x": 270,
+      "y": 90
+    },
+    "axis_along_first=false,facing=east,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "x": 270,
+      "y": 90
+    },
+    "axis_along_first=false,facing=north,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "x": 270
+    },
+    "axis_along_first=false,facing=north,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "x": 270
+    },
+    "axis_along_first=false,facing=north,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "x": 270
+    },
+    "axis_along_first=false,facing=north,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "x": 270
+    },
+    "axis_along_first=false,facing=south,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "x": 270,
+      "y": 180
+    },
+    "axis_along_first=false,facing=south,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "x": 270,
+      "y": 180
+    },
+    "axis_along_first=false,facing=south,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "x": 270,
+      "y": 180
+    },
+    "axis_along_first=false,facing=south,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "x": 270,
+      "y": 180
+    },
+    "axis_along_first=false,facing=up,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "x": 180,
+      "y": 90
+    },
+    "axis_along_first=false,facing=up,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "x": 180,
+      "y": 90
+    },
+    "axis_along_first=false,facing=up,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "x": 180,
+      "y": 90
+    },
+    "axis_along_first=false,facing=up,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "x": 180,
+      "y": 90
+    },
+    "axis_along_first=false,facing=west,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "x": 270,
+      "y": 270
+    },
+    "axis_along_first=false,facing=west,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "x": 270,
+      "y": 270
+    },
+    "axis_along_first=false,facing=west,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "x": 270,
+      "y": 270
+    },
+    "axis_along_first=false,facing=west,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "x": 270,
+      "y": 270
+    },
+    "axis_along_first=true,facing=down,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty"
+    },
+    "axis_along_first=true,facing=down,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered"
+    },
+    "axis_along_first=true,facing=down,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil"
+    },
+    "axis_along_first=true,facing=down,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered"
+    },
+    "axis_along_first=true,facing=east,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "x": 270,
+      "y": 90
+    },
+    "axis_along_first=true,facing=east,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "x": 270,
+      "y": 90
+    },
+    "axis_along_first=true,facing=east,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "x": 270,
+      "y": 90
+    },
+    "axis_along_first=true,facing=east,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "x": 270,
+      "y": 90
+    },
+    "axis_along_first=true,facing=north,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "x": 270
+    },
+    "axis_along_first=true,facing=north,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "x": 270
+    },
+    "axis_along_first=true,facing=north,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "x": 270
+    },
+    "axis_along_first=true,facing=north,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "x": 270
+    },
+    "axis_along_first=true,facing=south,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "x": 270,
+      "y": 180
+    },
+    "axis_along_first=true,facing=south,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "x": 270,
+      "y": 180
+    },
+    "axis_along_first=true,facing=south,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "x": 270,
+      "y": 180
+    },
+    "axis_along_first=true,facing=south,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "x": 270,
+      "y": 180
+    },
+    "axis_along_first=true,facing=up,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "x": 180
+    },
+    "axis_along_first=true,facing=up,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "x": 180
+    },
+    "axis_along_first=true,facing=up,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "x": 180
+    },
+    "axis_along_first=true,facing=up,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "x": 180
+    },
+    "axis_along_first=true,facing=west,has_coil=false,powered=false": {
+      "model": "loconautics:block/hose/winch_empty",
+      "x": 270,
+      "y": 270
+    },
+    "axis_along_first=true,facing=west,has_coil=false,powered=true": {
+      "model": "loconautics:block/hose/winch_empty_powered",
+      "x": 270,
+      "y": 270
+    },
+    "axis_along_first=true,facing=west,has_coil=true,powered=false": {
+      "model": "loconautics:block/hose/winch_with_coil",
+      "x": 270,
+      "y": 270
+    },
+    "axis_along_first=true,facing=west,has_coil=true,powered=true": {
+      "model": "loconautics:block/hose/winch_with_coil_powered",
+      "x": 270,
+      "y": 270
+    }
+  }
+}

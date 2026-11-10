@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " L ",
+    "SCS",
+    "TPT"
+  ],
+  "key": {
+    "L": {
+      "item": "create:analog_lever"
+    },
+    "S": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "C": {
+      "item": "create:railway_casing"
+    },
+    "T": {
+      "item": "create:transmitter"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "result": {
+    "id": "loconautics:red_analog_controller",
+    "count": 1
+  }
+}

@@ -1,0 +1,19 @@
+{
+    "render_type": "minecraft:cutout",
+    "texture_size": [64, 64],
+    "textures": {
+        "0": "loconautics:block/controls/slim_plate_atlas",
+        "particle": "loconautics:block/controls/slim_plate_atlas"
+    },
+    "elements": [
+        {
+            "from": [1, 0.05, 1],
+            "to": [7, 0.05, 7],
+            "rotation": {"angle": 0, "axis": "y", "origin": [1, 0, 1]},
+            "faces": {
+                "up": {"uv": [1.75, 0, 3.25, 1.5], "texture": "#0"},
+                "down": {"uv": [1.75, 0, 3.25, 1.5], "texture": "#0"}
+            }
+        }
+    ]
+}

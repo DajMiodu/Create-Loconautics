@@ -1,0 +1,26 @@
+{
+  "parent": "loconautics:sable_train",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "loconautics:turntable_bearing"
+    },
+    "title": {
+      "translate": "advancement.loconautics.turnin"
+    },
+    "description": {
+      "translate": "advancement.loconautics.turnin.desc"
+    },
+    "frame": "challenge",
+    "hidden": true
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

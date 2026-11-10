@@ -1,0 +1,33 @@
+{
+  "dimensions": {
+    "minecraft:overworld": {
+      "type": "loconautics:locomotive_ready",
+      "generator": {
+        "type": "loconautics:checker_flat",
+        "biome": "minecraft:plains",
+        "tile_size": 8
+      }
+    },
+    "minecraft:the_end": {
+      "type": "minecraft:the_end",
+      "generator": {
+        "type": "minecraft:noise",
+        "biome_source": {
+          "type": "minecraft:the_end"
+        },
+        "settings": "minecraft:end"
+      }
+    },
+    "minecraft:the_nether": {
+      "type": "minecraft:the_nether",
+      "generator": {
+        "type": "minecraft:noise",
+        "biome_source": {
+          "type": "minecraft:multi_noise",
+          "preset": "minecraft:nether"
+        },
+        "settings": "minecraft:nether"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "  C"
+  ],
+  "key": {
+    "A": {
+      "item": "create:copper_sheet"
+    },
+    "B": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "C": {
+      "item": "loconautics:industrial_iron_rod"
+    }
+  },
+  "result": {
+    "id": "loconautics:locomotive_valve",
+    "count": 1
+  }
+}

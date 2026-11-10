@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AAA",
+    "ABA"
+  ],
+  "key": {
+    "A": {
+      "item": "create:copycat_panel"
+    },
+    "B": {
+      "item": "create:andesite_alloy"
+    }
+  },
+  "result": {
+    "id": "loconautics:copycat_headstock",
+    "count": 1
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "loconautics:transmission" }
+  ],
+  "result": {
+    "id": "loconautics:transmission",
+    "count": 1
+  }
+}

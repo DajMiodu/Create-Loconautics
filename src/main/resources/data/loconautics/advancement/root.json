@@ -1,0 +1,26 @@
+{
+  "criteria": {
+    "0": {
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "loconautics:bearing_axle"
+    },
+    "title": {
+      "translate": "advancement.loconautics.root"
+    },
+    "description": {
+      "translate": "advancement.loconautics.root.desc"
+    },
+    "background": "loconautics:textures/gui/advancements/background.png",
+    "show_toast": false,
+    "announce_to_chat": false
+  },
+  "requirements": [
+    [
+      "0"
+    ]
+  ]
+}

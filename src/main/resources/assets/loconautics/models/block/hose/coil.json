@@ -1,0 +1,49 @@
+{
+    "parent": "minecraft:block/block",
+    "textures": {
+        "1": "loconautics:block/hose/bundled",
+        "particle": "loconautics:block/hose/bundled"
+    },
+    "elements": [
+        {
+            "from": [2.01, 8.21, 2.61],
+            "to": [13.99, 15.79, 10.19],
+            "rotation": {"angle": 45, "axis": "x", "origin": [2, 8, 2.4]},
+            "faces": {
+                "north": {"uv": [2, 6, 14, 14], "texture": "#1"},
+                "south": {"uv": [2, 6, 14, 14], "texture": "#1"},
+                "up": {"uv": [2, 6, 14, 14], "texture": "#1"},
+                "down": {"uv": [2, 6, 14, 14], "texture": "#1"}
+            }
+        },
+        {
+            "from": [3.01, 4.21, 3.21],
+            "to": [6.99, 13.19, 12.19],
+            "rotation": {"angle": 45, "axis": "x", "origin": [3, 8, 7]},
+            "faces": {
+                "north": {"uv": [0, 12, 4, 3], "texture": "#1"},
+                "east": {"uv": [0, 0, 1, 1], "texture": "#1"},
+                "south": {"uv": [0, 12, 4, 3], "texture": "#1"},
+                "west": {"uv": [0, 0, 1, 1], "texture": "#1"},
+                "up": {"uv": [0, 12, 4, 3], "texture": "#1"},
+                "down": {"uv": [0, 12, 4, 3], "texture": "#1"}
+            }
+        },
+        {
+            "from": [9.01, 4.21, 3.21],
+            "to": [12.99, 13.19, 12.19],
+            "rotation": {"angle": 45, "axis": "x", "origin": [9, 8, 7]},
+            "faces": {
+                "north": {"uv": [0, 12, 4, 3], "texture": "#1"},
+                "east": {"uv": [0, 0, 1, 1], "texture": "#1"},
+                "south": {"uv": [0, 12, 4, 3], "texture": "#1"},
+                "west": {"uv": [0, 0, 1, 1], "texture": "#1"},
+                "up": {"uv": [0, 12, 4, 3], "texture": "#1"},
+                "down": {"uv": [0, 12, 4, 3], "texture": "#1"}
+            }
+        }
+    ],
+    "groups": [
+        {"name": "rope_coil", "origin": [8, 8, 8], "scope": 0, "color": 0, "children": [0, 1, 2]}
+    ]
+}

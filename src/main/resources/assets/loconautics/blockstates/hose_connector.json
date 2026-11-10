@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "loconautics:block/hose/connector"
+    },
+    "facing=east": {
+      "model": "loconautics:block/hose/connector",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "loconautics:block/hose/connector",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "loconautics:block/hose/connector",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "loconautics:block/hose/connector",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "loconautics:block/hose/connector",
+      "x": 90
+    }
+  }
+}

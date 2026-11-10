@@ -1,0 +1,7 @@
+{
+    "parent": "loconautics:block/bearingaxle/bogey/shafted",
+    "textures": {
+        "3": "loconautics:block/bearingaxle/bogey/underside",
+        "4": "loconautics:block/bearingaxle/bogey/driven_shafted"
+    }
+}

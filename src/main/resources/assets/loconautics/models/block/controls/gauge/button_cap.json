@@ -1,0 +1,22 @@
+{
+    "render_type": "minecraft:cutout",
+    "texture_size": [64, 64],
+    "textures": {
+        "0": "loconautics:block/controls/button_atlas",
+        "particle": "loconautics:block/controls/button_atlas"
+    },
+    "elements": [
+        {
+            "from": [2, 2, 2],
+            "to": [6, 3, 6],
+            "rotation": {"angle": 0, "axis": "y", "origin": [2, 2, 2]},
+            "faces": {
+                "north": {"uv": [0.5, 5, 1.5, 5.25], "texture": "#0"},
+                "east": {"uv": [0.5, 5, 1.5, 5.25], "texture": "#0"},
+                "south": {"uv": [0.5, 5, 1.5, 5.25], "texture": "#0"},
+                "west": {"uv": [0.5, 5, 1.5, 5.25], "texture": "#0"},
+                "up": {"uv": [1.5, 5, 0.5, 4], "texture": "#0"}
+            }
+        }
+    ]
+}

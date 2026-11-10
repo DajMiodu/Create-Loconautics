@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "loconautics:white_dashboard",
+    "loconautics:orange_dashboard",
+    "loconautics:magenta_dashboard",
+    "loconautics:light_blue_dashboard",
+    "loconautics:yellow_dashboard",
+    "loconautics:lime_dashboard",
+    "loconautics:pink_dashboard",
+    "loconautics:gray_dashboard",
+    "loconautics:light_gray_dashboard",
+    "loconautics:cyan_dashboard",
+    "loconautics:purple_dashboard",
+    "loconautics:blue_dashboard",
+    "loconautics:brown_dashboard",
+    "loconautics:green_dashboard",
+    "loconautics:red_dashboard",
+    "loconautics:black_dashboard"
+  ]
+}

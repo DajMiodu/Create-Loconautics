@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "loconautics:white_conductors_hat",
+    "loconautics:orange_conductors_hat",
+    "loconautics:magenta_conductors_hat",
+    "loconautics:light_blue_conductors_hat",
+    "loconautics:yellow_conductors_hat",
+    "loconautics:lime_conductors_hat",
+    "loconautics:pink_conductors_hat",
+    "loconautics:gray_conductors_hat",
+    "loconautics:light_gray_conductors_hat",
+    "loconautics:cyan_conductors_hat",
+    "loconautics:purple_conductors_hat",
+    "loconautics:blue_conductors_hat",
+    "loconautics:brown_conductors_hat",
+    "loconautics:green_conductors_hat",
+    "loconautics:red_conductors_hat",
+    "loconautics:black_conductors_hat"
+  ]
+}

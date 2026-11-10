@@ -1,0 +1,7 @@
+{
+    "parent": "loconautics:item/conductors_hat/base",
+    "textures": {
+        "0": "loconautics:item/conductors_hat/orange",
+        "particle": "loconautics:item/conductors_hat/orange"
+    }
+}

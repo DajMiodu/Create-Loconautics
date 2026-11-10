@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB"
+  ],
+  "key": {
+    "A": {
+      "item": "create:display_board"
+    },
+    "B": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "C": {
+      "item": "create:industrial_iron_block"
+    }
+  },
+  "result": {
+    "id": "loconautics:red_dashboard",
+    "count": 1
+  }
+}

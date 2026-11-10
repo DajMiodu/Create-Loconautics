@@ -1,0 +1,20 @@
+{
+  "blocks": [
+    "loconautics:white_analog_controller",
+    "loconautics:orange_analog_controller",
+    "loconautics:magenta_analog_controller",
+    "loconautics:light_blue_analog_controller",
+    "loconautics:yellow_analog_controller",
+    "loconautics:lime_analog_controller",
+    "loconautics:pink_analog_controller",
+    "loconautics:gray_analog_controller",
+    "loconautics:light_gray_analog_controller",
+    "loconautics:cyan_analog_controller",
+    "loconautics:purple_analog_controller",
+    "loconautics:blue_analog_controller",
+    "loconautics:brown_analog_controller",
+    "loconautics:green_analog_controller",
+    "loconautics:red_analog_controller",
+    "loconautics:black_analog_controller"
+  ]
+}

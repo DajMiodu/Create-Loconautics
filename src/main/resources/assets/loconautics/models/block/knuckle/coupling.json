@@ -1,0 +1,36 @@
+{
+    "parent": "block/block",
+    "render_type": "minecraft:cutout",
+    "textures": {
+        "2": "loconautics:block/knuckle/girder",
+        "3": "loconautics:block/knuckle/finger",
+        "4": "loconautics:block/knuckle/hand",
+        "particle": "create:block/copycat_base"
+    },
+    "elements": [
+        {
+            "from": [7, 7, 4.1],
+            "to": [12, 13, 6.1],
+            "rotation": {"angle": 0, "axis": "y", "origin": [8, 9.5, 13]},
+            "faces": {
+                "north": {"uv": [1, 1, 6, 7], "texture": "#4"},
+                "west": {"uv": [5, 1, 7, 7], "texture": "#4"},
+                "up": {"uv": [13, 2, 15, 7], "rotation": 90, "texture": "#3"},
+                "down": {"uv": [15, 2, 13, 7], "rotation": 90, "texture": "#3"}
+            }
+        },
+        {
+            "from": [4.5, 6, -3],
+            "to": [13.5, 14, 0],
+            "rotation": {"angle": 0, "axis": "y", "origin": [8, 9.5, 13]},
+            "faces": {
+                "north": {"uv": [0, 0, 9, 8], "texture": "#4"},
+                "east": {"uv": [8, 0, 5, 8], "texture": "#4"},
+                "south": {"uv": [9, 0, 0, 8], "texture": "#4"},
+                "west": {"uv": [12, 8, 15, 16], "texture": "#3"},
+                "up": {"uv": [0, 16, 3, 7], "rotation": 90, "texture": "#3"},
+                "down": {"uv": [3, 16, 0, 7], "rotation": 90, "texture": "#3"}
+            }
+        }
+    ]
+}

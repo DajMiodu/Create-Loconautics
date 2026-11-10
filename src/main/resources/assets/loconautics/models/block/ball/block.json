@@ -1,0 +1,23 @@
+{
+    "parent": "minecraft:block/block",
+    "textures": {
+        "blue": "loconautics:block/ball/side_blue",
+        "red": "loconautics:block/ball/side_red",
+        "caps": "loconautics:block/ball/top_bottom",
+        "particle": "loconautics:block/ball/side_red"
+    },
+    "elements": [
+        {
+            "from": [0, 0, 0],
+            "to": [16, 16, 16],
+            "faces": {
+                "north": {"uv": [0, 0, 16, 16], "texture": "#blue"},
+                "east": {"uv": [0, 0, 16, 16], "texture": "#red"},
+                "south": {"uv": [0, 0, 16, 16], "texture": "#blue"},
+                "west": {"uv": [0, 0, 16, 16], "texture": "#red"},
+                "up": {"uv": [0, 0, 16, 16], "texture": "#caps"},
+                "down": {"uv": [16, 0, 0, 16], "texture": "#caps", "cullface": "down"}
+            }
+        }
+    ]
+}

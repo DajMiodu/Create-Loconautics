@@ -1,0 +1,21 @@
+{
+    "parent": "block/block",
+    "render_type": "minecraft:cutout",
+    "textures": {
+        "0": "loconautics:block/buffer/gray/buffer",
+        "particle": "loconautics:block/buffer/gray/buffer"
+    },
+    "elements": [
+        {
+            "from": [6.04289, 8, 10],
+            "to": [10.04289, 12, 16],
+            "rotation": {"angle": 0, "axis": "y", "origin": [8.04289, 10, 13]},
+            "faces": {
+                "east": {"uv": [1, 2, 5, 8], "rotation": 90, "texture": "#0"},
+                "west": {"uv": [1, 2, 5, 8], "rotation": 270, "texture": "#0"},
+                "up": {"uv": [1, 2, 5, 8], "texture": "#0"},
+                "down": {"uv": [1, 2, 5, 8], "rotation": 180, "texture": "#0"}
+            }
+        }
+    ]
+}

@@ -1,0 +1,373 @@
+package com.lycoris.loconautics.trainphysics.spacing;
+
+import com.lycoris.loconautics.trainphysics.SableTrain;
+import com.lycoris.loconautics.trainphysics.drive.TrainBrakes;
+import com.lycoris.loconautics.trainphysics.drive.TrainPropulsion;
+import com.lycoris.loconautics.common.train.TrainStatusChat;
+import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+
+public final class TrainSpacing {
+
+    private static final double MIN_GAP = 1.5;
+    private static final double MIN_DEPTH = 0.25;
+    private static final int GATE_RETRY_TICKS = 10;
+    private static final int HOLD_EXPIRY_TICKS = 40;
+    private static final int NUDGE_DELAY_TICKS = 30;
+    private static final double NUDGE_STEP = 0.08;
+    private static final double NUDGE_MIN_ALIGNMENT = 0.5;
+    private static final double LOADED_BRAKE_MARGIN = 0.7;
+
+    private record Held(long since, long expires, double dirX, double dirZ) {}
+
+    private static final Map<UUID, Held> HELD = new HashMap<>();
+    private static final Map<UUID, Long> NEXT_CHECK = new HashMap<>();
+
+    private static final Map<UUID, Footprint> FOOTPRINTS = new HashMap<>();
+    private static final Map<UUID, Double> BUDGETS = new HashMap<>();
+    private static final Map<UUID, SableTrain> BLOCKED_BY = new HashMap<>();
+    private static final Map<UUID, BlockPos> BLOCKED_AT = new HashMap<>();
+    private static int cachedTick = -1;
+    private static MinecraftServer cachedServer;
+    private static int ghostCount;
+
+    private TrainSpacing() {
+    }
+
+    public static void clear() {
+        HELD.clear();
+        NEXT_CHECK.clear();
+        FOOTPRINTS.clear();
+        BUDGETS.clear();
+        BLOCKED_BY.clear();
+        BLOCKED_AT.clear();
+        cachedTick = -1;
+        cachedServer = null;
+        ghostCount = 0;
+    }
+
+    public static void forget(Set<UUID> live) {
+        HELD.keySet().retainAll(live);
+        NEXT_CHECK.keySet().retainAll(live);
+    }
+
+    public static double ghostStep(SableTrain train) {
+        double ds = train.speed();
+        MinecraftServer server = serverOf(train);
+        if (server == null) {
+            return ds;
+        }
+        long now = train.level().getGameTime();
+        Held held = heldFor(train, now);
+        if (held != null) {
+            return holdStep(train, held, now, server);
+        }
+        if (ds == 0.0) {
+            return 0.0;
+        }
+        refresh(server);
+        double cap = consistBudget(train, true);
+        if (cap == Double.POSITIVE_INFINITY) {
+            TrainStatusChat.unblocked(train);
+            return ds;
+        }
+        double allowed = Math.min(cap, Math.sqrt(2.0 * loadedBrake() * cap));
+        if (Math.abs(ds) <= allowed) {
+            return ds;
+        }
+        double clamped = Math.copySign(allowed, ds);
+        train.setSpeed(clamped);
+        UUID blocked = blockedMember(train);
+        if (BLOCKED_AT.containsKey(blocked)) {
+            TrainStatusChat.blockedByBlocks(train, BLOCKED_AT.get(blocked));
+        } else if (blocked != null) {
+            TrainStatusChat.blockedBy(train, BLOCKED_BY.get(blocked));
+        }
+        return clamped;
+    }
+
+    private static UUID blockedMember(SableTrain train) {
+        for (SableTrain member : membersOf(train)) {
+            if (BLOCKED_BY.containsKey(member.id()) || BLOCKED_AT.containsKey(member.id())) {
+                return member.id();
+            }
+        }
+        return null;
+    }
+
+    public static void limitLoaded(SableTrain train) {
+        MinecraftServer server = serverOf(train);
+        if (server == null || train.isGhost() || train.isDerailed() || train.isPhysics()) {
+            return;
+        }
+        refresh(server);
+        if (ghostCount == 0) {
+            return;
+        }
+        double target = train.targetSpeed();
+        double cap = consistBudget(train, false);
+        if (cap == Double.POSITIVE_INFINITY) {
+            return;
+        }
+        double allowed = Math.sqrt(2.0 * loadedBrake() * cap);
+        double motion = Math.abs(train.speed()) > 1.0e-3 ? train.speed() : target;
+        if (Math.abs(target) > allowed && target * motion >= 0.0) {
+            train.setTargetSpeed(Math.copySign(allowed, target));
+        }
+        double hardAllowed = Math.sqrt(2.0 * emergencyBrake() * cap);
+        if (Math.abs(train.speed()) > hardAllowed) {
+            double before = train.speed();
+            train.setSpeed(Math.copySign(hardAllowed, before));
+        }
+    }
+
+    public static boolean mayEmbody(SableTrain train) {
+        MinecraftServer server = serverOf(train);
+        if (server == null || train.isDerailed() || train.isPhysics()) {
+            return true;
+        }
+        long now = train.level().getGameTime();
+        UUID id = train.id();
+        Long next = NEXT_CHECK.get(id);
+        if (next != null && now < next) {
+            return false;
+        }
+        refresh(server);
+        Footprint blocked = null;
+        Footprint blocker = null;
+        for (SableTrain member : membersOf(train)) {
+            Footprint own = FOOTPRINTS.get(member.id());
+            Footprint other = own == null ? null : firstOverlap(member, own);
+            if (other != null) {
+                blocked = own;
+                blocker = other;
+                break;
+            }
+        }
+        Held old = HELD.get(id);
+        if (blocker == null) {
+            NEXT_CHECK.remove(id);
+            TrainStatusChat.unblocked(train);
+            HELD.remove(id);
+            return true;
+        }
+        NEXT_CHECK.put(id, now + GATE_RETRY_TICKS);
+        double dx = blocker.x() - blocked.x();
+        double dz = blocker.z() - blocked.z();
+        double dist = Math.hypot(dx, dz);
+        double aligned = dist < 1.0e-6 ? 0.0 : (dx * blocked.ax() + dz * blocked.az()) / dist;
+        double away = Math.abs(aligned) >= NUDGE_MIN_ALIGNMENT ? -Math.signum(aligned) : 0.0;
+        HELD.put(id, new Held(old == null ? now : old.since(), now + HOLD_EXPIRY_TICKS, blocked.ax() * away,
+                blocked.az() * away));
+        TrainStatusChat.blockedBy(train, blocker.train());
+        return false;
+    }
+
+    public static void release(SableTrain train) {
+        NEXT_CHECK.remove(train.id());
+        HELD.remove(train.id());
+    }
+
+    private static double holdStep(SableTrain train, Held held, long now, MinecraftServer server) {
+        train.setSpeed(0.0);
+        if (now - held.since() < NUDGE_DELAY_TICKS || (held.dirX() == 0.0 && held.dirZ() == 0.0)) {
+            return 0.0;
+        }
+        refresh(server);
+        Footprint own = FOOTPRINTS.get(train.id());
+        if (own == null) {
+            return 0.0;
+        }
+        double along = held.dirX() * own.ax() + held.dirZ() * own.az();
+        if (Math.abs(along) < NUDGE_MIN_ALIGNMENT) {
+            return 0.0;
+        }
+        double sign = Math.signum(along);
+        double room = roomToward(train, own, sign);
+        double step = Math.min(NUDGE_STEP, room);
+        if (step <= 1.0e-4) {
+            return 0.0;
+        }
+        return sign * step;
+    }
+
+    private static double roomToward(SableTrain train, Footprint own, double sign) {
+        double min = Double.POSITIVE_INFINITY;
+        for (SableTrain member : membersOf(train)) {
+            Footprint print = FOOTPRINTS.get(member.id());
+            if (print == null) {
+                continue;
+            }
+            double dot = member == train ? 1.0 : print.ax() * own.ax() + print.az() * own.az();
+            if (Math.abs(dot) < NUDGE_MIN_ALIGNMENT) {
+                continue;
+            }
+            min = Math.min(min, scanBudget(member, print, sign * Math.signum(dot), NUDGE_STEP * 4.0 + MIN_GAP, false));
+        }
+        return min;
+    }
+
+    private static Held heldFor(SableTrain train, long now) {
+        Held own = HELD.get(train.id());
+        if (own != null) {
+            return own.expires() >= now ? own : null;
+        }
+        Set<UUID> consist = train.consistCache();
+        if (consist.size() <= 1) {
+            return null;
+        }
+        for (UUID id : consist) {
+            SableTrain mate = SableTrainRegistry.bySubLevel(id);
+            Held held = mate == null ? null : HELD.get(mate.id());
+            if (held != null && held.expires() >= now) {
+                return held;
+            }
+        }
+        return null;
+    }
+
+    private static double consistBudget(SableTrain train, boolean ghosts) {
+        double cap = memberBudget(train, ghosts);
+        if (train.consistCache().size() <= 1) {
+            return cap;
+        }
+        for (UUID id : train.consistCache()) {
+            SableTrain member = SableTrainRegistry.bySubLevel(id);
+            if (member != null && member.isGhost() == ghosts) {
+                cap = Math.min(cap, memberBudget(member, ghosts));
+            }
+        }
+        return cap;
+    }
+
+    private static double memberBudget(SableTrain member, boolean ghosts) {
+        if (member.isDerailed() || member.isPhysics() || member.car() == null) {
+            return Double.POSITIVE_INFINITY;
+        }
+        Double known = BUDGETS.get(member.id());
+        if (known != null) {
+            return known;
+        }
+        double speed = member.isGhost() || Math.abs(member.speed()) > 1.0e-3 ? member.speed() : member.targetSpeed();
+        Footprint own = FOOTPRINTS.get(member.id());
+        double budget = Double.POSITIVE_INFINITY;
+        if (own != null && Math.abs(speed) > 1.0e-4) {
+            double v = Math.max(Math.abs(speed), Math.abs(member.targetSpeed()));
+            double look = v * v / (2.0 * loadedBrake()) + 2.0 * v + MIN_GAP + 6.0;
+            budget = scanBudget(member, own, Math.signum(speed), look, !ghosts);
+        }
+        BUDGETS.put(member.id(), budget);
+        return budget;
+    }
+
+    private static double scanBudget(SableTrain train, Footprint own, double sign, double look, boolean ghostsOnly) {
+        List<Footprint> near = null;
+        for (Footprint other : FOOTPRINTS.values()) {
+            if (other.level() != own.level() || (ghostsOnly && !other.train().isGhost())
+                    || sameConsist(train, other.train())
+                    || own.horizontalDistance(other.x(), other.z()) > look + own.halfLength() + other.reach() + 2.0) {
+                continue;
+            }
+            if (near == null) {
+                near = new ArrayList<>();
+            }
+            near.add(other);
+        }
+        boolean checkBlocks = !ghostsOnly && GhostObstacles.any(train.level());
+        if (near == null && !checkBlocks) {
+            return Double.POSITIVE_INFINITY;
+        }
+        RouteScout.Scan scan = RouteScout.scan(train, own, sign, look, near == null ? List.of() : near,
+                checkBlocks ? train.level() : null);
+        if (scan == null) {
+            return Double.POSITIVE_INFINITY;
+        }
+        if (scan.block() != null) {
+            BLOCKED_AT.put(train.id(), scan.block());
+            return Math.max(0.0, scan.free() - MIN_GAP);
+        }
+        if (scan.hit() == null) {
+            return Double.POSITIVE_INFINITY;
+        }
+        Footprint hit = scan.hit();
+        BLOCKED_BY.put(train.id(), hit.train());
+        return Math.max(0.0, scan.free() - MIN_GAP);
+    }
+
+    private static Footprint firstOverlap(SableTrain train, Footprint own) {
+        for (Footprint other : FOOTPRINTS.values()) {
+            if (other.level() == own.level() && !sameConsist(train, other.train())
+                    && Footprint.overlapDepth(own, other) > MIN_DEPTH) {
+                return other;
+            }
+        }
+        return null;
+    }
+
+    private static boolean sameConsist(SableTrain a, SableTrain b) {
+        return a == b || a.consistCache().contains(b.car().subLevelId())
+                || b.consistCache().contains(a.car().subLevelId());
+    }
+
+    private static List<SableTrain> membersOf(SableTrain train) {
+        List<SableTrain> out = new ArrayList<>();
+        out.add(train);
+        for (UUID id : train.consistCache()) {
+            SableTrain member = SableTrainRegistry.bySubLevel(id);
+            if (member != null && member != train && member.isGhost()) {
+                out.add(member);
+            }
+        }
+        return out;
+    }
+
+    private static void refresh(MinecraftServer server) {
+        int tick = server.getTickCount();
+        if (tick == cachedTick && server == cachedServer) {
+            return;
+        }
+        cachedTick = tick;
+        cachedServer = server;
+        FOOTPRINTS.clear();
+        BUDGETS.clear();
+        BLOCKED_BY.clear();
+        BLOCKED_AT.clear();
+        ghostCount = 0;
+        for (SableTrain train : SableTrainRegistry.all()) {
+            if (train.isGhost()) {
+                ghostCount++;
+            }
+        }
+        if (ghostCount == 0) {
+            return;
+        }
+        for (SableTrain train : SableTrainRegistry.all()) {
+            Footprint print = Footprint.of(train);
+            if (print != null) {
+                FOOTPRINTS.put(train.id(), print);
+            }
+        }
+    }
+
+    private static MinecraftServer serverOf(SableTrain train) {
+        return train.level() == null || train.car() == null || train.car().subLevelId() == null ? null
+                : train.level().getServer();
+    }
+
+    private static double emergencyBrake() {
+        return TrainBrakes.BRAKE_DECEL * TrainPropulsion.MPS2_TO_BPT2;
+    }
+
+    private static double loadedBrake() {
+        return TrainPropulsion.brakeDecelLimit() * TrainPropulsion.MPS2_TO_BPT2 * LOADED_BRAKE_MARGIN;
+    }
+}

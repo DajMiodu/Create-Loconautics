@@ -1,0 +1,61 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:iron_sheet"
+  },
+  "results": [
+    {
+      "id": "loconautics:industrial_iron_sheet"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:filling",
+      "ingredients": [
+        {
+          "item": "loconautics:unprocessed_reinforced_iron_sheet"
+        },
+        {
+          "type": "neoforge:single",
+          "amount": 100,
+          "fluid": "minecraft:lava"
+        }
+      ],
+      "results": [
+        {
+          "id": "loconautics:unprocessed_reinforced_iron_sheet"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "loconautics:unprocessed_reinforced_iron_sheet"
+        }
+      ],
+      "results": [
+        {
+          "id": "loconautics:unprocessed_reinforced_iron_sheet"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "loconautics:unprocessed_reinforced_iron_sheet"
+        }
+      ],
+      "results": [
+        {
+          "id": "loconautics:unprocessed_reinforced_iron_sheet"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "loconautics:unprocessed_reinforced_iron_sheet"
+  },
+  "loops": 1
+}

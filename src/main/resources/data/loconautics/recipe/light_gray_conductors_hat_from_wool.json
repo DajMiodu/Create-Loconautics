@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AAB"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:light_gray_wool"
+    },
+    "B": {
+      "item": "create:brass_nugget"
+    }
+  },
+  "result": {
+    "id": "loconautics:light_gray_conductors_hat",
+    "count": 1
+  }
+}

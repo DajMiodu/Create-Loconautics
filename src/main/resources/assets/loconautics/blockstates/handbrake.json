@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "facing=north,powered=false": { "model": "loconautics:block/brakes/block" },
+    "facing=east,powered=false":  { "model": "loconautics:block/brakes/block", "y": 90 },
+    "facing=south,powered=false": { "model": "loconautics:block/brakes/block", "y": 180 },
+    "facing=west,powered=false":  { "model": "loconautics:block/brakes/block", "y": 270 },
+
+    "facing=north,powered=true": { "model": "loconautics:block/brakes/powered" },
+    "facing=east,powered=true":  { "model": "loconautics:block/brakes/powered", "y": 90 },
+    "facing=south,powered=true": { "model": "loconautics:block/brakes/powered", "y": 180 },
+    "facing=west,powered=true":  { "model": "loconautics:block/brakes/powered", "y": 270 }
+  }
+}

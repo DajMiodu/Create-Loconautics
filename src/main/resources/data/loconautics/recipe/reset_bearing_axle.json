@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "loconautics:bearing_axle" }
+  ],
+  "result": {
+    "id": "loconautics:bearing_axle",
+    "count": 1
+  }
+}

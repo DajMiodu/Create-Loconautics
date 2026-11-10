@@ -1,0 +1,26 @@
+{
+  "variants": {
+    "axis=z,powered=false": {
+      "model": "loconautics:block/transmission/unpowered"
+    },
+    "axis=z,powered=true": {
+      "model": "loconautics:block/transmission/powered"
+    },
+    "axis=x,powered=false": {
+      "model": "loconautics:block/transmission/unpowered",
+      "y": 90
+    },
+    "axis=x,powered=true": {
+      "model": "loconautics:block/transmission/powered",
+      "y": 90
+    },
+    "axis=y,powered=false": {
+      "model": "loconautics:block/transmission/unpowered",
+      "x": 90
+    },
+    "axis=y,powered=true": {
+      "model": "loconautics:block/transmission/powered",
+      "x": 90
+    }
+  }
+}

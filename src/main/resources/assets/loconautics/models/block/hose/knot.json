@@ -1,0 +1,20 @@
+{
+    "parent": "minecraft:block/block",
+    "textures": {
+        "1": "loconautics:block/hose/knot"
+    },
+    "elements": [
+        {
+            "from": [6, 6, 6],
+            "to": [10, 10, 10],
+            "faces": {
+                "north": {"uv": [0, 0, 16, 16], "texture": "#1"},
+                "east": {"uv": [0, 0, 16, 16], "texture": "#1"},
+                "south": {"uv": [0, 0, 16, 16], "texture": "#1"},
+                "west": {"uv": [0, 0, 16, 16], "texture": "#1"},
+                "up": {"uv": [0, 0, 16, 16], "texture": "#1"},
+                "down": {"uv": [0, 0, 16, 16], "texture": "#1"}
+            }
+        }
+    ]
+}

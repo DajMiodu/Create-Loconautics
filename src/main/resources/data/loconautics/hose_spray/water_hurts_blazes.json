@@ -1,0 +1,9 @@
+{
+  "fluid": "minecraft:water",
+  "effect": "douse",
+  "entities": {
+    "rules": [
+      { "match": ["minecraft:blaze"], "damage": 3.0 }
+    ]
+  }
+}

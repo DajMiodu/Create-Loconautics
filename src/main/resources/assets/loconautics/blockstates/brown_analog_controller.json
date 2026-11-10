@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "loconautics:block/analogcontroller/brown/controller"
+    },
+    "facing=east": {
+      "model": "loconautics:block/analogcontroller/brown/controller",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "loconautics:block/analogcontroller/brown/controller",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "loconautics:block/analogcontroller/brown/controller",
+      "y": 270
+    }
+  }
+}

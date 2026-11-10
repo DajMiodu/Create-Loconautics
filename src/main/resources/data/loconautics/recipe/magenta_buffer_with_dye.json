@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "ACA",
+    " D "
+  ],
+  "key": {
+    "A": {
+      "item": "create:copycat_panel"
+    },
+    "B": {
+      "item": "create:andesite_alloy"
+    },
+    "C": {
+      "item": "create:industrial_iron_block"
+    },
+    "D": {
+      "item": "minecraft:magenta_dye"
+    }
+  },
+  "result": {
+    "id": "loconautics:magenta_buffer",
+    "count": 2
+  }
+}

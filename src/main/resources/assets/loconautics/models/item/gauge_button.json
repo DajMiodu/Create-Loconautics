@@ -1,0 +1,69 @@
+{
+    "render_type": "minecraft:cutout",
+    "texture_size": [64, 64],
+    "textures": {
+        "0": "loconautics:block/controls/button_atlas",
+        "particle": "loconautics:block/controls/button_atlas",
+        "1": "loconautics:block/controls/body_atlas",
+        "2": "loconautics:block/controls/plate_atlas"
+    },
+    "elements": [
+        {
+            "from": [5, 0, 5],
+            "to": [11, 2, 11],
+            "rotation": {"angle": 0, "axis": "y", "origin": [6, 0, 6]},
+            "faces": {
+                "north": {"uv": [0, 3, 1.5, 3.5], "texture": "#1"},
+                "east": {"uv": [0, 3, 1.5, 3.5], "texture": "#1"},
+                "south": {"uv": [0, 3, 1.5, 3.5], "texture": "#1"},
+                "west": {"uv": [0, 3, 1.5, 3.5], "texture": "#1"},
+                "up": {"uv": [1.5, 1.5, 0, 0], "texture": "#1"},
+                "down": {"uv": [1.5, 1.5, 0, 3], "texture": "#1"}
+            }
+        },
+        {
+            "from": [6, 2, 6],
+            "to": [10, 3, 10],
+            "rotation": {"angle": 0, "axis": "y", "origin": [6, 2, 6]},
+            "faces": {
+                "north": {"uv": [0.5, 5, 1.5, 5.25], "texture": "#0"},
+                "east": {"uv": [0.5, 5, 1.5, 5.25], "texture": "#0"},
+                "south": {"uv": [0.5, 5, 1.5, 5.25], "texture": "#0"},
+                "west": {"uv": [0.5, 5, 1.5, 5.25], "texture": "#0"},
+                "up": {"uv": [1.5, 5, 0.5, 4], "texture": "#0"}
+            }
+        },
+        {
+            "from": [11, 0, 5],
+            "to": [5, 2, 11],
+            "rotation": {"angle": 0, "axis": "y", "origin": [12, 0, 6]},
+            "faces": {
+                "north": {"uv": [0, 3, 1.5, 3.5], "texture": "#1"},
+                "east": {"uv": [0, 3, 1.5, 3.5], "texture": "#1"},
+                "south": {"uv": [0, 3, 1.5, 3.5], "texture": "#1"},
+                "west": {"uv": [0, 3, 1.5, 3.5], "texture": "#1"},
+                "up": {"uv": [1.5, 1.5, 0, 0], "texture": "#1"},
+                "down": {"uv": [1.5, 1.5, 0, 3], "texture": "#1"}
+            }
+        },
+        {
+            "from": [4, 0.05, 5],
+            "to": [12, 0.05, 11],
+            "rotation": {"angle": 0, "axis": "y", "origin": [5, 0, 5]},
+            "faces": {
+                "up": {"uv": [1.5, 0, 3.5, 1.5], "texture": "#2"},
+                "down": {"uv": [1.5, 0, 3.5, 1.5], "texture": "#2"}
+            }
+        }
+    ],
+    "display": {
+        "thirdperson_righthand": {"rotation": [75, 45, 0], "translation": [0, 2.5, 2.5], "scale": [0.375, 0.375, 0.375]},
+        "thirdperson_lefthand": {"rotation": [75, 45, 0], "translation": [0, 2.5, 2.75], "scale": [0.375, 0.375, 0.375]},
+        "firstperson_righthand": {"rotation": [0, 45, 0], "translation": [0, 3.75, 0.75], "scale": [0.4, 0.4, 0.4]},
+        "firstperson_lefthand": {"rotation": [0, 45, 0], "translation": [0, 3.75, 0.75], "scale": [0.4, 0.4, 0.4]},
+        "ground": {"translation": [0, 3, 0], "scale": [0.5, 0.5, 0.5]},
+        "gui": {"rotation": [30, 135, 0], "translation": [0, 6.5, 0], "scale": [1.5, 1.5, 1.5]},
+        "head": {"rotation": [80, 22.5, 0], "translation": [0, 0, 14]},
+        "fixed": {"rotation": [-90, 0, 0], "translation": [0, 0, -6.5], "scale": [0.75, 0.75, 0.75]}
+    }
+}

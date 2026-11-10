@@ -1,0 +1,6 @@
+{
+    "parent": "minecraft:item/generated",
+    "textures": {
+        "layer0": "loconautics:item/unprocessed_reinforced_iron_sheet"
+    }
+}

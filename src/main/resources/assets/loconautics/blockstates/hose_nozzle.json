@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "powered=false": { "model": "loconautics:block/hose/nozzle" },
+    "powered=true": { "model": "loconautics:block/hose/nozzle_powered" }
+  }
+}

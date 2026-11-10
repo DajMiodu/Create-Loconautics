@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "loconautics:gray_analog_controller"
+    }
+  ],
+  "result": {
+    "id": "loconautics:gray_analog_controller",
+    "count": 1
+  }
+}

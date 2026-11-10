@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AB"
+  ],
+  "key": {
+    "A": {
+      "item": "create:precision_mechanism"
+    },
+    "B": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "result": {
+    "id": "loconautics:locomotive_gauge",
+    "count": 1
+  }
+}

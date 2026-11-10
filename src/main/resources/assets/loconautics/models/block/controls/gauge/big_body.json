@@ -1,0 +1,26 @@
+{
+    "render_type": "minecraft:cutout",
+    "texture_size": [64, 64],
+    "textures": {
+        "0": "loconautics:block/controls/big_body_atlas",
+        "particle": "loconautics:block/controls/big_body_atlas"
+    },
+    "elements": [
+        {
+            "from": [0, 0, 0],
+            "to": [8, 2, 8],
+            "rotation": {"angle": 0, "axis": "y", "origin": [2, 0, 2]},
+            "faces": {
+                "north": {"uv": [0, 4.5, 2, 5], "texture": "#0"},
+                "east": {"uv": [0, 4, 2, 4.5], "texture": "#0"},
+                "south": {"uv": [0, 4, 2, 4.5], "texture": "#0"},
+                "west": {"uv": [0, 4, 2, 4.5], "texture": "#0"},
+                "up": {"uv": [2, 2, 0, 0], "texture": "#0"},
+                "down": {"uv": [2, 2, 0, 4], "texture": "#0"}
+            }
+        }
+    ],
+    "groups": [
+        {"name": "body", "origin": [6, 0, 6], "scope": 0, "color": 0, "children": [0]}
+    ]
+}

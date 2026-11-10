@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:sable_train",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:honey_bottle"
+    },
+    "title": {
+      "translate": "advancement.loconautics.run_over"
+    },
+    "description": {
+      "translate": "advancement.loconautics.run_over.desc"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

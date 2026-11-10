@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    " D "
+  ],
+  "key": {
+    "A": {
+      "item": "loconautics:industrial_pipe"
+    },
+    "B": {
+      "item": "minecraft:iron_ingot"
+    },
+    "C": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "D": {
+      "item": "create:shaft"
+    }
+  },
+  "result": {
+    "id": "loconautics:hose_nozzle",
+    "count": 1
+  }
+}

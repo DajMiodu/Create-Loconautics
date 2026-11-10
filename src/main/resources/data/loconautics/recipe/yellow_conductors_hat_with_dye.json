@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AAB",
+    "C  "
+  ],
+  "key": {
+    "A": {
+      "tag": "minecraft:wool"
+    },
+    "B": {
+      "item": "create:brass_nugget"
+    },
+    "C": {
+      "item": "minecraft:yellow_dye"
+    }
+  },
+  "result": {
+    "id": "loconautics:yellow_conductors_hat",
+    "count": 1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCD",
+    " E "
+  ],
+  "key": {
+    "A": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "B": {
+      "item": "create:fluid_pipe"
+    },
+    "C": {
+      "item": "create:shaft"
+    },
+    "D": {
+      "item": "minecraft:dried_kelp"
+    },
+    "E": {
+      "item": "create:industrial_iron_block"
+    }
+  },
+  "result": {
+    "id": "loconautics:hose_winch",
+    "count": 1
+  }
+}

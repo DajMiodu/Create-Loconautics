@@ -1,0 +1,7 @@
+{
+  "type": "loconautics:rail_grid",
+  "biomes": "minecraft:plains",
+  "step": "surface_structures",
+  "spawn_overrides": {},
+  "terrain_adaptation": "none"
+}

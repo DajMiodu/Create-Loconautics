@@ -1,0 +1,108 @@
+{
+  "variants": {
+    "assembled=false,facing=down,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing",
+      "x": 180
+    },
+    "assembled=false,facing=down,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing",
+      "x": 180
+    },
+    "assembled=true,facing=down,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled",
+      "x": 180
+    },
+    "assembled=true,facing=down,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled",
+      "x": 180
+    },
+    "assembled=false,facing=up,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing"
+    },
+    "assembled=false,facing=up,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing"
+    },
+    "assembled=true,facing=up,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled"
+    },
+    "assembled=true,facing=up,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled"
+    },
+    "assembled=false,facing=north,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing",
+      "x": 90
+    },
+    "assembled=false,facing=north,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing",
+      "x": 90
+    },
+    "assembled=true,facing=north,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled",
+      "x": 90
+    },
+    "assembled=true,facing=north,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled",
+      "x": 90
+    },
+    "assembled=false,facing=south,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing",
+      "x": 90,
+      "y": 180
+    },
+    "assembled=false,facing=south,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing",
+      "x": 90,
+      "y": 180
+    },
+    "assembled=true,facing=south,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled",
+      "x": 90,
+      "y": 180
+    },
+    "assembled=true,facing=south,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled",
+      "x": 90,
+      "y": 180
+    },
+    "assembled=false,facing=east,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing",
+      "x": 90,
+      "y": 90
+    },
+    "assembled=false,facing=east,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing",
+      "x": 90,
+      "y": 90
+    },
+    "assembled=true,facing=east,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled",
+      "x": 90,
+      "y": 90
+    },
+    "assembled=true,facing=east,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled",
+      "x": 90,
+      "y": 90
+    },
+    "assembled=false,facing=west,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing",
+      "x": 90,
+      "y": 270
+    },
+    "assembled=false,facing=west,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing",
+      "x": 90,
+      "y": 270
+    },
+    "assembled=true,facing=west,powered=false": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled",
+      "x": 90,
+      "y": 270
+    },
+    "assembled=true,facing=west,powered=true": {
+      "model": "loconautics:block/turntablebearing/bearing_assembled",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

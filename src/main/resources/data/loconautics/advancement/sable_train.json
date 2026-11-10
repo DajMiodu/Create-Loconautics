@@ -1,0 +1,24 @@
+{
+  "parent": "loconautics:root",
+  "criteria": {
+    "assembled": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "loconautics:bearing_axle"
+    },
+    "title": {
+      "translate": "advancement.loconautics.sable_train"
+    },
+    "description": {
+      "translate": "advancement.loconautics.sable_train.desc"
+    }
+  },
+  "requirements": [
+    [
+      "assembled"
+    ]
+  ]
+}

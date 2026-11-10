@@ -1,0 +1,334 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/lu_x"
+      },
+      "when": {
+        "down": "false",
+        "north": "false",
+        "south": "true",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/ru_x"
+      },
+      "when": {
+        "down": "false",
+        "north": "true",
+        "south": "false",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/ld_x"
+      },
+      "when": {
+        "down": "true",
+        "north": "false",
+        "south": "true",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/rd_x"
+      },
+      "when": {
+        "down": "true",
+        "north": "true",
+        "south": "false",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/ud_x"
+      },
+      "when": {
+        "down": "true",
+        "north": "false",
+        "south": "false",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/u_x"
+      },
+      "when": {
+        "down": "false",
+        "north": "false",
+        "south": "false",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/d_x"
+      },
+      "when": {
+        "down": "true",
+        "north": "false",
+        "south": "false",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/lr_x"
+      },
+      "when": {
+        "down": "false",
+        "north": "true",
+        "south": "true",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/l_x"
+      },
+      "when": {
+        "down": "false",
+        "north": "false",
+        "south": "true",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/r_x"
+      },
+      "when": {
+        "down": "false",
+        "north": "true",
+        "south": "false",
+        "up": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/lu_y"
+      },
+      "when": {
+        "east": "true",
+        "north": "false",
+        "south": "true",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/ru_y"
+      },
+      "when": {
+        "east": "false",
+        "north": "false",
+        "south": "true",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/ld_y"
+      },
+      "when": {
+        "east": "true",
+        "north": "true",
+        "south": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/rd_y"
+      },
+      "when": {
+        "east": "false",
+        "north": "true",
+        "south": "false",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/ud_y"
+      },
+      "when": {
+        "east": "false",
+        "north": "true",
+        "south": "true",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/u_y"
+      },
+      "when": {
+        "east": "false",
+        "north": "false",
+        "south": "true",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/d_y"
+      },
+      "when": {
+        "east": "false",
+        "north": "true",
+        "south": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/lr_y"
+      },
+      "when": {
+        "east": "true",
+        "north": "false",
+        "south": "false",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/l_y"
+      },
+      "when": {
+        "east": "true",
+        "north": "false",
+        "south": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/r_y"
+      },
+      "when": {
+        "east": "false",
+        "north": "false",
+        "south": "false",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/lu_z"
+      },
+      "when": {
+        "down": "false",
+        "east": "true",
+        "up": "true",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/ru_z"
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "up": "true",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/ld_z"
+      },
+      "when": {
+        "down": "true",
+        "east": "true",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/rd_z"
+      },
+      "when": {
+        "down": "true",
+        "east": "false",
+        "up": "false",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/ud_z"
+      },
+      "when": {
+        "down": "true",
+        "east": "false",
+        "up": "true",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/u_z"
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "up": "true",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/d_z"
+      },
+      "when": {
+        "down": "true",
+        "east": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/lr_z"
+      },
+      "when": {
+        "down": "false",
+        "east": "true",
+        "up": "false",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/l_z"
+      },
+      "when": {
+        "down": "false",
+        "east": "true",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "loconautics:block/industrial/pipe/r_z"
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "up": "false",
+        "west": "true"
+      }
+    }
+  ]
+}

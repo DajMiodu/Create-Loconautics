@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AAA",
+    "BCB"
+  ],
+  "key": {
+    "A": {
+      "item": "create:copycat_panel"
+    },
+    "B": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "C": {
+      "item": "create:industrial_iron_block"
+    }
+  },
+  "result": {
+    "id": "loconautics:knuckle",
+    "count": 1
+  }
+}

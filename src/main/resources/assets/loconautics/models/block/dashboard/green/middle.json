@@ -1,0 +1,49 @@
+{
+    "render_type": "minecraft:cutout",
+    "texture_size": [64, 64],
+    "textures": {
+        "0": "loconautics:block/dashboard/green",
+        "particle": "loconautics:block/dashboard/green"
+    },
+    "elements": [
+        {
+            "from": [0, 11, 6],
+            "to": [16, 14, 16],
+            "rotation": {"angle": -22.5, "axis": "x", "origin": [0, 14, 16]},
+            "faces": {
+                "north": {"uv": [8, 9.5, 12, 10.25], "texture": "#0"},
+                "up": {"uv": [12, 13.5, 8, 11], "texture": "#0"}
+            }
+        },
+        {
+            "from": [16, 16, 15.99],
+            "to": [0, 2, 15.99],
+            "rotation": {"angle": 0, "axis": "y", "origin": [16, 15, 24]},
+            "faces": {
+                "north": {"uv": [4, 12.5, 8, 16], "texture": "#0"},
+                "east": {"uv": [0, 0, 0, 3.5], "texture": "#0"},
+                "south": {"uv": [4, 12.5, 8, 16], "texture": "#0"},
+                "west": {"uv": [0, 0, 0, 3.5], "texture": "#0"}
+            }
+        },
+        {
+            "from": [0, 0, 4],
+            "to": [16, 2, 16],
+            "rotation": {"angle": 0, "axis": "y", "origin": [0, 0, 4]},
+            "faces": {
+                "north": {"uv": [12, 10.5, 16, 11], "texture": "#0"},
+                "south": {"uv": [12, 8.5, 16, 9], "texture": "#0"},
+                "up": {"uv": [16, 3, 12, 0], "texture": "#0"},
+                "down": {"uv": [8, 3, 4, 6], "texture": "#0"}
+            }
+        },
+        {
+            "from": [0, 2, 8],
+            "to": [16, 8, 16],
+            "rotation": {"angle": 0, "axis": "y", "origin": [0, 2, 0]},
+            "faces": {
+                "north": {"uv": [12, 13, 16, 14.5], "texture": "#0"}
+            }
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AAB"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:cyan_wool"
+    },
+    "B": {
+      "item": "create:brass_nugget"
+    }
+  },
+  "result": {
+    "id": "loconautics:cyan_conductors_hat",
+    "count": 1
+  }
+}

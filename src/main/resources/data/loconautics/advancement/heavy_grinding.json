@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:sable_train",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "loconautics:turntable_bearing"
+    },
+    "title": {
+      "translate": "advancement.loconautics.heavy_grinding"
+    },
+    "description": {
+      "translate": "advancement.loconautics.heavy_grinding.desc"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

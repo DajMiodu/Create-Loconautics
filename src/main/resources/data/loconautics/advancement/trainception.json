@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:sable_train",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "create:track"
+    },
+    "title": {
+      "translate": "advancement.loconautics.trainception"
+    },
+    "description": {
+      "translate": "advancement.loconautics.trainception.desc"
+    },
+    "frame": "challenge"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

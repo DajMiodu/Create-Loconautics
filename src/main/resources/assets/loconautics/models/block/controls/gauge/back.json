@@ -1,0 +1,31 @@
+{
+    "texture_size": [64, 64],
+    "render_type": "minecraft:cutout",
+    "textures": {
+        "0": "loconautics:block/controls/gauge_atlas",
+        "particle": "loconautics:block/controls/gauge_atlas"
+    },
+    "elements": [
+        {
+            "name": "FRAME_BACK",
+            "from": [0.975, -0.025, 0.975],
+            "to": [7.025, 2.025, 7.025],
+            "rotation": {"angle": 0, "axis": "y", "origin": [5, 0, 5]},
+            "faces": {
+                "down": {"uv": [3.75, 6.25, 2.25, 7.75], "texture": "#0"}
+            }
+        },
+        {
+            "name": "FACE_WALLS",
+            "from": [1, 2, 1],
+            "to": [7, 1.5, 7],
+            "rotation": {"angle": 0, "axis": "y", "origin": [5, 2, 5]},
+            "faces": {
+                "north": {"uv": [2.25, 6.25, 3.75, 6.5], "texture": "#0"},
+                "east": {"uv": [2.25, 6.25, 3.75, 6.5], "texture": "#0"},
+                "south": {"uv": [2.25, 6.25, 3.75, 6.5], "texture": "#0"},
+                "west": {"uv": [2.25, 6.25, 3.75, 6.5], "texture": "#0"}
+            }
+        }
+    ]
+}

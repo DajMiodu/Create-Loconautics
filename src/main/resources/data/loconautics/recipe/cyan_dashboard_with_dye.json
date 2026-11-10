@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "BCB",
+    " D "
+  ],
+  "key": {
+    "A": {
+      "item": "create:display_board"
+    },
+    "B": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "C": {
+      "item": "create:industrial_iron_block"
+    },
+    "D": {
+      "item": "minecraft:cyan_dye"
+    }
+  },
+  "result": {
+    "id": "loconautics:cyan_dashboard",
+    "count": 1
+  }
+}

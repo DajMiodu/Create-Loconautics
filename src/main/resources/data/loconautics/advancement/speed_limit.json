@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:sable_train",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "create:speedometer"
+    },
+    "title": {
+      "translate": "advancement.loconautics.speed_limit"
+    },
+    "description": {
+      "translate": "advancement.loconautics.speed_limit.desc"
+    },
+    "frame": "goal"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

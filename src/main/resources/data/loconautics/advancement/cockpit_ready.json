@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:root",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "loconautics:locomotive_gauge"
+    },
+    "title": {
+      "translate": "advancement.loconautics.cockpit_ready"
+    },
+    "description": {
+      "translate": "advancement.loconautics.cockpit_ready.desc"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

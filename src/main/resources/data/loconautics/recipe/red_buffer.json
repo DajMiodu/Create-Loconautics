@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "ACA"
+  ],
+  "key": {
+    "A": {
+      "item": "create:copycat_panel"
+    },
+    "B": {
+      "item": "create:andesite_alloy"
+    },
+    "C": {
+      "item": "create:industrial_iron_block"
+    }
+  },
+  "result": {
+    "id": "loconautics:red_buffer",
+    "count": 2
+  }
+}

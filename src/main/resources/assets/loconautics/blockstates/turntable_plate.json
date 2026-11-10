@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "loconautics:block/turntablebearing/plate",
+      "x": 180
+    },
+    "facing=up": {
+      "model": "loconautics:block/turntablebearing/plate"
+    },
+    "facing=north": {
+      "model": "loconautics:block/turntablebearing/plate",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "loconautics:block/turntablebearing/plate",
+      "x": 90,
+      "y": 180
+    },
+    "facing=east": {
+      "model": "loconautics:block/turntablebearing/plate",
+      "x": 90,
+      "y": 90
+    },
+    "facing=west": {
+      "model": "loconautics:block/turntablebearing/plate",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

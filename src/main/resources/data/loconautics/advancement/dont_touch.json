@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:root",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "loconautics:gauge_button"
+    },
+    "title": {
+      "translate": "advancement.loconautics.dont_touch"
+    },
+    "description": {
+      "translate": "advancement.loconautics.dont_touch.desc"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "selector": "loconautics:hose_nozzle",
+
+  "properties": {
+    "sable:volume": 0.05
+  }
+}
