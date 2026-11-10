@@ -32,9 +32,9 @@ Sable and Simulated are the only hard dependencies. Their jars are not in this r
 - Lyc and MDLOP, development
 - Basilforrealss, TugKanTheMan and Hatchet, art
 - ZyxBe, MaxweLi, Bwah, Popochka, GoldenPants, Čipollø and Miat, testing.
-- The Create team, for the trains this is built around
-- RyanHCode and the Sable team, for the physics
-- Dimforge, for Rapier
+- The Create team, for the trains this is built around.
+- RyanHCode and the Sable team, for the physics.
+- Dimforge, for Rapier.
 
 ## License
 
