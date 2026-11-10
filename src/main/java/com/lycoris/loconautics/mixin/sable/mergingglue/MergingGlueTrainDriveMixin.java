@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.mixin.sable.mergingglue;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.drive.WeldedBodies;
 import com.lycoris.loconautics.trainphysics.spawn.GlueHost;
 import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
@@ -60,6 +61,8 @@ public abstract class MergingGlueTrainDriveMixin {
     @Unique
     private Vector3d loconautics$heldAngular;
     @Unique
+    private int loconautics$lastTraceAge = -1;
+    @Unique
     private Vector3d loconautics$lastPiecePos;
     @Unique
     private Quaterniond loconautics$lastPieceRot;
@@ -70,6 +73,7 @@ public abstract class MergingGlueTrainDriveMixin {
     @Unique
     private static final double LOCONAUTICS_MIN_GLIDE = 0.05;
 
+    // simulated eases with pow 5, so the bodies sit still and then jump at the end
     @Inject(method = "sable$physicsTick", at = @At("HEAD"), cancellable = true)
     private void loconautics$easeLighterTrain(ServerSubLevel subLevel, RigidBodyHandle handle, double timeStep,
                                               CallbackInfo ci) {
@@ -121,8 +125,27 @@ public abstract class MergingGlueTrainDriveMixin {
         Vector3d addAngular = loconautics$heldAngular.sub(pipeline.getAngularVelocity(heavy, new Vector3d()), new Vector3d());
         pipeline.addLinearAndAngularVelocity(heavy, addLinear, addAngular);
 
+        if (ageTicks != loconautics$lastTraceAge) {
+            loconautics$lastTraceAge = ageTicks;
+            ServerSubLevel light = partnerMoves ? partner : subLevel;
+            Quaterniond heavyRot = new Quaterniond(heavy.logicalPose().orientation());
+            Quaterniond lightRot = new Quaterniond(light.logicalPose().orientation());
+            double yawGapDeg = Math.toDegrees(heavyRot.difference(lightRot, new Quaterniond()).angle());
+            LoconauticsConstants.LOGGER.info(
+                    "[slimemerge] age={} ease={} heavy={} light={} bodyGap={} relPos={} endRel={} yawGapDeg={} endRotDeg={} "
+                            + "heavyLin={} lightLin={} lightAng={} heldLin={} kickLin={} kickAng={}",
+                    ageTicks, fmt(ease), heavy.getUniqueId(), light.getUniqueId(),
+                    fmt(heavy.logicalPose().position().distance(light.logicalPose().position())), fmt(relPos.length()),
+                    fmt(endPartnerPosition.length()), fmt(yawGapDeg),
+                    fmt(Math.toDegrees(endPartnerOrientation.angle())),
+                    fmt(pipeline.getLinearVelocity(heavy, new Vector3d()).length()),
+                    fmt(pipeline.getLinearVelocity(light, new Vector3d()).length()),
+                    fmt(pipeline.getAngularVelocity(light, new Vector3d()).length()),
+                    fmt(loconautics$heldLinear.length()), fmt(addLinear.length()), fmt(addAngular.length()));
+        }
     }
 
+    // the train keeps its rail glue, only the piece is carried along the same ease onto it
     @Unique
     private void loconautics$glidePiece(ServerLevel level, ServerSubLevel controller, ServerSubLevel partner,
                                         MergingGlueBlockEntity partnerGlue, ServerSubLevel train, double dt) {
@@ -175,8 +198,15 @@ public abstract class MergingGlueTrainDriveMixin {
             loconautics$landed = true;
             loconautics$land(pipeline, self, partnerGlue, controller, train, piece);
         }
+        if (ageTicks != loconautics$lastTraceAge) {
+            loconautics$lastTraceAge = ageTicks;
+            LoconauticsConstants.LOGGER.info("[gluemerge] age={} ease={} piece={} train={} pieceSpeed={} trainSpeed={}",
+                    ageTicks, fmt(ease), piece.getUniqueId(), train.getUniqueId(), fmt(linear.length()),
+                    fmt(pipeline.getLinearVelocity(train, new Vector3d()).length()));
+        }
     }
 
+    // a soft knock on landing, sized on both masses, so the car rocks a little
     @Unique
     private void loconautics$land(PhysicsPipeline pipeline, MergingGlueBlockEntity self, MergingGlueBlockEntity partnerGlue,
                                   ServerSubLevel controller, ServerSubLevel train, ServerSubLevel piece) {
@@ -206,5 +236,12 @@ public abstract class MergingGlueTrainDriveMixin {
                 new Quaterniond(train.logicalPose().orientation()).conjugate().transform(new Vector3d(impulse)));
         pipeline.wakeUp(train);
         trainHandle.applyForcesAndReset(forces);
+        LoconauticsConstants.LOGGER.info("[gluemerge] landed on {} impulse={} shared mass={} contact={}",
+                train.getUniqueId(), fmt(impulse.length()), fmt(sharedMass), contact);
+    }
+
+    @Unique
+    private static String fmt(double value) {
+        return String.format("%.3f", value);
     }
 }

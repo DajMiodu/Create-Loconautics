@@ -1,0 +1,28 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 100,
+      "fluid": "minecraft:lava"
+    },
+    {
+      "item": "create:cinder_flour"
+    },
+    {
+      "item": "create:cinder_flour"
+    },
+    {
+      "item": "minecraft:glowstone_dust"
+    },
+    {
+      "item": "minecraft:glowstone_dust"
+    }
+  ],
+  "processing_time": 200,
+  "results": [
+    {
+      "id": "loconautics:raw_cerisene"
+    }
+  ]
+}

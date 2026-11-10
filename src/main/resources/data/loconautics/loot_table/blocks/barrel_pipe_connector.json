@@ -1,0 +1,5 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "loconautics:blocks/barrel_pipe_connector",
+  "pools": []
+}

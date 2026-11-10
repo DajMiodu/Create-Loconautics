@@ -18,6 +18,7 @@ public final class PacketTargets {
     private PacketTargets() {
     }
 
+    // a controller mounted on a train lives in a sable sub level, so the real world lookup misses it
     @Nullable
     public static <T extends BlockEntity> T blockEntity(Level level, BlockPos pos, Class<T> type) {
         BlockEntity be = level.getBlockEntity(pos);
@@ -32,6 +33,7 @@ public final class PacketTargets {
         return Float.isFinite(v);
     }
 
+    // a panel riding a train sits in a sub level, so its own position has to be lifted into world space first
     public static boolean withinReach(ServerPlayer player, BlockEntity be) {
         Vec3 world = Vec3.atCenterOf(be.getBlockPos());
         SubLevel sub = Sable.HELPER.getContaining(be);
@@ -43,6 +45,7 @@ public final class PacketTargets {
         return player.position().closerThan(world, 12.0);
     }
 
+    // same gate as creates station packets, plus the sub level lift for a station riding a host
     public static boolean canEditStation(ServerPlayer player, BlockPos pos) {
         if (player.isSpectator() || AdventureUtil.isAdventure(player)) return false;
         Level level = player.level();

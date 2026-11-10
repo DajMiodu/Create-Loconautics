@@ -78,7 +78,7 @@ public final class RailSeams {
         return Boolean.TRUE.equals(seamState(a, b));
     }
 
-    // sub level rails share the worlds dimension key, so creates interdimensional test cannot see a seam. null means no container yet, not that it is no seam, and must not be cached
+    // sub level rails share the worlds dimension key, so creates own interdimensional test cannot see a seam. null means no container yet, which is not the same answer as not a seam and must not be cached
     public static Boolean seamState(TrackNodeLocation a, TrackNodeLocation b) {
         if (a == null || b == null || a.dimension == null || !a.dimension.equals(b.dimension)) {
             return Boolean.FALSE;
@@ -157,6 +157,7 @@ public final class RailSeams {
         return inPlotGrid(location) ? TrackHostFrames.hostId(location) : null;
     }
 
+    // the loaded body, or the last pose kept for it
     private static Pose3dc poseOf(TrackNodeLocation location, boolean server) {
         SubLevel host = server ? serverHostOf(location) : clientHostOf(location);
         if (host != null) {
@@ -209,6 +210,7 @@ public final class RailSeams {
         return Double.isFinite(gap) && gap <= MAX_SEAM_GAP ? Math.max(gap, MIN_SEAM_LENGTH) : MIN_SEAM_LENGTH;
     }
 
+    // expressed in the first nodes frame, since every caller lifts a point through the host of its edges node1
     public static Vec3 seamPoint(TrackNodeLocation a, TrackNodeLocation b, double t) {
         boolean server = serverSide();
         Pose3dc poseA = poseOf(a, server);

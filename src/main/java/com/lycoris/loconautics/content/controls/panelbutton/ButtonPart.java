@@ -2,7 +2,7 @@ package com.lycoris.loconautics.content.controls.panelbutton;
 
 import com.lycoris.loconautics.content.controls.panel.PanelGlass;
 import com.lycoris.loconautics.content.controls.panel.PanelFrequencyMenu;
-import com.lycoris.loconautics.content.controls.ControlsBlocks;
+import com.lycoris.loconautics.content.boiler.BoilerBlocks;
 import com.lycoris.loconautics.content.controls.panel.PanelBlockEntity;
 import com.lycoris.loconautics.content.controls.panel.PanelPart;
 import com.lycoris.loconautics.content.controls.panel.PanelPartNbt;
@@ -82,7 +82,7 @@ public record ButtonPart(long pressedUntil, @Nullable BlockPos link,
 
     @Override
     public ItemStack asStack() {
-        ItemStack stack = new ItemStack(ControlsBlocks.GAUGE_BUTTON_ITEM.get());
+        ItemStack stack = new ItemStack(BoilerBlocks.GAUGE_BUTTON_ITEM.get());
         if (link != null) stack.set(LoconauticsRegistries.BUTTON_TARGET.get(), link);
         return stack;
     }

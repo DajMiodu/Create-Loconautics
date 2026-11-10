@@ -1,7 +1,11 @@
 package com.lycoris.loconautics.trainphysics.drive;
 
+import com.lycoris.loconautics.trainphysics.debug.force.ForceSource;
+import com.lycoris.loconautics.trainphysics.debug.force.ForceTrace;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.content.brakes.HandbrakeBlock;
+import com.lycoris.loconautics.content.brakes.pull.PullBrakeBlock;
+import com.lycoris.loconautics.content.brakes.pull.PullBrakeBlockEntity;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.common.sable.SubLevelBlocks;
 import dev.ryanhcode.sable.api.physics.force.ForceTotal;
@@ -66,6 +70,7 @@ public final class TrainBrakes {
 
         train.setBrakeScale(scale);
         train.setBraked(scale > 0.0);
+        // the handbrake never cuts drive, the engine pulls against it and its drag shows up as axle stress instead
         train.setBrakeHold(consist.hold() || train.brakePulseActive());
         train.setBrakeHard(locked);
     }
@@ -77,6 +82,10 @@ public final class TrainBrakes {
 
     public static double handbrakeLoadMass(SableTrain train) {
         return train.handbrake() * LoconauticsConfig.DYNAMICS_REFERENCE_MASS.get() * HANDBRAKE_STRESS_WEIGHT;
+    }
+
+    static String fmt(double d) {
+        return String.format(java.util.Locale.ROOT, "%.3f", d);
     }
 
     private static final int BRAKE_SCAN_TICKS = 10;
@@ -93,7 +102,7 @@ public final class TrainBrakes {
         if (scan == null || now - scan.tick() >= BRAKE_SCAN_TICKS || now < scan.tick()) {
             List<BlockPos> found = new ArrayList<>();
             SubLevelBlocks.forEachBlock(sub, (pos, state) -> {
-                if (state.getBlock() instanceof HandbrakeBlock) {
+                if (state.getBlock() instanceof PullBrakeBlock || state.getBlock() instanceof HandbrakeBlock) {
                     found.add(pos.immutable());
                 }
                 return true;
@@ -104,7 +113,9 @@ public final class TrainBrakes {
         int best = 0;
         for (BlockPos pos : scan.positions()) {
             BlockState state = subLevel.getBlockState(pos);
-            if (state.getBlock() instanceof HandbrakeBlock && state.getValue(HandbrakeBlock.POWERED)) {
+            if (state.getBlock() instanceof PullBrakeBlock && subLevel.getBlockEntity(pos) instanceof PullBrakeBlockEntity brake) {
+                best = Math.max(best, brake.power());
+            } else if (state.getBlock() instanceof HandbrakeBlock && state.getValue(HandbrakeBlock.POWERED)) {
                 best = Math.max(best, subLevel.getBestNeighborSignal(pos));
             }
             if (best >= 15) {
@@ -118,6 +129,7 @@ public final class TrainBrakes {
     private static final double MIN_ROLLING_WEIGHT = 0.25;
     private static final double MAX_ROLLING_WEIGHT = 4.0;
 
+    // weighted, because resistance the same for every car makes a loaded one coast as far as an empty one and
     public static double rollingScale(SableTrain train, ServerSubLevel sub) {
         if (train.isPowered() || train.isDerailed() || train.isFollowing()) {
             return 0.0;
@@ -141,7 +153,7 @@ public final class TrainBrakes {
 
     private static final double SLOPE_RELIEF_DOWNHILL_SPEED = 0.05;
 
-    public static void relieveSlopeGravity(ServerSubLevel sub, Vector3d tangent, double dt) {
+    public static void relieveSlopeGravity(ServerSubLevel sub, Vector3d railPoint, Vector3d tangent, double dt) {
         RigidBodyHandle handle = RigidBodyHandle.of(sub);
         if (handle == null) {
             return;
@@ -162,10 +174,12 @@ public final class TrainBrakes {
         ForceTotal forces = new ForceTotal();
         forces.applyLinearImpulse(localImpulse);
         handle.applyForcesAndReset(forces);
+        ForceTrace.impulse(sub, ForceSource.SLOPE_RELIEF, worldImpulse, railPoint,
+                "along rail gravity " + fmt(along) + " mass=" + fmt(mass));
     }
 
     public static void applyResistance(ServerSubLevel sub, ServerSubLevel trackSub, Vector3d railPoint,
-                                       Vector3d tangent, double dt, double scale) {
+                                       Vector3d tangent, double dt, double scale, ForceSource source) {
         RigidBodyHandle handle = RigidBodyHandle.of(sub);
         if (handle == null || scale <= 0.0) {
             return;
@@ -186,6 +200,9 @@ public final class TrainBrakes {
         handle.applyForcesAndReset(forces);
         com.lycoris.loconautics.content.knuckle.KnuckleRailCoupler.noteExternal(sub.getUniqueId(),
                 -decel * dt * Math.signum(vTan));
+        ForceTrace.impulse(sub, source, worldImpulse, railPoint,
+                "scale=" + fmt(scale) + " decel=" + fmt(decel) + " of " + fmt(BRAKE_DECEL)
+                        + " against vTan=" + fmt(vTan) + " mass=" + fmt(mass));
         TrackHostMotion.pushHost(trackSub, railPoint, worldImpulse);
     }
 }

@@ -4,6 +4,7 @@ import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.ConsistDecoupler;
 import com.lycoris.loconautics.content.schedule.SableScheduleRuntime;
 import com.lycoris.loconautics.content.schedule.SchedulePath;
+import com.lycoris.loconautics.foundation.LogFormat;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.drive.TrainBrakes;
 import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
@@ -46,6 +47,8 @@ public class DecoupleInstruction extends ScheduleInstruction {
 		}
 		Set<UUID> cut = ConsistDecoupler.carsBeyond(serverLevel, train.id(), cars());
 		if (!ConsistDecoupler.split(serverLevel, train.id(), cars())) {
+			LoconauticsConstants.LOGGER.info("[maneuver] {} decouple after {} cars refused",
+				LogFormat.shortId(train.id()), cars());
 			runtime.announcer().line(Component.literal("Nothing to decouple after car " + cars() + ", the locomotive counts as car 1"));
 			return finishInstant(runtime);
 		}
@@ -58,6 +61,8 @@ public class DecoupleInstruction extends ScheduleInstruction {
 				TrainBrakes.holdSoft(wagon);
 			}
 		}
+		LoconauticsConstants.LOGGER.info("[maneuver] {} decoupled after {} cars, {} trains left behind",
+			LogFormat.shortId(train.id()), cars(), cut.size());
 		return finishInstant(runtime);
 	}
 

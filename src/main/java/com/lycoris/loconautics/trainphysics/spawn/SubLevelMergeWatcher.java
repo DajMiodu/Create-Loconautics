@@ -1,16 +1,20 @@
 package com.lycoris.loconautics.trainphysics.spawn;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.network.packets.train.SableTrainSyncPacket;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.common.sable.SubLevelData;
 import com.lycoris.loconautics.trainphysics.state.SableTrainPersistence;
 import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
 import com.lycoris.loconautics.trainphysics.wheels.GhostWheelBodies;
+import dev.ryanhcode.sable.api.physics.PhysicsPipeline;
+import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import dev.simulated_team.simulated.content.physics_staff.PhysicsStaffServerHandler;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3d;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +38,12 @@ public final class SubLevelMergeWatcher {
         }
         PULLING.remove(goneSubId);
         PULLING.remove(hostSubId);
+        if (SubLevelData.resolve(level, hostSubId) instanceof ServerSubLevel traced) {
+            PhysicsPipeline pipeline = SubLevelContainer.getContainer(level).physicsSystem().getPipeline();
+            LoconauticsConstants.LOGGER.info("[slimemerge] merged {} into {}, host lin={} ang={}", goneSubId, hostSubId,
+                    pipeline.getLinearVelocity(traced, new Vector3d()).length(),
+                    pipeline.getAngularVelocity(traced, new Vector3d()).length());
+        }
         SableTrain gone = SableTrainRegistry.bySubLevel(goneSubId);
         SableTrain host = SableTrainRegistry.bySubLevel(hostSubId);
         if (gone == null && host == null) {
@@ -52,6 +62,8 @@ public final class SubLevelMergeWatcher {
         if (gone == null && !host.isTrackless()
                 && SubLevelSplitWatcher.scanBogeyPlotPositions(sub.getPlot()).size() <= host.car().bogeys().size()) {
             releaseStaffLock(level, sub);
+            LoconauticsConstants.LOGGER.info("[gluemerge] train {} took plain sub level {}, no new bogey, kept on the rail",
+                    host.id(), goneSubId);
             return;
         }
 
@@ -88,6 +100,12 @@ public final class SubLevelMergeWatcher {
             SubLevelSplitWatcher.settleAfterSplit(host);
             SableTrainPersistence.persist(host);
             SableTrainSyncPacket.broadcast(host);
+            LoconauticsConstants.LOGGER.info("[sabletrain] train {} absorbed sub level {}, now {} bogey(s)",
+                    host.id(), goneSubId, rebuilt.bogeys().size());
+        } else {
+            LoconauticsConstants.LOGGER.info(
+                    "[sabletrain] train {} absorbed sub level {} but found no railed bogey to rebuild from",
+                    host.id(), goneSubId);
         }
 
         dropTrain(level, gone);
@@ -108,6 +126,9 @@ public final class SubLevelMergeWatcher {
                         new ArrayList<>(gone.car().bogeys()), gone.car().carriage());
         dropTrain(level, gone);
         if (rebuilt == null || rebuilt.bogeys().isEmpty()) {
+            LoconauticsConstants.LOGGER.info(
+                    "[sabletrain] sub level {} took train {} but found no railed bogey, left as a plain body",
+                    hostSubId, gone.id());
             return;
         }
         SableTrain adopted = new SableTrain(UUID.randomUUID(), level, rebuilt, gone.isPhysics());
@@ -121,6 +142,8 @@ public final class SubLevelMergeWatcher {
         SubLevelSplitWatcher.settleAfterSplit(adopted);
         SableTrainPersistence.persist(adopted);
         SableTrainSyncPacket.broadcast(adopted);
+        LoconauticsConstants.LOGGER.info("[sabletrain] plain sub level {} became train {} from merged train {}, {} bogey(s)",
+                hostSubId, adopted.id(), gone.id(), rebuilt.bogeys().size());
     }
 
     private static void carryIdentity(SableTrain from, SableTrain to) {
@@ -199,5 +222,6 @@ public final class SubLevelMergeWatcher {
         if (subId != null) {
             SableTrainSyncPacket.broadcastRemoval(subId);
         }
+        LoconauticsConstants.LOGGER.info("[sabletrain] train {} dropped, its body is no longer a train", gone.id());
     }
 }

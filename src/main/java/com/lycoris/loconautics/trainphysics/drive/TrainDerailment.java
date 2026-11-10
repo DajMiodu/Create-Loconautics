@@ -2,7 +2,9 @@ package com.lycoris.loconautics.trainphysics.drive;
 
 import com.lycoris.loconautics.common.impact.TrainKnockback;
 import com.lycoris.loconautics.common.train.TrainStatusChat;
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.config.LoconauticsConfig;
+import com.lycoris.loconautics.trainphysics.glue.CarriageRoll;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.SableTrain.Car;
 import com.lycoris.loconautics.trainphysics.station.TrainStations;
@@ -35,10 +37,15 @@ public final class TrainDerailment {
             return;
         }
         if (train.isPoseSettling()) {
+            if (train.isDerailed()) {
+                com.lycoris.loconautics.trainphysics.spawn.BogeyEditTrace.phase(train, "posesettle", "");
+            }
             return;
         }
         if (train.isDerailed()) {
             if (ExternalForceDerail.holdsRerail(train)) {
+                com.lycoris.loconautics.trainphysics.spawn.BogeyEditTrace.phase(train, "regrip",
+                        "a push in the last 40 ticks blocks every rerail");
                 return;
             }
             if (com.lycoris.loconautics.trainphysics.spawn.RerailApproach.tryAutoRerail(train)) {
@@ -46,6 +53,7 @@ public final class TrainDerailment {
             }
             return;
         }
+        // a car with one bogey loose never went through the full derail path, so nothing was putting it back
         if (train.hasOffTrackBogey() && !ExternalForceDerail.holdsRerail(train)
                 && SableTrainSpawner.tryRerailOffTrackBogeys(train)
                 && !train.hasOffTrackBogey()) {
@@ -62,6 +70,9 @@ public final class TrainDerailment {
         }
         if (!SubLevelBlocks.hasBlock(sub, AbstractBogeyBlock.class)) {
             train.setDerailed(true);
+            LoconauticsConstants.LOGGER.info(
+                    "[sabletrain] car {} lost all its bogeys, released from the rail (now a free sub level)",
+                    train.id());
             return;
         }
         if (!checkRailsGone(train, sub)) {
@@ -87,6 +98,9 @@ public final class TrainDerailment {
                 if (impact > LoconauticsConfig.DERAIL_MAX_END_IMPACT.get()) {
                     TrainKnockback.launchOnDerail(train, DERAIL_LAUNCH_LIFT);
                 }
+                LoconauticsConstants.LOGGER.info(
+                        "[sabletrain] car {} ran every bogey off the track end, impact {} vs {}",
+                        train.id(), SableTrainDriver.f(impact), SableTrainDriver.f(LoconauticsConfig.DERAIL_MAX_END_IMPACT.get()));
                 return;
             }
             if (train.hasOffTrackBogey()) {
@@ -102,6 +116,7 @@ public final class TrainDerailment {
 
     static final java.util.Map<UUID, Integer> RAILS_GONE = new java.util.HashMap<>();
 
+    // false means stop here
     static boolean checkRailsGone(SableTrain train, ServerSubLevel sub) {
         if (TrainRailAdvance.railsValid(train)) {
             RAILS_GONE.remove(train.id());
@@ -118,14 +133,22 @@ public final class TrainDerailment {
         train.setSpeed(0.0);
         train.setTargetSpeed(0.0);
         train.setDerailed(true, "track_missing");
+        LoconauticsConstants.LOGGER.info(
+                "[sabletrain] car {} has had no rail under it for {} ticks, released from the graph", train.id(),
+                RAILS_GONE_GRACE_TICKS);
         return false;
     }
 
+    // an overturned rail has to hold the angle rather than catch one bad frame while a weld or a remap lands
     static final int TILT_DERAIL_TICKS = 5;
 
     static final java.util.Map<UUID, Integer> TILT_OVER = new java.util.HashMap<>();
 
     static boolean checkAttitudeDerail(SableTrain train) {
+        if (CarriageRoll.isRolling(train.car().subLevelId())) {
+            TILT_OVER.remove(train.id());
+            return false;
+        }
         double limit = LoconauticsConfig.DERAIL_MAX_TILT_DEGREES.get();
         double tilt = Math.toDegrees(train.car().carriage().hostTilt());
         if (limit >= 180.0 || tilt <= limit) {
@@ -139,6 +162,8 @@ public final class TrainDerailment {
         train.setSpeed(0.0);
         train.setTargetSpeed(0.0);
         train.setDerailed(true, "overturned");
+        LoconauticsConstants.LOGGER.info("[sabletrain] car {} fell off a rail leaning {} deg, past {}",
+                train.id(), SableTrainDriver.f(tilt), SableTrainDriver.f(limit));
         return true;
     }
 
@@ -152,6 +177,8 @@ public final class TrainDerailment {
         }
         if (train.markBogeyOffTrack(bogey.localPos())) {
             TrainStatusChat.partialDerail(train);
+            LoconauticsConstants.LOGGER.info("[sabletrain] car {} bogey {} derailed ({}), car pivots on the rest",
+                    train.id(), bogey.localPos().toShortString(), statusKey);
         }
         if (train.offTrackBogeyCount() < car.bogeys().size()) {
             return false;
@@ -170,6 +197,7 @@ public final class TrainDerailment {
         return onRail.isEmpty() ? null : TrainStations.frontBogey(train, onRail);
     }
 
+    // create gives up at 4, we shed the one bogey being dragged apart well before that
     static final double MAX_COUPLING_STRESS = 1.5;
 
     static boolean checkCouplingStress(SableTrain train, ServerSubLevel sub) {
@@ -188,6 +216,9 @@ public final class TrainDerailment {
         }
         derailBogey(train, train.car(), culprit, "coupling_stress");
         tellPlayersAboard(sub, CreateLang.translateDirect("train.status.coupling_stress"));
+        LoconauticsConstants.LOGGER.info(
+                "[sabletrain] car {} bogey {} derailed, coupling stress {} > {}",
+                train.id(), culprit.localPos().toShortString(), SableTrainDriver.f(stress.amount()), SableTrainDriver.f(MAX_COUPLING_STRESS));
         return true;
     }
 

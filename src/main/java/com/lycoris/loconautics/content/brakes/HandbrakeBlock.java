@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.brakes;
 
+import com.lycoris.loconautics.common.ShiftPlacement;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -43,7 +44,7 @@ public class HandbrakeBlock extends Block implements IWrenchable {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState()
-                .setValue(FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(FACING, ShiftPlacement.facing(context))
                 .setValue(POWERED, context.getLevel().hasNeighborSignal(context.getClickedPos()));
     }
 

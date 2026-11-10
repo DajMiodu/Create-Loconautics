@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.controls.panel;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.advancement.TrainAdvancements;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -76,6 +77,7 @@ public abstract class PanelBlockItem extends BlockItem {
         if (free == null || !panel.putPart(free, partFor(stack), center)) return InteractionResult.FAIL;
         panel.setLabel(free, stack.get(DataComponents.CUSTOM_NAME));
         CompoundTag picked = pickedConfig(stack);
+        LoconauticsConstants.LOGGER.info("[panelpick] putPartOnHost picked={}", picked);
         if (picked != null) panel.applyPicked(free, picked, level.registryAccess());
 
         SoundType sound = clicked.getSoundType();
@@ -103,6 +105,7 @@ public abstract class PanelBlockItem extends BlockItem {
             if (player != null && !context.getLevel().isClientSide) notifyCannotPlace(player);
             return InteractionResult.FAIL;
         }
+        // vanilla would load the picked tag under the wrong slot
         ItemStack held = context.getItemInHand();
         CustomData picked = held.get(DataComponents.BLOCK_ENTITY_DATA);
         try {
@@ -132,6 +135,7 @@ public abstract class PanelBlockItem extends BlockItem {
             boolean center = PanelBlock.aimedAtCenter(pos, context.getLevel().getBlockState(pos),
                     context.getClickLocation());
             CompoundTag picked = pickedConfig(stack);
+            LoconauticsConstants.LOGGER.info("[panelpick] placeBlock picked={}", picked);
             stack.remove(DataComponents.BLOCK_ENTITY_DATA);
             if (panel.putPart(targeted, part, center)) {
                 panel.setLabel(targeted, stack.get(DataComponents.CUSTOM_NAME));

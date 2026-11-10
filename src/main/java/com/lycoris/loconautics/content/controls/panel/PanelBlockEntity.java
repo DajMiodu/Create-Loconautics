@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.controls.panel;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.foundation.LabelText;
 import com.lycoris.loconautics.foundation.LoconauticsLang;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
@@ -441,26 +442,32 @@ public class PanelBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
     @Override
     public void removeComponentsFromTag(CompoundTag tag) {
         super.removeComponentsFromTag(tag);
+        // a ctrl pick stores the whole panel on the item, a picked part keeps only its own slot
         PanelSlot picked = level != null && level.isClientSide ? lookedAtSlot() : null;
         for (String key : PICK_TAGS) {
             if (picked == null) tag.remove(key);
             else tag.getCompound(key).getAllKeys().removeIf(slot -> !slot.equals(picked.getSerializedName()));
         }
         tag.remove("Centered");
+        // the creative slot packet makes the server resave the block entity from the pos in the tag, without a pos it keeps ours
         if (picked != null) {
             tag.remove("x");
             tag.remove("y");
             tag.remove("z");
         }
+        LoconauticsConstants.LOGGER.info("[panelpick] strip clientSide={} picked={} keys={} parts={}",
+                level != null && level.isClientSide, picked, tag.getAllKeys(), tag.getCompound(PARTS_TAG));
     }
 
     public void applyPicked(PanelSlot target, CompoundTag picked, HolderLookup.Provider registries) {
         CompoundTag slots = picked.getCompound(PARTS_TAG);
+        LoconauticsConstants.LOGGER.info("[panelpick] apply target={} keys={} parts={}", target, picked.getAllKeys(), slots);
         if (slots.getAllKeys().size() != 1) return;
         String source = slots.getAllKeys().iterator().next();
         CompoundTag entry = slots.getCompound(source);
         PanelPart current = parts.get(target);
         PanelPartType type = PanelPartType.byName(entry.getString(TYPE_KEY));
+        LoconauticsConstants.LOGGER.info("[panelpick] types picked={} current={}", type, current == null ? null : current.type());
         if (current == null || type != current.type()) return;
         PanelPart part = type.read(entry);
         if (part != null) replacePart(target, part);
@@ -535,6 +542,13 @@ public class PanelBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
             }
         }
 
+        // panelcopy temporary, remove once schematic placement is confirmed
+        LoconauticsConstants.LOGGER.info("[panelcopy] read pos={} clientPacket={} level={} clientSide={} parts={} state={}",
+                worldPosition, clientPacket, level != null, level != null && level.isClientSide, parts.keySet(), getBlockState());
+        // a schematic print loads the tag into a live block entity, so the client never hears about the parts
         if (!clientPacket && level != null && !level.isClientSide) notifyUpdate();
+        if (!clientPacket && level != null && !level.isClientSide && parts.isEmpty()) {
+            LoconauticsConstants.LOGGER.info("[panelcopy] empty server read keys={}", tag.getAllKeys(), new Throwable());
+        }
     }
 }

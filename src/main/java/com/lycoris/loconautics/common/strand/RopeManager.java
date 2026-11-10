@@ -71,6 +71,7 @@ public abstract class RopeManager<R extends AttachedRopePhysicsObject> {
             rope.driveKnotGrab(system, level, timeStep);
             if (!rope.isActive()) continue;
             rope.prePhysicsTick(system, level, timeStep);
+            RopePullTrace.sample(rope, level);
             rope.checkAnchors(level);
         }
     }

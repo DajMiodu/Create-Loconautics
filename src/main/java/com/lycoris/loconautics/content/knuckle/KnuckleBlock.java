@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.knuckle;
 
+import com.lycoris.loconautics.common.ShiftPlacement;
 import com.lycoris.loconautics.common.copycat.CopycatBlockLogic;
 import com.lycoris.loconautics.common.copycat.CopycatPlacement;
 import com.lycoris.loconautics.common.strand.StrandRemap;
@@ -248,7 +249,7 @@ public class KnuckleBlock extends HorizontalDirectionalBlock
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState()
-                .setValue(FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(FACING, ShiftPlacement.facing(context))
                 .setValue(CopycatPlacement.PLACEMENT, CopycatPlacement.aimedAt(context));
     }
 

@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.bearingaxle;
 
+import com.lycoris.loconautics.common.ShiftPlacement;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlock;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock;
@@ -33,7 +34,7 @@ public class BearingAxleBlock extends HorizontalKineticBlock implements IBE<Bear
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState()
-                .setValue(HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+                .setValue(HORIZONTAL_FACING, ShiftPlacement.facing(context));
     }
 
     public static Direction front(BlockState state) {

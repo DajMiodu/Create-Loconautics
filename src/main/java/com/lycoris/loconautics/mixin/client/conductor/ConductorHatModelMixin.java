@@ -19,6 +19,7 @@ public class ConductorHatModelMixin {
         if (original != AllPartialModels.TRAIN_HAT) {
             return original;
         }
+        // the client copy of this tag only ever comes from our own conductorhatpacket, so a create train keeps creates hat
         if (!entity.getPersistentData().contains("TrainHat") && !ScheduleReadiness.seatedAtControls(entity)) {
             return original;
         }

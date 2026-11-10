@@ -1,0 +1,25 @@
+{
+    "render_type": "minecraft:cutout",
+    "texture_size": [64, 64],
+    "textures": {
+        "0": "loconautics:block/smokestack/smokestack",
+        "particle": "loconautics:block/smokestack/smokestack"
+    },
+    "elements": [
+        {
+            "from": [3, 0, 3],
+            "to": [13, 16, 13],
+            "rotation": {"angle": 0, "axis": "y", "origin": [8, 0, 8]},
+            "faces": {
+                "north": {"uv": [6, 0, 8.5, 4], "texture": "#0"},
+                "east": {"uv": [3.5, 4, 6, 8], "texture": "#0"},
+                "south": {"uv": [6, 0, 8.5, 4], "texture": "#0"},
+                "west": {"uv": [6, 4, 3.5, 8], "texture": "#0"},
+                "down": {"uv": [5, 8, 2.5, 10.5], "texture": "#0"}
+            }
+        }
+    ],
+    "groups": [
+        {"name": "smokestack", "origin": [8, 0, 8], "scope": 0, "color": 0, "children": [0]}
+    ]
+}

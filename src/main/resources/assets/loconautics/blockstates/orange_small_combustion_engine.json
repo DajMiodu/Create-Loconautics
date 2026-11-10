@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=north,part=single": {
+      "model": "loconautics:block/combustion/orange/engine_single"
+    },
+    "facing=north,part=front": {
+      "model": "loconautics:block/combustion/orange/engine_front"
+    },
+    "facing=north,part=middle": {
+      "model": "loconautics:block/combustion/orange/engine_middle"
+    },
+    "facing=north,part=back": {
+      "model": "loconautics:block/combustion/orange/engine_back"
+    },
+    "facing=east,part=single": {
+      "model": "loconautics:block/combustion/orange/engine_single",
+      "y": 90
+    },
+    "facing=east,part=front": {
+      "model": "loconautics:block/combustion/orange/engine_front",
+      "y": 90
+    },
+    "facing=east,part=middle": {
+      "model": "loconautics:block/combustion/orange/engine_middle",
+      "y": 90
+    },
+    "facing=east,part=back": {
+      "model": "loconautics:block/combustion/orange/engine_back",
+      "y": 90
+    },
+    "facing=south,part=single": {
+      "model": "loconautics:block/combustion/orange/engine_single",
+      "y": 180
+    },
+    "facing=south,part=front": {
+      "model": "loconautics:block/combustion/orange/engine_front",
+      "y": 180
+    },
+    "facing=south,part=middle": {
+      "model": "loconautics:block/combustion/orange/engine_middle",
+      "y": 180
+    },
+    "facing=south,part=back": {
+      "model": "loconautics:block/combustion/orange/engine_back",
+      "y": 180
+    },
+    "facing=west,part=single": {
+      "model": "loconautics:block/combustion/orange/engine_single",
+      "y": 270
+    },
+    "facing=west,part=front": {
+      "model": "loconautics:block/combustion/orange/engine_front",
+      "y": 270
+    },
+    "facing=west,part=middle": {
+      "model": "loconautics:block/combustion/orange/engine_middle",
+      "y": 270
+    },
+    "facing=west,part=back": {
+      "model": "loconautics:block/combustion/orange/engine_back",
+      "y": 270
+    }
+  }
+}

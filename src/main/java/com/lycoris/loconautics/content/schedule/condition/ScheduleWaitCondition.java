@@ -31,10 +31,12 @@ public abstract class ScheduleWaitCondition extends ScheduleDataEntry {
 
 	public abstract boolean tickCompletion(Level level, SableTrain train, CompoundTag context);
 
+	// true when the answer comes from blocks inside the bodies, a parked body would read as empty
 	public boolean needsBody() {
 		return false;
 	}
 
+	// true when the condition can only come true once the station chunk is no longer entity ticking
 	public boolean needsStationUnloaded() {
 		return false;
 	}

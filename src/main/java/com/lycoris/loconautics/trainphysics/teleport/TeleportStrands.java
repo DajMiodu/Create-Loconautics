@@ -18,6 +18,9 @@ import com.lycoris.loconautics.common.strand.StrandLength;
 import com.lycoris.loconautics.content.steelcable.SteelCableStrand;
 import com.lycoris.loconautics.content.steelcable.SteelCableStrandDriver;
 import com.lycoris.loconautics.content.steelcable.SteelCableStrandManager;
+import com.lycoris.loconautics.content.screwlink.ScrewLinkStrand;
+import com.lycoris.loconautics.content.screwlink.ScrewLinkStrandManager;
+import com.lycoris.loconautics.content.screwlink.rope.ScrewLinkRopeManager;
 import com.lycoris.loconautics.content.steelcable.rope.SteelCableRopeManager;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
@@ -91,6 +94,7 @@ public final class TeleportStrands {
     public static final class Carry {
         private final List<RopeJoint> ropes = new ArrayList<>();
         private final List<SteelCableStrand> cables = new ArrayList<>();
+        private final List<ScrewLinkStrand> screws = new ArrayList<>();
         private final List<HoseJoint> hoses = new ArrayList<>();
         private int cut;
 
@@ -99,7 +103,7 @@ public final class TeleportStrands {
         }
 
         public int carried() {
-            return ropes.size() + cables.size() + hoses.size();
+            return ropes.size() + cables.size() + screws.size() + hoses.size();
         }
     }
 
@@ -115,6 +119,7 @@ public final class TeleportStrands {
         Carry carry = new Carry();
         captureRopes(level, moving, carry);
         captureCables(level, moving, carry);
+        captureScrews(level, moving, carry);
         captureHoses(level, moving, carry);
         return carry;
     }
@@ -215,6 +220,36 @@ public final class TeleportStrands {
         }
     }
 
+    private static void captureScrews(ServerLevel level, Set<UUID> moving, Carry carry) {
+        ScrewLinkStrandManager strands = ScrewLinkStrandManager.get(level);
+        ScrewLinkRopeManager ropes = ScrewLinkRopeManager.get(level);
+        SubLevelPhysicsSystem system = SubLevelPhysicsSystem.get(level);
+        if (strands == null || ropes == null || system == null) {
+            return;
+        }
+        for (ScrewLinkStrand strand : List.copyOf(strands.all())) {
+            boolean aMoves = moving.contains(strand.subA);
+            boolean bMoves = strand.isCoupled() && moving.contains(strand.subB);
+            if (!aMoves && !bMoves) {
+                continue;
+            }
+            ropes.remove(system, strand.id);
+            PacketDistributor.sendToPlayersInDimension(level,
+                    StrandPointsPacket.removal(StrandKind.SCREW_LINK, strand.id));
+            if (strand.isCoupled() && aMoves != bMoves) {
+                strand.subB = null;
+                strand.localB = null;
+                carry.cut++;
+            }
+            if (aMoves) {
+                carry.screws.add(strand);
+            } else {
+                strand.points = null;
+                strands.touch();
+            }
+        }
+    }
+
     private static void captureHoses(ServerLevel level, Set<UUID> moving, Carry carry) {
         HoseStrandManager strands = HoseStrandManager.get(level);
         HoseRopeManager ropes = HoseRopeManager.get(level);
@@ -250,6 +285,9 @@ public final class TeleportStrands {
         }
         for (SteelCableStrand strand : carry.cables) {
             respawnCable(strand, where, fallback, shifts);
+        }
+        for (ScrewLinkStrand strand : carry.screws) {
+            respawnScrew(strand, where, fallback, shifts);
         }
         for (HoseJoint joint : carry.hoses) {
             respawnHose(joint, where, fallback, shifts);
@@ -311,6 +349,24 @@ public final class TeleportStrands {
         }
         strand.points = null;
         strands.touch();
+        LoconauticsConstants.LOGGER.info("[strandcross] hose {} rebuilt in {} nozzle={}", strand.id,
+                level.dimension().location(), strand.nozzleLocalPos != null);
+    }
+
+    private static void respawnScrew(ScrewLinkStrand strand, Map<UUID, ServerLevel> where, ServerLevel fallback,
+                                     Map<UUID, Shift> shifts) {
+        ScrewLinkStrandManager strands = ScrewLinkStrandManager.get(where.getOrDefault(strand.subA, fallback));
+        if (strands == null) {
+            return;
+        }
+        strand.localA = shifted(shifts, strand.subA, strand.localA);
+        if (strand.isCoupled()) {
+            strand.localB = shifted(shifts, strand.subB, strand.localB);
+        }
+        strand.points = null;
+        strands.touch();
+        LoconauticsConstants.LOGGER.info("[strandcross] screw link {} rebuilt in {} coupled={}", strand.id,
+                where.getOrDefault(strand.subA, fallback).dimension().location(), strand.isCoupled());
     }
 
     private static BlockPos shifted(Map<UUID, Shift> shifts, UUID sub, BlockPos local) {
@@ -328,6 +384,8 @@ public final class TeleportStrands {
         RopeStrandHolderBehavior to = where.getOrDefault(joint.subB(), fallback) == level
                 ? holderAt(level, container, joint.subB(), localB) : null;
         boolean made = from != null && to != null && from.createRope(to, false);
+        LoconauticsConstants.LOGGER.info("[strandcross] rope {} to {} holders={}/{} made={} in {}", joint.subA(),
+                joint.subB(), from != null, to != null, made, level.dimension().location());
         if (made) {
             restoreShape(from, joint, where, fallback, shifts);
             return;
@@ -417,6 +475,8 @@ public final class TeleportStrands {
             SteelCableStrandDriver.detach(level, strands, ropes, strand, null);
             return;
         }
+        LoconauticsConstants.LOGGER.info("[strandcross] cable {} rebuilt in {} length={}", strand.id,
+                level.dimension().location(), length);
         strand.restLength = length;
         strand.points = null;
         strand.extensionGoal = 1.0;

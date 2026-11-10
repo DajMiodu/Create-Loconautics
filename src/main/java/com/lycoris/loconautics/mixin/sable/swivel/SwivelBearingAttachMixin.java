@@ -28,6 +28,9 @@ public abstract class SwivelBearingAttachMixin {
         Vec3 anchor = self.getBlockPos().relative(self.getBlockState().getValue(SwivelBearingBlock.FACING)).getCenter();
         Vec3 world = own.logicalPose().transformPosition(anchor);
         Vec3 inPlate = plateSubLevel.logicalPose().transformPositionInverse(world);
+        double gap = inPlate.distanceTo(new Vec3(attachPos.x, attachPos.y, attachPos.z));
+        if (gap > 0.05) {
+        }
         attachPos.set(inPlate.x, inPlate.y, inPlate.z);
     }
 

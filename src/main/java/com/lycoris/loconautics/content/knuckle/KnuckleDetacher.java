@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.knuckle;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.ConnectorDetacher;
 import com.lycoris.loconautics.common.sable.SubLevelBlocks;
 import com.lycoris.loconautics.common.sable.SubLevelData;
@@ -51,6 +52,8 @@ public final class KnuckleDetacher implements ConnectorDetacher {
             partner.clearPartner();
             knuckle.holdApartFrom(subB, partnerPos);
             partner.holdApartFrom(subA, ownPos);
+            LoconauticsConstants.LOGGER.info("[maneuver] decoupled knuckles {} on {} and {} on {}", ownPos, subA,
+                    partnerPos, subB);
             split = true;
         }
         return split;

@@ -31,6 +31,7 @@ public record DisassembleSableTrainPacket(BlockPos stationPos) implements Custom
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
             if (!PacketTargets.canEditStation(player, packet.stationPos())) return;
+            // a refused disassembly keeps its train, clearing would flash the create new train panelbutton
             if (SableTrainSpawner.disassembleFromStation(player, packet.stationPos())) {
                 StationParkedSyncPacket.clear(packet.stationPos());
             }

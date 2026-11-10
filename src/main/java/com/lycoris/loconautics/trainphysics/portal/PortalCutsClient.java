@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class PortalCutsClient {
@@ -26,6 +27,7 @@ public final class PortalCutsClient {
     private static final class Entry {
         private PortalCut cut;
         private BoundingBox3ic bounds;
+        // every dimension lays its plot grid out at the same coordinates, so a cut left behind by the dimension the
         private final ClientLevel level;
         private final Set<BlockPos> hidden = new HashSet<>();
 
@@ -37,6 +39,29 @@ public final class PortalCutsClient {
     }
 
     private static final List<Entry> ACTIVE = new CopyOnWriteArrayList<>();
+
+    private static final AtomicInteger AIR = new AtomicInteger();
+    private static final AtomicInteger GLASS = new AtomicInteger();
+    private static final AtomicInteger UNTOUCHED = new AtomicInteger();
+    private static long clientTicks;
+
+    public static void tickReport() {
+        clientTicks++;
+        if (!PortalTrace.on() || clientTicks % 20 != 0) {
+            return;
+        }
+        ClientLevel level = Minecraft.getInstance().level;
+        PortalTrace.log("client cuts={} replacedAir={} replacedGlass={} untouched={} level={}", ACTIVE.size(),
+                AIR.getAndSet(0), GLASS.getAndSet(0), UNTOUCHED.getAndSet(0),
+                level == null ? "none" : level.dimension().location());
+        for (Entry entry : ACTIVE) {
+            ClientSubLevel sub = resolve(level, entry.cut.subLevelId());
+            PortalTrace.log("client cut body={} sameLevel={} resolves={} axis={} cutoff={} positive={} "
+                            + "hiddenBlockEntities={} bounds={}", PortalTrace.id(entry.cut.subLevelId()),
+                    entry.level == level, sub != null, entry.cut.axis(), entry.cut.cutoff(), entry.cut.positive(),
+                    entry.hidden.size(), entry.bounds);
+        }
+    }
 
     private PortalCutsClient() {
     }
@@ -52,6 +77,7 @@ public final class PortalCutsClient {
         ACTIVE.clear();
     }
 
+    // a different body in a different dimension and leave the real ones visuals removed for the rest of the session
     public static void onLevelUnload(ClientLevel level) {
         for (Entry entry : new ArrayList<>(ACTIVE)) {
             if (entry.level == level) {
@@ -65,6 +91,10 @@ public final class PortalCutsClient {
         ClientSubLevel sub = resolve(Minecraft.getInstance().level, cut.subLevelId());
         BoundingBox3ic bounds = sub == null ? null : sub.getPlot().getBoundingBox();
         if (bounds == null) {
+            if (PortalTrace.due("clientput" + cut.subLevelId(), clientTicks, 20)) {
+                PortalTrace.log("client cut dropped body={} resolves={} bounds={}", PortalTrace.id(cut.subLevelId()),
+                        sub != null, bounds);
+            }
             return;
         }
         for (Entry stale : new ArrayList<>(ACTIVE)) {
@@ -84,6 +114,8 @@ public final class PortalCutsClient {
             existing.cut = cut;
             existing.bounds = bounds;
         }
+        PortalTrace.log("client cut applied body={} axis={} cutoff={} positive={}", PortalTrace.id(cut.subLevelId()),
+                cut.axis(), cut.cutoff(), cut.positive());
         syncVisuals(sub, existing);
         remesh(sub);
     }
@@ -93,22 +125,27 @@ public final class PortalCutsClient {
         if (existing == null) {
             return;
         }
+        PortalTrace.log("client cut removed body={}", PortalTrace.id(subLevelId));
         restoreVisuals(existing);
         ACTIVE.remove(existing);
         remesh(resolve(existing.level, subLevelId));
     }
 
+    // null means the block is untouched, anything else replaces it for meshing only
     public static BlockState replacement(BlockPos pos, BlockState original) {
         for (Entry entry : ACTIVE) {
             if (entry.level != Minecraft.getInstance().level || !contains(entry.bounds, pos)) {
                 continue;
             }
             if (entry.cut.hidden(pos.getX(), pos.getY(), pos.getZ())) {
+                AIR.incrementAndGet();
                 return Blocks.AIR.defaultBlockState();
             }
             if (!original.isAir() && entry.cut.seam(pos.getX(), pos.getY(), pos.getZ())) {
+                GLASS.incrementAndGet();
                 return Blocks.PURPLE_STAINED_GLASS.defaultBlockState();
             }
+            UNTOUCHED.incrementAndGet();
             return null;
         }
         return null;

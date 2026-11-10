@@ -59,16 +59,24 @@ public final class PortalEntry {
         ServerSubLevel sub = level == null ? null : SubLevelData.resolve(level, id);
         PortalCut cut = sub == null ? null : cutOf(sub, id, planePoint, travelDir, complement);
         if (cut == null) {
+            PortalTrace.log("cut missing body={} level={} resolves={}", PortalTrace.id(id),
+                    level == null ? "none" : level.dimension().location(), sub != null);
             clearBody(id);
             return;
         }
         live.add(id);
-        SENT.put(id, cut);
-        PortalColliders.apply(level, id, solid ? cut : PortalCut.everything(id));
+        PortalCut previous = SENT.put(id, cut);
+        int hiddenColliders = PortalColliders.apply(level, id, solid ? cut : PortalCut.everything(id));
+        if (!cut.equals(previous)) {
+            PortalTrace.log("cut body={} dim={} axis={} cutoff={} positive={} solid={} hiddenColliders={}",
+                    PortalTrace.id(id), level.dimension().location(), cut.axis(), cut.cutoff(), cut.positive(), solid,
+                    hiddenColliders);
+        }
         // sent every tick, a client that joined or changed dimension mid straddle otherwise drew the car whole
         PortalCutPacket.broadcast(cut);
     }
 
+    // an entry can end where trainportalcrossing never looks again, and every one of those left the cut standing
     public static void sweep() {
         tick++;
         for (Map.Entry<UUID, Long> entry : new ArrayList<>(RENEWED.entrySet())) {
@@ -105,6 +113,7 @@ public final class PortalEntry {
     private static void clearBody(UUID subLevelId) {
         PortalColliders.clear(subLevelId);
         if (SENT.remove(subLevelId) != null) {
+            PortalTrace.log("cut cleared body={}", PortalTrace.id(subLevelId));
             PortalCutPacket.broadcastClear(subLevelId);
         }
     }

@@ -1,0 +1,10 @@
+{
+  "values": {
+    "loconautics:raw_cerisene": {
+      "burn_time": 3200
+    },
+    "loconautics:cerisene_block": {
+      "burn_time": 12800
+    }
+  }
+}

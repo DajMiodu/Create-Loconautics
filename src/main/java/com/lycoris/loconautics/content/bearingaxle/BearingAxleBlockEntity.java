@@ -115,6 +115,7 @@ public class BearingAxleBlockEntity extends KineticBlockEntity
     public void setConsistLoad(double massShare, boolean opposed, int group,
                                double ownStrength, double netStrength, double slipFactor, int groupSize,
                                AxleGearing.Gearing gearing) {
+        // a few su of drift shouldnt resync the whole network every tick
         boolean stressChanged = massShare != this.totalMassKg || opposed != this.opposed
                 || Math.abs(gearing.ratio() - this.gearRatio) > this.gearRatio * 0.005;
         boolean displayChanged = group != this.driveGroup || groupSize != this.groupSize
@@ -154,6 +155,8 @@ public class BearingAxleBlockEntity extends KineticBlockEntity
         int clamped = Math.max(0, Math.min(AxleGearing.MAX_GEAR, signal));
         if (clamped == gear) {
             return;
+        }
+        if (level != null && !level.isClientSide) {
         }
         gear = clamped;
         if (gear == 0) {
@@ -225,6 +228,7 @@ public class BearingAxleBlockEntity extends KineticBlockEntity
 
     public void setSlopeAngle(double degrees) {
         double a = Math.max(0.0, degrees);
+        // bodies wobble, a tighter band resyncs the kinetic network every tick
         if (Math.abs(a - this.slopeAngleDeg) < 0.25) {
             return;
         }

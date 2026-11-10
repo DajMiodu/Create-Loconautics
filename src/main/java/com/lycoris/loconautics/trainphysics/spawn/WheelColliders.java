@@ -129,11 +129,13 @@ public final class WheelColliders {
             clearPadsAround(level, bogeyPos);
         }
         if (alive.size() != car.bogeys().size()) {
+            BogeyEditTrace.refuse(train, "reconcile dropped " + (car.bogeys().size() - alive.size()) + " bogey(s)");
             train.setBogeys(alive);
             SubLevelSplitWatcher.refitAfterBogeyDrop(train, sub, alive);
         }
     }
 
+    // a pad only belongs to a bogey sitting in one of the nine cells above it, anything else is a leftover.
     public static boolean isOrphanPad(LevelAccessor level, BlockPos pad) {
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {

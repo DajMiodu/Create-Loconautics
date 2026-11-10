@@ -23,6 +23,7 @@ public final class TrainMailTransfer {
 
     private static final int INTERVAL_TICKS = 20;
 
+    // unloads is false for a retrieve away from the post office, a fetched package stays aboard even at a postbox with its address
     public record Rules(boolean loads, @Nullable String loadRegex, boolean deposit, boolean unloads) {
 
         public static final Rules ALL = new Rules(true, null, false, true);

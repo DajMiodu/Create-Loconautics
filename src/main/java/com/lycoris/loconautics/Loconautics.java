@@ -1,7 +1,8 @@
 package com.lycoris.loconautics;
 
 import com.lycoris.loconautics.config.LoconauticsConfig;
-import com.lycoris.loconautics.content.controls.ControlsBlocks;
+import com.lycoris.loconautics.content.boiler.BoilerBlocks;
+import com.lycoris.loconautics.content.boiler.BoilerContributions;
 import com.lycoris.loconautics.content.hose.rope.HoseRopeManager;
 import com.lycoris.loconautics.content.hose.spray.HoseSprayLoader;
 import com.lycoris.loconautics.content.hose.spray.entity.HoseSprayEntities;
@@ -24,12 +25,14 @@ public final class Loconautics {
 
     public Loconautics(IEventBus modEventBus, ModContainer modContainer) {
         LoconauticsRegistries.register(modEventBus);
-        ControlsBlocks.register(modEventBus);
+        BoilerBlocks.register(modEventBus);
+        com.lycoris.loconautics.content.cerisene.CeriseneBlocks.register(modEventBus);
         HoseSprayEntities.register(modEventBus);
         com.lycoris.loconautics.content.locomotiveready.LocomotiveReadyWorld.register(modEventBus);
         com.lycoris.loconautics.content.industrial.IndustrialBlocks.init();
         com.lycoris.loconautics.content.dashboard.DashboardBlocks.init();
         com.lycoris.loconautics.content.buffer.BufferBlocks.init();
+        com.lycoris.loconautics.content.combustion.SmallEngineBlocks.init();
         com.lycoris.loconautics.content.conductorshat.ConductorsHats.init();
         com.lycoris.loconautics.registry.LoconauticsSounds.register(modEventBus);
 
@@ -57,6 +60,25 @@ public final class Loconautics {
                 net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK,
                 LoconauticsRegistries.HOSE_CONNECTOR_BE.get(),
                 (be, side) -> side == null || side == be.plateSide() ? be.getLinkHandler() : null);
+        event.registerBlockEntity(
+                net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK,
+                com.lycoris.loconautics.content.boiler.BoilerBlocks.BARREL_PIPE_CONNECTOR_BE.get(),
+                (be, side) -> be.getFluidHandler());
+        for (net.minecraft.world.level.block.Block block : net.minecraft.core.registries.BuiltInRegistries.BLOCK) {
+            event.registerBlock(
+                    net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK,
+                    (level, pos, state, be, side) -> state.is(com.lycoris.loconautics.content.boiler.BoilerTags.BOILER_BODY)
+                            ? new com.lycoris.loconautics.content.boiler.BoilerBodyInlet(level, pos) : null,
+                    block);
+        }
+        event.registerBlockEntity(
+                net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK,
+                com.lycoris.loconautics.content.combustion.SmallEngineBlocks.ENGINE_BE.get(),
+                (be, side) -> be.fluidHandler(side));
+        event.registerBlockEntity(
+                net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK,
+                com.lycoris.loconautics.content.boiler.BoilerBlocks.FIREBOX_STOCKER_BE.get(),
+                (be, side) -> be.isPrimary() ? be.inputHandler() : null);
         if (net.neoforged.fml.ModList.get().isLoaded("hullsteel")) {
             com.lycoris.loconautics.content.hatch.HullsteelSocketBridge.registerCapabilities(event);
         }
@@ -88,10 +110,13 @@ public final class Loconautics {
         if (net.neoforged.fml.ModList.get().isLoaded("computercraft")) {
             com.lycoris.loconautics.compat.computercraft.LoconauticsCCPlugin.install();
         }
+        com.lycoris.loconautics.trainphysics.debug.force.ForceTrace.register();
         com.lycoris.loconautics.common.strand.StrandRemap.register(
                 com.lycoris.loconautics.content.steelcable.SteelCableStrandRemap.INSTANCE);
         com.lycoris.loconautics.common.strand.StrandRemap.register(
                 com.lycoris.loconautics.content.hose.HoseStrandRemap.INSTANCE);
+        com.lycoris.loconautics.common.strand.StrandRemap.register(
+                com.lycoris.loconautics.content.screwlink.ScrewLinkStrandRemap.INSTANCE);
         event.enqueueWork(com.lycoris.loconautics.content.turntablebearing.TurntableCogPlacement::register);
         event.enqueueWork(com.lycoris.loconautics.compat.create.ManeuverEditorInstruction::register);
         SableTrainDriver.register();
@@ -99,10 +124,14 @@ public final class Loconautics {
         com.lycoris.loconautics.common.strand.RopeManager.register(HoseRopeManager::get);
         com.lycoris.loconautics.common.strand.RopeManager.register(
                 com.lycoris.loconautics.content.steelcable.rope.SteelCableRopeManager::get);
+        com.lycoris.loconautics.common.strand.RopeManager.register(
+                com.lycoris.loconautics.content.screwlink.rope.ScrewLinkRopeManager::get);
         dev.ryanhcode.sable.platform.SableEventPlatform.INSTANCE.onPhysicsTick(
                 HoseRopeManager::onPhysicsTick);
         dev.ryanhcode.sable.platform.SableEventPlatform.INSTANCE.onPhysicsTick(
                 com.lycoris.loconautics.content.steelcable.rope.SteelCableRopeManager::onPhysicsTick);
+        dev.ryanhcode.sable.platform.SableEventPlatform.INSTANCE.onPhysicsTick(
+                com.lycoris.loconautics.content.screwlink.rope.ScrewLinkRopeManager::onPhysicsTick);
         dev.ryanhcode.sable.platform.SableEventPlatform.INSTANCE.onPhysicsTick(
                 com.lycoris.loconautics.compat.create.patch.RollerWorldActor::onPhysicsTick);
         dev.ryanhcode.sable.platform.SableEventPlatform.INSTANCE.onPhysicsTick(
@@ -118,12 +147,14 @@ public final class Loconautics {
                 new com.lycoris.loconautics.trainphysics.coupling.BlockEntityCouplingProvider<>(
                         dev.simulated_team.simulated.content.blocks.spring.SpringBlockEntity.class,
                         dev.simulated_team.simulated.content.blocks.spring.SpringBlockEntity::getPartnerSubLevelID,
-                        spring -> true));
+                        spring -> true)
+                        .twist(com.lycoris.loconautics.compat.simulated.SpringTwistLinks::link));
         com.lycoris.loconautics.trainphysics.TrainConsist.registerProvider(
                 new com.lycoris.loconautics.trainphysics.coupling.BlockEntityCouplingProvider<>(
                         com.lycoris.loconautics.content.knuckle.KnuckleBlockEntity.class,
                         com.lycoris.loconautics.content.knuckle.KnuckleBlockEntity::getPartnerSubLevelId,
-                        com.lycoris.loconautics.content.knuckle.KnuckleBlockEntity::isConnected));
+                        com.lycoris.loconautics.content.knuckle.KnuckleBlockEntity::isConnected)
+                        .twist((own, knuckle) -> knuckle.twistLink(own)));
         com.lycoris.loconautics.trainphysics.TrainConsist.registerProvider(
                 new com.lycoris.loconautics.trainphysics.coupling.BlockEntityCouplingProvider<>(
                         dev.simulated_team.simulated.content.blocks.docking_connector.DockingConnectorBlockEntity.class,
@@ -139,9 +170,16 @@ public final class Loconautics {
                         .welded(sticker -> true));
         com.lycoris.loconautics.trainphysics.TrainConsist.registerProvider(
                 new com.lycoris.loconautics.trainphysics.coupling.SteelCableCouplingProvider());
+        com.lycoris.loconautics.trainphysics.TrainConsist.registerProvider(
+                new com.lycoris.loconautics.trainphysics.coupling.ScrewLinkCouplingProvider());
         com.lycoris.loconautics.trainphysics.spawn.ArticulationLinks.registerProviders();
         com.lycoris.loconautics.common.ConnectorDetachers.register(
                 new com.lycoris.loconautics.content.knuckle.KnuckleDetacher());
+
+        if (net.neoforged.fml.ModList.get().isLoaded("createbigcannons")) {
+            NeoForge.EVENT_BUS.addListener(
+                    com.lycoris.loconautics.compat.cbc.CbcRecoilHandler::onEntityJoinLevel);
+        }
     }
 
     private void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -151,6 +189,14 @@ public final class Loconautics {
             sendStrandOnLogin(player, strand.type.kind(), strand.id, strand.points,
                     new com.lycoris.loconautics.common.strand.StrandEnd(strand.subA, strand.localA),
                     new com.lycoris.loconautics.common.strand.StrandEnd(strand.subB, strand.localB));
+        }
+        for (var strand : com.lycoris.loconautics.content.screwlink.ScrewLinkStrandManager
+                .get(player.getServer()).all()) {
+            sendStrandOnLogin(player, com.lycoris.loconautics.common.strand.StrandKind.SCREW_LINK,
+                    strand.id, strand.points,
+                    new com.lycoris.loconautics.common.strand.StrandEnd(strand.subA, strand.localA),
+                    strand.localB == null ? null
+                            : new com.lycoris.loconautics.common.strand.StrandEnd(strand.subB, strand.localB));
         }
     }
 
@@ -171,6 +217,8 @@ public final class Loconautics {
     private void onServerStopped(ServerStoppedEvent event) {
         runStopHook("PanelDriveBus", com.lycoris.loconautics.content.controls.panel.PanelDriveBus::clear);
         runStopHook("MapColorStorage", com.lycoris.loconautics.content.schedule.map.MapColorStorage::closeAll);
+        runStopHook("ForceTrace", com.lycoris.loconautics.trainphysics.debug.force.ForceTrace::reset);
+        runStopHook("RailDebug", com.lycoris.loconautics.trainphysics.debug.RailDebug::clearSelections);
         runStopHook("RerailApproach", com.lycoris.loconautics.trainphysics.spawn.RerailApproach::clearAll);
         runStopHook("TurntableRegistry", com.lycoris.loconautics.common.turntable.TurntableRegistry::clear);
         runStopHook("SignalOverrides", com.lycoris.loconautics.common.railway.SignalOverrides::clear);
@@ -196,6 +244,7 @@ public final class Loconautics {
 
     private void onAddReloadListeners(net.neoforged.neoforge.event.AddReloadListenerEvent event) {
         event.addListener(new HoseSprayLoader());
+        event.addListener(new BoilerContributions());
         event.addListener(new com.lycoris.loconautics.content.variantpicker.data.VariantFamilyLoader());
     }
 

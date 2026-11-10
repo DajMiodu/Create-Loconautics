@@ -29,6 +29,7 @@ public final class SubLevelAssemblyUtil {
 
     public static void anchorRotationPoint(ServerSubLevel sub) {
         Vector3dc rotationPoint = sub.logicalPose().rotationPoint();
+        // a body sits millions of blocks out in its plot, so the origin can only mean sable never got to set this
         if (rotationPoint.x() != 0.0 || rotationPoint.y() != 0.0 || rotationPoint.z() != 0.0) {
             return;
         }

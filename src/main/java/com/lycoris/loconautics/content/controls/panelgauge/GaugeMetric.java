@@ -3,6 +3,10 @@ package com.lycoris.loconautics.content.controls.panelgauge;
 import com.lycoris.loconautics.compat.gauge.AeronauticsGauges;
 import com.lycoris.loconautics.compat.gauge.DieselGauges;
 import com.lycoris.loconautics.compat.gauge.PropulsionGauges;
+import com.lycoris.loconautics.config.LoconauticsConfig;
+import com.lycoris.loconautics.content.boiler.firebox.FireboxBlockEntity;
+import com.lycoris.loconautics.content.combustion.SmallEngineBlockEntity;
+import com.lycoris.loconautics.content.combustion.SmallEngineTuning;
 import com.mojang.serialization.Codec;
 import com.simibubi.create.content.fluids.pipes.valve.FluidValveBlock;
 import com.simibubi.create.content.fluids.pipes.valve.FluidValveBlockEntity;
@@ -30,6 +34,39 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public enum GaugeMetric implements StringRepresentable {
+
+    TEMPERATURE(FireboxBlockEntity.class,
+            FireboxBlockEntity::formattedTemperature,
+            FireboxBlockEntity::temperatureFraction, ChatFormatting.GOLD, 27),
+    PRESSURE(FireboxBlockEntity.class,
+            be -> pct(be.getDisplayPressure()),
+            FireboxBlockEntity::getDisplayPressure, ChatFormatting.AQUA, 21),
+    STEAM_OUTPUT(FireboxBlockEntity.class,
+            be -> String.format(Locale.US, "%,.0f SU", be.getDisplaySu()),
+            be -> over(be.getDisplaySu(), be.getDisplayMaxSu()), ChatFormatting.AQUA, 15),
+    SHAFT_RPM(FireboxBlockEntity.class,
+            be -> String.format(Locale.US, "%,.0f RPM", be.getDisplayRpm()),
+            be -> over(be.getDisplayRpm(), (float) (double) LoconauticsConfig.TAKEOFF_MAX_RPM.get()),
+            ChatFormatting.AQUA, 9),
+    BURN_RATE(FireboxBlockEntity.class,
+            be -> String.format(Locale.US, "%.2fx", be.getLastBurnRate()),
+            be -> over(be.getLastBurnRate(), 4f), ChatFormatting.GOLD, 22),
+    FUEL_REMAINING(FireboxBlockEntity.class,
+            be -> FireboxBlockEntity.formatTime(be.getDisplayRemaining()),
+            be -> over(be.getDisplayRemaining(), 600f), ChatFormatting.WHITE, 32),
+    WATER_LEVEL(FireboxBlockEntity.class,
+            GaugeMetric::waterLevel,
+            be -> be.isDisplayValid() ? over(be.getDisplayWater(), be.getWaterCapacity()) : 0f,
+            ChatFormatting.BLUE, 2),
+    EFFICIENCY(FireboxBlockEntity.class,
+            be -> pct(be.getDisplayEfficiency()),
+            FireboxBlockEntity::getDisplayEfficiency, ChatFormatting.GREEN, 17),
+    NETWORK_STRESS(FireboxBlockEntity.class,
+            be -> pct(be.getLastStressRatio()),
+            FireboxBlockEntity::getLastStressRatio, ChatFormatting.AQUA, 23),
+    TRAIN_WEIGHT(FireboxBlockEntity.class,
+            GaugeMetric::trainWeight,
+            be -> over((float) Math.max(0.0, be.getLastTrainMass()), 3000f), ChatFormatting.GOLD, 3),
 
     SPEEDOMETER_RPM(SpeedGaugeBlockEntity.class,
             be -> String.format(Locale.US, "%,.0f RPM", Math.abs(be.getSpeed())),
@@ -131,14 +168,38 @@ public enum GaugeMetric implements StringRepresentable {
     HOT_AIR_OUTPUT(Group.HOT_AIR_BURNER, AeronauticsGauges::hotAirOutput, AeronauticsGauges::hotAirFraction,
             ChatFormatting.GOLD, 22),
     STEAM_VENT_OUTPUT(Group.STEAM_VENT, AeronauticsGauges::steamOutput, AeronauticsGauges::steamFraction,
-            ChatFormatting.WHITE, 21);
+            ChatFormatting.WHITE, 21),
+
+    SMALL_ENGINE_RPM(SmallEngineBlockEntity.class,
+            be -> String.format(Locale.US, "%,.0f RPM", be.getOutputRpm()),
+            be -> over(be.getOutputRpm(), SmallEngineTuning.TOP_RPM), ChatFormatting.AQUA, 9),
+    SMALL_ENGINE_OUTPUT(SmallEngineBlockEntity.class,
+            be -> String.format(Locale.US, "%,.0f SU", be.getOutputSu()),
+            be -> over(be.getOutputSu(), SmallEngineTuning.SU_PER_ENGINE * SmallEngineTuning.MAX_TANDEM),
+            ChatFormatting.AQUA, 15),
+    SMALL_ENGINE_THROTTLE(SmallEngineBlockEntity.class,
+            be -> SmallEngineTuning.isOff(be.getControlSignal()) ? "0%"
+                    : pct(SmallEngineTuning.speedFraction(be.getControlSignal())),
+            be -> SmallEngineTuning.speedFraction(be.getControlSignal()), ChatFormatting.GREEN, 17),
+    SMALL_ENGINE_FUEL(SmallEngineBlockEntity.class,
+            be -> String.format(Locale.US, "%,d / %,d mB", be.getFuelAmount(), be.getFuelCapacity()),
+            be -> over(be.getFuelAmount(), be.getFuelCapacity()), ChatFormatting.GOLD, 32),
+    SMALL_ENGINE_FILL(SmallEngineBlockEntity.class,
+            be -> pct(over(be.getFuelAmount(), be.getFuelCapacity())),
+            be -> over(be.getFuelAmount(), be.getFuelCapacity()), ChatFormatting.GOLD, 32),
+    SMALL_ENGINE_BURNS_FOR(SmallEngineBlockEntity.class,
+            GaugeMetric::smallEngineBurnsFor,
+            be -> be.getBurnsForSeconds() < 0 ? 0f : over(be.getBurnsForSeconds(), 600f),
+            ChatFormatting.WHITE, 32);
 
     public enum Group {
+        FIREBOX("loconautics", "Loconautics", "Firebox", FireboxBlockEntity.class),
         SPEEDOMETER("create", "Create", "Speedometer", SpeedGaugeBlockEntity.class),
         STRESSOMETER("create", "Create", "Stressometer", StressGaugeBlockEntity.class),
         VELOCITY("simulated", "Create: Simulated", "Velocity Sensor", VelocitySensorBlockEntity.class),
         ALTITUDE("simulated", "Create: Simulated", "Altitude Sensor", AltitudeSensorBlockEntity.class),
         GIMBAL("simulated", "Create: Simulated", "Gimbal Sensor", GimbalSensorBlockEntity.class),
+        SMALL_ENGINE("loconautics", "Loconautics", "Small Combustion Engine", SmallEngineBlockEntity.class),
         FLUID_VALVE("create", "Create", "Fluid Valve", FluidValveBlockEntity.class),
         PORTABLE_ENGINE("simulated", "Create: Simulated", "Portable Engine", PortableEngineBlockEntity.class),
         FLUID_TANK("create", "Create", "Fluid Tank", FluidTankBlockEntity.class),
@@ -207,15 +268,14 @@ public enum GaugeMetric implements StringRepresentable {
         }
     }
 
-    public static final Codec<GaugeMetric> CODEC =
-            Codec.STRING.xmap(GaugeMetric::byName, GaugeMetric::getSerializedName);
+    public static final Codec<GaugeMetric> CODEC = StringRepresentable.fromValues(GaugeMetric::values);
 
     public static final StreamCodec<io.netty.buffer.ByteBuf, GaugeMetric> STREAM_CODEC =
             ByteBufCodecs.idMapper(GaugeMetric::byOrdinal, GaugeMetric::ordinal);
 
     public static GaugeMetric byOrdinal(int ordinal) {
         GaugeMetric[] all = values();
-        return ordinal < 0 || ordinal >= all.length ? SPEEDOMETER_RPM : all[ordinal];
+        return ordinal < 0 || ordinal >= all.length ? TEMPERATURE : all[ordinal];
     }
 
     private final Group group;
@@ -253,9 +313,19 @@ public enum GaugeMetric implements StringRepresentable {
         return state.hasProperty(FluidValveBlock.ENABLED) && state.getValue(FluidValveBlock.ENABLED);
     }
 
+    private static String smallEngineBurnsFor(SmallEngineBlockEntity be) {
+        int seconds = be.getBurnsForSeconds();
+        if (seconds < 0) return Component.translatable("loconautics.gui.goggles.gauge_small_engine_idle").getString();
+        return FireboxBlockEntity.formatTime(seconds);
+    }
+
+    public static String formatTime(int sec) {
+        return FireboxBlockEntity.formatTime(sec);
+    }
+
     private static String engineFuel(PortableEngineBlockEntity be) {
         if (be.isCurrentFuelInfinite()) return "∞";
-        return formatTime(be.getCurrentBurnTime() / 20);
+        return FireboxBlockEntity.formatTime(be.getCurrentBurnTime() / 20);
     }
 
     private static float engineFuelFraction(PortableEngineBlockEntity be) {
@@ -346,24 +416,29 @@ public enum GaugeMetric implements StringRepresentable {
         return "gui.goggles.gauge_" + getSerializedName();
     }
 
-    public static String formatTime(int sec) {
-        int min = sec / 60;
-        int hour = min / 60;
-        sec = Math.floorMod(sec, 60);
-        min = Math.floorMod(min, 60);
-        StringBuilder out = new StringBuilder();
-        if (hour > 0) out.append(hour).append("h ");
-        if (min < 10 && hour > 0) out.append('0');
-        if (min > 0 || hour > 0) out.append(min).append("m ");
-        if (sec < 10 && (min > 0 || hour > 0)) out.append('0');
-        return out.append(sec).append('s').toString();
+    private static String waterLevel(FireboxBlockEntity be) {
+        if (!be.isDisplayValid()) {
+            return Component.translatable("loconautics.gui.goggles.gauge_boiler_missing").getString();
+        }
+        return String.format(Locale.US, "%,d / %,d mB", be.getDisplayWater(), be.getWaterCapacity());
+    }
+
+    public boolean faulted(BlockEntity source) {
+        return this == WATER_LEVEL && source instanceof FireboxBlockEntity be && !be.isDisplayValid();
+    }
+
+    private static String trainWeight(FireboxBlockEntity be) {
+        if (!be.onATrain()) {
+            return Component.translatable("loconautics.gui.goggles.gauge_not_on_train").getString();
+        }
+        return String.format(Locale.US, "%,.0f", be.getLastTrainMass());
     }
 
     public static GaugeMetric byName(String name) {
         for (GaugeMetric metric : values()) {
             if (metric.getSerializedName().equals(name)) return metric;
         }
-        return SPEEDOMETER_RPM;
+        return TEMPERATURE;
     }
 
     public static String pct(float fraction) {

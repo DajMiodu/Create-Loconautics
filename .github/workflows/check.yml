@@ -1,0 +1,30 @@
+name: check
+
+on:
+  push:
+    branches: [indev, release]
+  pull_request:
+
+jobs:
+  files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: json files parse
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, sys
+          bad = 0
+          for root in ("src/main/resources", "src/main/templates", "docs"):
+              for p in pathlib.Path(root).rglob("*"):
+                  if p.suffix in (".json", ".mcmeta"):
+                      try:
+                          json.loads(p.read_text(encoding="utf-8"))
+                      except ValueError as e:
+                          print(p, e)
+                          bad += 1
+          sys.exit(1 if bad else 0)
+          PY
+      - name: no jars committed
+        run: |
+          if git ls-files | grep -E '\.jar$' | grep -v '^gradle/wrapper/'; then exit 1; fi

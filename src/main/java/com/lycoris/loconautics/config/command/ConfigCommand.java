@@ -301,7 +301,7 @@ public final class ConfigCommand {
                 .withStyle(style -> style
                         .withColor(ChatFormatting.GREEN)
                         .withBold(true)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/loconautics configreset confirm"))
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/dbgloco configreset confirm"))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                                 Component.literal("Click to reset all " + diffs.size() + " value(s)"))));
 
@@ -309,7 +309,7 @@ public final class ConfigCommand {
                 .withStyle(style -> style
                         .withColor(ChatFormatting.RED)
                         .withBold(true)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/loconautics configreset cancel"))
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/dbgloco configreset cancel"))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                                 Component.literal("Click to cancel"))));
 

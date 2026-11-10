@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.mixin.sable.mergingglue;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.spawn.GlueHost;
 import com.lycoris.loconautics.trainphysics.spawn.SubLevelMergeWatcher;
 import dev.ryanhcode.sable.Sable;
@@ -40,6 +41,7 @@ public abstract class MergingGlueStaffLockMixin {
         }
     }
 
+    // simulated writes the turn into the partners own pose, a rolling car reads it as a huge lean
     @Inject(method = "startControlling", at = @At("TAIL"))
     private void loconautics$restorePartnerPose(MergingGlueBlockEntity partner, CallbackInfo ci) {
         Quaterniond saved = loconautics$partnerOrientation;
@@ -49,6 +51,9 @@ public abstract class MergingGlueStaffLockMixin {
             return;
         }
         Quaterniond written = partnerSub.logicalPose().orientation();
+        LoconauticsConstants.LOGGER.info("[gluemerge] partner {} pose turned {} deg by startControlling, restored",
+                partnerSub.getUniqueId(), String.format("%.2f", Math.toDegrees(new Quaterniond(saved).difference(written,
+                        new Quaterniond()).angle())));
         written.set(saved);
     }
 }

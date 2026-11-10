@@ -71,6 +71,7 @@ public final class SubLevelContacts {
         return true;
     }
 
+    // the wheel plates are their own bodies, so a coupled pair has to switch them off against the other car too
     public static boolean disableCoupled(ServerSubLevel a, ServerSubLevel b) {
         boolean done = disable(a, b);
         ServerSubLevelContainer container = a == null ? null : SubLevelContainer.getContainer(a.getLevel());

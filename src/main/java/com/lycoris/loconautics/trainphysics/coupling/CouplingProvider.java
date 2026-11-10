@@ -11,4 +11,7 @@ public interface CouplingProvider {
 
     default void collectWeldedSubLevels(ServerLevel level, UUID subLevelId, Consumer<UUID> neighbours) {
     }
+
+    default void collectTwistLinks(ServerLevel level, UUID subLevelId, Consumer<TwistLink> links) {
+    }
 }

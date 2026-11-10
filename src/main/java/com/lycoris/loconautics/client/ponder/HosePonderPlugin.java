@@ -16,20 +16,20 @@ public class HosePonderPlugin implements PonderPlugin {
     @Override
     public void registerScenes(PonderSceneRegistrationHelper<ResourceLocation> helper) {
         helper.forComponents(LoconauticsRegistries.HOSE.getId())
-                .addStoryBoard("hose", HoseScenes::connect)
-                .addStoryBoard("hose", HoseScenes::nozzle)
-                .addStoryBoard("hose", HoseScenes::fluid)
-                .addStoryBoard("hose", HoseScenes::spray);
+                .addStoryBoard("hose/hose", HoseScenes::connect)
+                .addStoryBoard("hose/hose", HoseScenes::nozzle)
+                .addStoryBoard("hose/hose", HoseScenes::fluid)
+                .addStoryBoard("hose/hose", HoseScenes::spray);
 
         helper.forComponents(LoconauticsRegistries.HOSE_WINCH.getId())
-                .addStoryBoard("hose", HoseScenes::winch)
-                .addStoryBoard("hose", HoseScenes::connect)
-                .addStoryBoard("hose", HoseScenes::fluid);
+                .addStoryBoard("hose/hose", HoseScenes::winch)
+                .addStoryBoard("hose/hose", HoseScenes::connect)
+                .addStoryBoard("hose/hose", HoseScenes::fluid);
 
         helper.forComponents(LoconauticsRegistries.HOSE_NOZZLE.getId())
-                .addStoryBoard("hose", HoseScenes::connect)
-                .addStoryBoard("hose", HoseScenes::nozzle)
-                .addStoryBoard("hose", HoseScenes::fluid)
-                .addStoryBoard("hose", HoseScenes::spray);
+                .addStoryBoard("hose/hose", HoseScenes::connect)
+                .addStoryBoard("hose/hose", HoseScenes::nozzle)
+                .addStoryBoard("hose/hose", HoseScenes::fluid)
+                .addStoryBoard("hose/hose", HoseScenes::spray);
     }
 }

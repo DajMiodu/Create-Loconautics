@@ -66,6 +66,7 @@ public class HoseSprayParticle extends TextureSheetParticle {
             double rx = this.random.nextDouble() - 0.5;
             double ry = this.random.nextDouble() - 0.5;
             double rz = this.random.nextDouble() - 0.5;
+            // cross with the travel direction so the control point always sits off to the side
             double px = ry * zd - rz * yd;
             double py = rz * xd - rx * zd;
             double pz = rx * yd - ry * xd;
@@ -122,6 +123,7 @@ public class HoseSprayParticle extends TextureSheetParticle {
             this.remove();
             return;
         }
+        // quadratic bezier from the spawn point to the nozzle bottom, easing in so it speeds up near the tip
         double t = (double) this.age / this.lifetime;
         double u = t * t;
         this.quadSize = startSize * (1.0f - 0.8f * (float) t);

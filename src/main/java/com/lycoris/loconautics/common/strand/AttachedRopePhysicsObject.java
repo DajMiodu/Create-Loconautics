@@ -29,6 +29,7 @@ import org.joml.Vector3dc;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -84,9 +85,27 @@ public abstract class AttachedRopePhysicsObject extends RopePhysicsObject {
     protected Vector3d resolveHolderPoint(@Nullable BlockEntity blockEntity, BlockPos blockPos, Vector3d blockCenter) {
         if (blockEntity instanceof StrandHolder holder) {
             Vec3 p = holder.getAttachmentPoint();
+            traceAnchor(blockEntity, blockPos, new Vector3d(p.x, p.y, p.z), blockCenter);
             return new Vector3d(p.x, p.y, p.z);
         }
+        traceAnchor(blockEntity, blockPos, blockCenter, blockCenter);
         return blockCenter;
+    }
+
+    // temporary, tag issue215, one line per new anchor of an end so a cable on the wrong side of a connector shows its point
+    private final Map<BlockPos, Vector3d> tracedAnchors = new HashMap<>();
+
+    private void traceAnchor(@Nullable BlockEntity blockEntity, BlockPos blockPos, Vector3d point, Vector3d blockCenter) {
+        Vector3d known = tracedAnchors.put(blockPos.immutable(), new Vector3d(point));
+        if (known != null && known.distanceSquared(point) < 1.0e-6) {
+            return;
+        }
+        com.lycoris.loconautics.LoconauticsConstants.LOGGER.info(
+                "[issue215] anchor rope={} {} holder={} pos={} state={} point=({}, {}, {}) offFromCenter=({}, {}, {})",
+                id.toString().substring(0, 8), getClass().getSimpleName(),
+                blockEntity == null ? "none" : blockEntity.getClass().getSimpleName(), blockPos,
+                blockEntity == null ? "?" : blockEntity.getBlockState(), point.x, point.y, point.z,
+                point.x - blockCenter.x, point.y - blockCenter.y, point.z - blockCenter.z);
     }
 
     protected boolean requireBothBodiesResolved() {
@@ -180,6 +199,9 @@ public abstract class AttachedRopePhysicsObject extends RopePhysicsObject {
             }
         }
         if (centerMoved) {
+            com.lycoris.loconautics.LoconauticsConstants.LOGGER.info(
+                    "[ropeanchor] {} rope={} center of mass moved, attachments reapplied", getClass().getSimpleName(),
+                    id.toString().substring(0, 8));
             applyAttachments(level);
         }
     }
@@ -286,9 +308,20 @@ public abstract class AttachedRopePhysicsObject extends RopePhysicsObject {
     }
 
     @Override
+    public void onAddition(SubLevelPhysicsSystem physicsSystem) {
+        super.onAddition(physicsSystem);
+        if (knotGrab.traceTicks > 0) {
+            com.lycoris.loconautics.LoconauticsConstants.LOGGER.info("[knotgrab] rope added to system id={}", id);
+        }
+    }
+
+    @Override
     public void onRemoved() {
         super.onRemoved();
         knotGrab.reset();
+        if (knotGrab.traceTicks > 0) {
+            com.lycoris.loconautics.LoconauticsConstants.LOGGER.info("[knotgrab] rope removed from system id={}", id);
+        }
         removeConstraint();
     }
 

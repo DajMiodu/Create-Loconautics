@@ -46,6 +46,7 @@ public interface SteelCableHolder extends StrandHolder {
         }
     }
 
+    // idempotent through the shared store, break, snap and explicit disconnect can all reach it
     default void onStrandDetached(UUID strandId) {
         StrandAttachments.detach(this, SteelCableHolderBehaviour.TYPE, strandId);
         if (this instanceof SmartBlockEntity sbe) {

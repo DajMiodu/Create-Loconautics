@@ -4,10 +4,13 @@ import com.lycoris.loconautics.content.controls.panel.PanelGlass;
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.content.controls.panel.style.PanelStyle;
 import com.lycoris.loconautics.content.controls.panel.style.PanelStyles;
+import com.lycoris.loconautics.content.brakes.pull.PullBrakeBlock;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.minecraft.world.item.DyeColor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class LoconauticsPartialModels {
@@ -112,6 +115,11 @@ public class LoconauticsPartialModels {
     public static final PartialModel NEEDLE_VERTICAL =
             PartialModel.of(LoconauticsConstants.id("block/controls/gauge/needle_vertical"));
 
+    public static final PartialModel SCREW_LINK_LINK =
+            PartialModel.of(LoconauticsConstants.id("block/screwlink/link"));
+    public static final PartialModel SCREW_LINK_KNOT =
+            PartialModel.of(LoconauticsConstants.id("block/screwlink/knot"));
+
     public static final PartialModel STEEL_CABLE_ROPE =
             PartialModel.of(LoconauticsConstants.id("block/steelcable/rope"));
     public static final PartialModel STEEL_CABLE_KNOT =
@@ -134,6 +142,15 @@ public class LoconauticsPartialModels {
             PartialModel.of(LoconauticsConstants.id("block/knuckle/pin"));
     public static final PartialModel KNUCKLE_STRETCH_ARM =
             PartialModel.of(LoconauticsConstants.id("block/knuckle/stretch_arm"));
+
+    public static final Map<DyeColor, PartialModel> ENGINE_PISTONS = new java.util.EnumMap<>(DyeColor.class);
+
+    static {
+        for (DyeColor color : DyeColor.values()) {
+            ENGINE_PISTONS.put(color, PartialModel.of(
+                    LoconauticsConstants.id("block/combustion/" + color.getSerializedName() + "/piston")));
+        }
+    }
 
     public static final Map<DyeColor, PartialModel> BUFFER_SLEEVES = new java.util.EnumMap<>(DyeColor.class);
     public static final Map<DyeColor, PartialModel> BUFFER_RODS = new java.util.EnumMap<>(DyeColor.class);
@@ -158,8 +175,18 @@ public class LoconauticsPartialModels {
     public static final PartialModel HATCH_FLUID_LID =
             PartialModel.of(LoconauticsConstants.id("block/hatch/fluid_hatch_lid_gray"));
 
+    public static final PartialModel FIREBOX_DOOR_LEFT =
+            PartialModel.of(LoconauticsConstants.id("block/boiler/firebox/door_left"));
+    public static final PartialModel FIREBOX_DOOR_RIGHT =
+            PartialModel.of(LoconauticsConstants.id("block/boiler/firebox/door_right"));
+    public static final PartialModel FIREBOX_LEVER_ARM =
+            PartialModel.of(LoconauticsConstants.id("block/boiler/firebox/lever_arm"));
+
     public static final PartialModel HOSE_WINCH_COIL =
             PartialModel.of(LoconauticsConstants.id("block/hose/coil"));
+
+    public static final PartialModel BARREL_PIPE_CONNECTOR =
+            PartialModel.of(LoconauticsConstants.id("block/boiler/barrel/pipe_connector"));
 
     public static final PartialModel BOGEY_DRIVEN_TOP =
             PartialModel.of(LoconauticsConstants.id("block/bearingaxle/bogey/top"));
@@ -208,6 +235,22 @@ public class LoconauticsPartialModels {
         for (net.minecraft.world.item.DyeColor color : net.minecraft.world.item.DyeColor.values()) {
             CONDUCTORS_HATS.put(color, PartialModel.of(
                     LoconauticsConstants.id("entity/conductors_hat/" + color.getSerializedName())));
+        }
+    }
+
+    public static final Map<String, PartialModel> PULL_BRAKE_WHEELS = new HashMap<>();
+
+    public static final Map<String, PartialModel> PULL_BRAKE_CHAINS = new HashMap<>();
+
+    static {
+        List<String> names = new ArrayList<>(List.of(PullBrakeBlock.BASE_COLOR));
+        for (DyeColor color : DyeColor.values()) {
+            names.add(color.getSerializedName());
+        }
+        for (String name : names) {
+            String folder = "block/brakes/pull/" + name + "/";
+            PULL_BRAKE_WHEELS.put(name, PartialModel.of(LoconauticsConstants.id(folder + "wheel")));
+            PULL_BRAKE_CHAINS.put(name, PartialModel.of(LoconauticsConstants.id(folder + "chain")));
         }
     }
 

@@ -55,6 +55,7 @@ public final class SchedulePlanner {
         if (a == null || b == null) {
             return null;
         }
+        // a stop still on the current edge needs no route at all, and the graph walk can never reach it
         double ahead = aheadOnCurrentEdge(from, a, b, loc);
         if (!Double.isNaN(ahead)) {
             return new SchedulePath(loc, ahead > 0.0 ? 1 : -1, ImmutableList.of(), station);

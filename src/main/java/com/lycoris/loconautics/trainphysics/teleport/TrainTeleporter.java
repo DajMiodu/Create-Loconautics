@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public final class TrainTeleporter {
 
@@ -55,7 +56,8 @@ public final class TrainTeleporter {
 
     private enum Mode { RAIL, FREE, HANDOVER }
 
-    public static Result teleport(SableTrain train, ServerLevel destLevel, Vec3 position, double yawDeg) {
+    public static Result teleport(SableTrain train, ServerLevel destLevel, Vec3 position, double yawDeg,
+                                  Consumer<String> trace) {
         List<SableTrain> cars = chain(train);
         String refusal = refuse(cars);
         if (refusal != null) {
@@ -65,16 +67,16 @@ public final class TrainTeleporter {
         if (plan == null) {
             return new Result("one of the cars has no live body", 0, cars);
         }
-        return run(plan, destLevel, Mode.FREE);
+        return run(plan, destLevel, Mode.FREE, trace);
     }
 
     public static Result teleportToRail(SableTrain train, ServerLevel destLevel, TrackGraphLocation loc,
-                                        Vec3 upNormal, Vec3 look) {
-        return teleportToRail(train, destLevel, loc, upNormal, look, look);
+                                        Vec3 upNormal, Vec3 look, Consumer<String> trace) {
+        return teleportToRail(train, destLevel, loc, upNormal, look, look, trace);
     }
 
     public static Result teleportToRail(SableTrain train, ServerLevel destLevel, TrackGraphLocation loc,
-                                        Vec3 upNormal, Vec3 look, @Nullable Vec3 facing) {
+                                        Vec3 upNormal, Vec3 look, @Nullable Vec3 facing, Consumer<String> trace) {
         List<SableTrain> cars = chain(train);
         String refusal = refuse(cars);
         if (refusal != null) {
@@ -103,7 +105,7 @@ public final class TrainTeleporter {
             plan.add(new Landing(car, sub, seat.origin(), seat.orient(), seat,
                     carFacing.dot(look) < 0.0 ? -1.0 : 1.0));
         }
-        return run(plan, destLevel, Mode.RAIL);
+        return run(plan, destLevel, Mode.RAIL, trace);
     }
 
     @Nullable
@@ -111,7 +113,7 @@ public final class TrainTeleporter {
         return refuse(chain(train));
     }
 
-    public static Result handOver(SableTrain train, PortalFrame frame) {
+    public static Result handOver(SableTrain train, PortalFrame frame, Consumer<String> trace) {
         List<SableTrain> cars = chain(train);
         String refusal = refuse(cars);
         if (refusal != null) {
@@ -130,7 +132,7 @@ public final class TrainTeleporter {
             plan.add(new Landing(car, sub, frame.toFar(sub.logicalPose().position()),
                     frame.orientToFar(sub.logicalPose().orientation()), null, 1.0));
         }
-        Result result = run(plan, destLevel, Mode.HANDOVER);
+        Result result = run(plan, destLevel, Mode.HANDOVER, trace);
         PortalFrame turned = frame.inverted();
         for (SableTrain car : result.cars()) {
             if (car.level() == destLevel) {
@@ -206,7 +208,7 @@ public final class TrainTeleporter {
         return plan;
     }
 
-    private static Result run(List<Landing> plan, ServerLevel destLevel, Mode mode) {
+    private static Result run(List<Landing> plan, ServerLevel destLevel, Mode mode, Consumer<String> trace) {
         SubLevelSplitWatcher.ensureObserver(destLevel);
         Map<UUID, SableTeleportation.PlotSlot> seats = new HashMap<>();
         Set<SableTeleportation.PlotSlot> claimed = new HashSet<>();
@@ -227,6 +229,8 @@ public final class TrainTeleporter {
             }
             claimed.add(slot);
             seats.put(landing.sub().getUniqueId(), slot);
+            trace.accept("car " + shortId(landing.train()) + " takes plot " + slot.x() + ", " + slot.z() + " in "
+                    + destLevel.dimension().location());
         }
 
         Set<UUID> moving = new HashSet<>();
@@ -236,6 +240,8 @@ public final class TrainTeleporter {
 
         ServerLevel sourceLevel = plan.get(0).sub().getLevel();
         TeleportStrands.Carry strands = TeleportStrands.capture(sourceLevel, moving);
+        LoconauticsConstants.LOGGER.info("[issue281] {} cars={} strands carried={} cut={} from {} to {}", mode, plan.size(),
+                strands.carried(), strands.cut(), sourceLevel.dimension().location(), destLevel.dimension().location());
         Map<UUID, TeleportStrands.Shift> shifts = new HashMap<>();
         Map<UUID, ServerLevel> where = new HashMap<>();
 
@@ -280,15 +286,22 @@ public final class TrainTeleporter {
                 pipeline.addLinearAndAngularVelocity(result.moved(), carriedVelocity, new Vector3d());
             }
             settleKnuckles(result.moved(), moving);
-            reseatDrivers(result.moved(), fromCenter, drivers);
+            reseatDrivers(result.moved(), fromCenter, drivers, trace);
             GhostWheelBodies.rebuild(train);
             SableTrainPersistence.persist(train);
             SableTrainSyncPacket.broadcast(train);
             moved++;
+            LoconauticsConstants.LOGGER.info("[issue281] car={} landed {}/{} derailed={} speed={}", shortId(train), moved,
+                    plan.size(), train.isDerailed(), train.speed());
+            trace.accept("car " + shortId(train) + " landed at " + format(landing.origin()));
         }
         followPartnerPlots(plan, destLevel, shifts);
         holdCoupledContacts(plan, destLevel);
         TeleportStrands.restore(strands, where, sourceLevel, shifts);
+        LoconauticsConstants.LOGGER.info("[issue281] all {} cars landed, strands restored", moved);
+        if (strands.carried() > 0 || strands.cut() > 0) {
+            trace.accept(strands.carried() + " strands respawned, " + strands.cut() + " cut loose");
+        }
         return new Result(null, moved, cars(plan));
     }
 
@@ -312,6 +325,7 @@ public final class TrainTeleporter {
         SubLevelContacts.releaseAll(sub.getUniqueId());
     }
 
+    // the filters went with the old bodies, so coupled cars would touch for a tick or two after landing
     private static void holdCoupledContacts(List<Landing> plan, ServerLevel destLevel) {
         for (Landing landing : plan) {
             ServerSubLevel moved = SubLevelData.resolve(destLevel, landing.sub().getUniqueId());
@@ -362,6 +376,8 @@ public final class TrainTeleporter {
             }
             knuckle.clearConnection();
             knuckle.clearPartner();
+            LoconauticsConstants.LOGGER.info("[teleport] uncoupled {} from {}, it is not coming along",
+                    sub.getUniqueId(), partner);
         }
     }
 
@@ -377,13 +393,21 @@ public final class TrainTeleporter {
     }
 
     // the controller reloads from a tag that never carries a driver, a new plot only shifts x and z like repot
-    private static void reseatDrivers(ServerSubLevel moved, BlockPos fromCenter, Map<BlockPos, UUID> drivers) {
+    private static void reseatDrivers(ServerSubLevel moved, BlockPos fromCenter, Map<BlockPos, UUID> drivers,
+                                      Consumer<String> trace) {
         BlockPos toCenter = moved.getPlot().getCenterBlock();
         ServerLevel level = moved.getLevel();
+        if (drivers.isEmpty()) {
+            trace.accept("no driver on any controller of " + moved.getUniqueId().toString().substring(0, 8));
+        }
         drivers.forEach((pos, user) -> {
             BlockPos landed = new BlockPos(pos.getX() - fromCenter.getX() + toCenter.getX(), pos.getY(),
                     pos.getZ() - fromCenter.getZ() + toCenter.getZ());
             ServerPlayer player = level.getServer().getPlayerList().getPlayer(user);
+            boolean found = level.getBlockEntity(landed) instanceof AnalogControllerBlockEntity;
+            trace.accept("driver " + (player == null ? user : player.getScoreboardName()) + " at " + pos.toShortString()
+                    + " to " + landed.toShortString() + " controller=" + found + " player in "
+                    + (player == null ? "none" : player.level().dimension().location()));
             if (player != null && level.getBlockEntity(landed) instanceof AnalogControllerBlockEntity controller) {
                 controller.resumeUser(player);
             }
@@ -396,6 +420,10 @@ public final class TrainTeleporter {
             out.add(landing.train());
         }
         return out;
+    }
+
+    private static String format(Vector3d v) {
+        return String.format("%.1f %.1f %.1f", v.x, v.y, v.z);
     }
 
     private static String shortId(SableTrain train) {

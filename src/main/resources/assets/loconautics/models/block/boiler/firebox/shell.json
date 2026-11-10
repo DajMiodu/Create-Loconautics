@@ -1,0 +1,9 @@
+{
+    "loader": "loconautics:connected",
+    "render_type": "minecraft:cutout",
+    "textures": {
+        "strip": "loconautics:block/boiler/firebox/side",
+        "cap": "loconautics:block/boiler/firebox/bottom_top",
+        "particle": "loconautics:block/boiler/firebox/side"
+    }
+}

@@ -49,6 +49,7 @@ public abstract class PortableStorageInterfaceSableMixin extends SmartBlockEntit
         SablePsiDriver.tick((PortableStorageInterfaceBlockEntity) (Object) this);
     }
 
+    // create tears the connection down here once the keep alive runs out, the sub level side cannot do it itself
     @Inject(method = "stopTransferring", at = @At("TAIL"))
     private void loconautics$dropSableLink(CallbackInfo ci) {
         SablePsiDriver.unlink((PortableStorageInterfaceBlockEntity) (Object) this);
@@ -75,6 +76,7 @@ public abstract class PortableStorageInterfaceSableMixin extends SmartBlockEntit
         }
     }
 
+    // the drawn gap comes from both bodies drawn poses every frame, the synced distance only moves on packets
     @Inject(method = "getExtensionDistance", at = @At("HEAD"), cancellable = true)
     private void loconautics$liveExtension(float partialTicks, CallbackInfoReturnable<Float> cir) {
         if (!loconautics$linked || loconautics$partnerPos == null || level == null || !level.isClientSide) {

@@ -126,6 +126,10 @@ dependencies {
     compileOnly("dev.ryanhcode.sable:sable-common-${minecraft_version}:${sable_version}")
     compileOnly files(modJar('sable-neoforge-*.jar'))
     compileOnly files(simulatedFromBundle ? 'deps/simulated-neoforge.jar' : modJar('simulated-*.jar'))
+    compileOnly files('deps/aeronautics-neoforge.jar')
+    compileOnly files(modJar('createpropulsion-*.jar'))
+    compileOnly files('run/mods/createbigcannons-5.11.7+mc.1.21.1.jar')
+    compileOnly files('run/mods/ritchiesprojectilelib-2.1.2-mc.1.21.1-neoforge.jar')
 
     compileOnly files('deps/sable-companion-common.jar')
     compileOnly files('deps/veil-neoforge.jar')
@@ -149,6 +153,7 @@ def registerExtract = { String taskName, String sourceJar, String entryPattern, 
 
 registerExtract('extractSableCompanion', 'sable-neoforge-*.jar', 'META-INF/jarjar/sable-companion-common-*.jar', 'sable-companion-common.jar')
 registerExtract('extractSableRapier', 'sable-neoforge-*.jar', 'META-INF/jarjar/dev.ryanhcode.sable.sable-sable_rapier-*.jar', 'sable-rapier.jar')
+registerExtract('extractAeronautics', 'create-aeronautics-bundled-*.jar', 'META-INF/jarjar/dev.eriksonn.aeronautics.aeronautics-neoforge-*.jar', 'aeronautics-neoforge.jar')
 registerExtract('extractVeil', 'sable-neoforge-*.jar', 'META-INF/jarjar/veil-neoforge-1.21.1-*.jar', 'veil-neoforge.jar')
 
 if (simulatedFromBundle) {
@@ -167,6 +172,7 @@ if (simulatedFromBundle) {
 tasks.named('compileJava') {
     dependsOn 'extractSableCompanion'
     dependsOn 'extractVeil'
+    dependsOn 'extractAeronautics'
     dependsOn 'extractSableRapier'
     if (simulatedFromBundle) dependsOn 'extractSimulated'
 }

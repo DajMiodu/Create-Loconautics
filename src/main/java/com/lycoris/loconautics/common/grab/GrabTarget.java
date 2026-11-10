@@ -25,6 +25,7 @@ public interface GrabTarget {
 
     Vector3d getGrabCenter();
 
+    // where the joint bites, in the bodys own frame. a sub levels plot local center is already that, a loose
     default Vector3d getGrabAnchor() {
         return getGrabCenter();
     }

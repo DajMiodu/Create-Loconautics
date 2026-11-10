@@ -5,29 +5,35 @@ bin/
 run/
 repo/
 deps/
-run_client.log
 
 .idea/
+*.iws
 *.iml
 *.ipr
-*.iws
 .run/
-.vscode/
-.eclipse/
 .classpath
 .project
 .settings
 .factorypath
 .apt_generated
+.eclipse/
 .springBeans
 .sts4-cache
+.vscode/
 .DS_Store
 
 !gradle/wrapper/gradle-wrapper.jar
 **/src/generated/**/.cache/
 
+*.md
+!README.md
+!docs/wiki/*.md
+*.py
+/skills-lock.json
 /scratch_c/
 /temp/
 /md/guidebook_1.html
 /src/depend/Veil/
 /src/main/resources/assets/loconautics/textures/gui/guidebook/guidebook.zip
+
+run_client.log

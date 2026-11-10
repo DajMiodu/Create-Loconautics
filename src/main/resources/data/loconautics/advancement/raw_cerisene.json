@@ -1,0 +1,30 @@
+{
+    "parent": "loconautics:root",
+    "criteria": {
+        "eaten": {
+            "trigger": "minecraft:consume_item",
+            "conditions": {
+                "item": {
+                    "items": "loconautics:raw_cerisene"
+                }
+            }
+        }
+    },
+    "display": {
+        "icon": {
+            "id": "loconautics:raw_cerisene"
+        },
+        "title": {
+            "translate": "advancement.loconautics.raw_cerisene"
+        },
+        "description": {
+            "translate": "advancement.loconautics.raw_cerisene.desc"
+        },
+        "frame": "task"
+    },
+    "requirements": [
+        [
+            "eaten"
+        ]
+    ]
+}

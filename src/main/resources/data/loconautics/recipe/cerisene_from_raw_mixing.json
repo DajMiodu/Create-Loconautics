@@ -1,0 +1,30 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "superheated",
+  "ingredients": [
+    {
+      "item": "loconautics:raw_cerisene"
+    },
+    {
+      "item": "loconautics:raw_cerisene"
+    },
+    {
+      "item": "loconautics:raw_cerisene"
+    },
+    {
+      "item": "loconautics:raw_cerisene"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "minecraft:water"
+    }
+  ],
+  "processing_time": 200,
+  "results": [
+    {
+      "amount": 1000,
+      "id": "loconautics:cerisene"
+    }
+  ]
+}

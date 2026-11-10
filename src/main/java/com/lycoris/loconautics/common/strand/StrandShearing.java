@@ -114,6 +114,7 @@ public final class StrandShearing {
     }
 
     private static boolean remove(ServerLevel level, Hit hit) {
+        // delegate to the normal break paths they remove physics, saved data, and both endpoint bindings.
         if (hit.kind() == 0) {
             var strands = SteelCableStrandManager.get(level);
             var ropes = SteelCableRopeManager.get(level);

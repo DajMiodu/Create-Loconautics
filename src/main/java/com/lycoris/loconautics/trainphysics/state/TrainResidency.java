@@ -12,16 +12,21 @@ import com.lycoris.loconautics.trainphysics.SableTrain.Residency;
 import com.lycoris.loconautics.common.sable.SubLevelBlocks;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
 import com.lycoris.loconautics.trainphysics.TrainLength;
+import com.lycoris.loconautics.trainphysics.debug.CartMoveTrace;
+import com.lycoris.loconautics.trainphysics.debug.GhostConsistTrace;
+import com.lycoris.loconautics.trainphysics.debug.HostThrashTrace;
 import com.lycoris.loconautics.trainphysics.drive.ConsistPower;
 import com.lycoris.loconautics.trainphysics.drive.ExternalForceDerail;
 import com.lycoris.loconautics.trainphysics.drive.SableTrainDriver;
 import com.lycoris.loconautics.trainphysics.drive.TrainRailAdvance;
+import com.lycoris.loconautics.trainphysics.rail.RailFrame;
 import com.lycoris.loconautics.trainphysics.signal.TrainSignals;
 import com.lycoris.loconautics.trainphysics.station.StationLanding;
 import com.lycoris.loconautics.trainphysics.station.TrainStations;
 import com.lycoris.loconautics.trainphysics.spacing.TrainSpacing;
 import com.lycoris.loconautics.trainphysics.wheels.GhostWheelBodies;
 import dev.ryanhcode.sable.api.SubLevelHelper;
+import dev.ryanhcode.sable.api.physics.handle.RigidBodyHandle;
 import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
 import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
 import dev.ryanhcode.sable.companion.math.BoundingBox3d;
@@ -80,10 +85,16 @@ public final class TrainResidency {
 
     private static final Map<UUID, Long> DEFER_UNTIL = new ConcurrentHashMap<>();
 
+    private static final Set<UUID> DEFER_LOGGED = ConcurrentHashMap.newKeySet();
+
     private static final int DEFER_RECHECK_TICKS = 20;
 
+    private static final Set<UUID> VELOCITY_CHECK = ConcurrentHashMap.newKeySet();
+
+    // ghost cars of a split consist, the tick each one took a chunk hold at its own cursor
     private static final Map<UUID, Long> SPLIT_PINNED = new ConcurrentHashMap<>();
 
+    // a car whose hold timed out or whose body is lost does not take the hold again until the split ends
     private static final Set<UUID> SPLIT_GAVE_UP = ConcurrentHashMap.newKeySet();
 
     // 8 cars of 9 chunks each is no more than eight stopped trains already pin at a station
@@ -93,6 +104,7 @@ public final class TrainResidency {
 
     private static final int RESEAT_RETRY_TICKS = 40;
 
+    // every failed try tears the body down and loads it again, so a reseat that never works stops being retried
     private static final int MAX_RESEAT_FAILS = 5;
 
     private static final Map<UUID, Long> UNLOADED_AT = new ConcurrentHashMap<>();
@@ -103,6 +115,7 @@ public final class TrainResidency {
 
     private static final Map<UUID, Long> PULL_BLOCKED_UNTIL = new ConcurrentHashMap<>();
 
+    // the chunks of a body that just came back stay pinned this long, so a station hold that ends on the embody tick cannot drop them
     public static final long EMBODY_GRACE_TICKS = 100L;
 
     // a body sable took away this soon after it came back flapped, nothing pulls it back for a while
@@ -128,6 +141,8 @@ public final class TrainResidency {
         SNATCH_MISSES.clear();
         REFILED_AT.clear();
         DEFER_UNTIL.clear();
+        DEFER_LOGGED.clear();
+        VELOCITY_CHECK.clear();
         SPLIT_PINNED.clear();
         SPLIT_GAVE_UP.clear();
         RESEAT_FAILS.clear();
@@ -157,6 +172,7 @@ public final class TrainResidency {
     }
 
     public static void onSubLevelUnloaded(SubLevel subLevel) {
+        GhostConsistTrace.noteAnyUnload(subLevel);
         SableTrain train = SableTrainRegistry.bySubLevel(subLevel.getUniqueId());
         if (train == null) {
             return;
@@ -173,6 +189,8 @@ public final class TrainResidency {
             }
             train.setBodyChunk(chunkOf(sub.logicalPose().position()));
             train.setLastKnownPos(sub.logicalPose().position());
+            logUnload(train, sub);
+            GhostConsistTrace.noteUnload(train, sub);
         }
         train.setResidency(Residency.GHOST);
         long unloadedAt = train.level().getGameTime();
@@ -202,6 +220,7 @@ public final class TrainResidency {
         }
         var controller = SableTrainDriver.controllerIn(train);
         train.setScheduleDriven(controller != null && controller.isScheduleControlled());
+        // the full power top, the ghost scales it by the schedule notch limit the way the lever would
         double top = ConsistPower.peakTopBpt(train);
         if (top > 1.0e-4) {
             train.setGhostCruise(top);
@@ -234,6 +253,9 @@ public final class TrainResidency {
             train.setResidency(Residency.GHOST);
             return;
         }
+        if (VELOCITY_CHECK.remove(train.id())) {
+            logEmbodiedVelocity(train, sub);
+        }
         cacheEmbodiedState(train, sub);
     }
 
@@ -246,11 +268,11 @@ public final class TrainResidency {
         if (train.isDerailed() || train.isPhysics()) {
             // this branch never reaches the ticket update below, so a hold taken before the derail would stay forever
             if (RAILHEAD_HELD.remove(train.id()) | SPLIT_PINNED.remove(train.id()) != null) {
-                StationChunkTickets.release(train.id());
+                StationChunkTickets.release(train.id(), "ghost derailed");
             }
             ChunkPos fell = train.bodyChunk();
             if (fell != null && footprintLoaded(train.level(), fell)) {
-                snatchBody(train);
+                snatchBody(train, cursor);
             }
             return;
         }
@@ -270,7 +292,7 @@ public final class TrainResidency {
         updateSplitPin(train, cursor, split);
         StationChunkTickets.update(train);
         if (loaded) {
-            snatchBody(train);
+            snatchBody(train, cursor);
         } else {
             TrainSpacing.release(train);
         }
@@ -282,6 +304,7 @@ public final class TrainResidency {
         return ExternalForceDerail.staffLockedById(train.level(), ids);
     }
 
+    // one speed and one step for the whole consist
     private static void stepGhostConsist(SableTrain train, boolean split) {
         long now = train.level().getGameTime();
         if (GHOST_STEPPED.getOrDefault(train.id(), -1L) == now) {
@@ -302,6 +325,7 @@ public final class TrainResidency {
                 member.setSpeed(leader.speed() * sense[i]);
             }
         }
+        double speedIn = leader.speed();
         double ds = TrainSpacing.ghostStep(leader);
         boolean end = false;
         for (SableTrain member : group) {
@@ -320,9 +344,12 @@ public final class TrainResidency {
             if (member != leader) {
                 member.setSpeed(leader.speed() * sense[i]);
             }
+            GhostConsistTrace.noteStep(member, speedIn * sense[i], ds * sense[i], split, end, group.size(),
+                    member == leader ? null : leader);
             if (ds != 0.0) {
                 TrainRailAdvance.advanceRail(member.car(), ds * sense[i]);
             }
+            CartMoveTrace.step(member, ds * sense[i]);
             GHOST_STEPPED.put(member.id(), now);
         }
     }
@@ -342,6 +369,8 @@ public final class TrainResidency {
             if (lost || now - since > StationChunkTickets.MAX_DWELL_TICKS) {
                 SPLIT_PINNED.remove(id);
                 SPLIT_GAVE_UP.add(id);
+                LoconauticsConstants.LOGGER.info("[ghostedge] split pin dropped train={} reason={}", shortId(id),
+                        lost ? "body is lost" : "dwell cap of " + StationChunkTickets.MAX_DWELL_TICKS + " ticks");
             }
             return;
         }
@@ -358,13 +387,16 @@ public final class TrainResidency {
             return;
         }
         SPLIT_PINNED.put(id, now);
+        LoconauticsConstants.LOGGER.info("[ghostedge] split pin taken train={} cursor={} pinnedMates={} consist={}",
+                shortId(id), v3(cursor), pinned, train.consistCache().size());
     }
 
+    // a body that has been searched for a minute and not found, the hold for it gets the dwell cap
     public static boolean bodyLost(SableTrain train) {
         return SNATCH_MISSES.getOrDefault(train.id(), 0) >= LOST_CHECK_MISSES;
     }
 
-    private static void snatchBody(SableTrain train) {
+    private static void snatchBody(SableTrain train, Vector3d cursor) {
         Integer wait = SNATCH_COOLDOWN.get(train.id());
         if (wait != null) {
             if (wait > 1) {
@@ -375,9 +407,11 @@ public final class TrainResidency {
         }
         String notReady = matesNotReady(train);
         if (notReady != null) {
+            GhostConsistTrace.noteSnatch(train, "a mate is not ready, " + notReady);
             return;
         }
         if (!TrainSpacing.mayEmbody(train)) {
+            GhostConsistTrace.noteSnatch(train, "embody gate closed");
             return;
         }
         if (resolve(train) != null) {
@@ -387,6 +421,7 @@ public final class TrainResidency {
             return;
         }
         if (pullBlocked(train)) {
+            GhostConsistTrace.noteSnatch(train, "sable took the body back right after it came back");
             return;
         }
         ServerSubLevelContainer container = SubLevelContainer.getContainer(train.level());
@@ -394,11 +429,13 @@ public final class TrainResidency {
             return;
         }
         UUID subId = train.car().subLevelId();
+        HostThrashTrace.snatch(train, train.car().carriage().railHostMissing(), cursor == null ? "none" : chunkOf(cursor).toString());
         SubLevelHoldingChunkMap map = container.getHoldingChunkMap();
         HoldingSubLevel holding = map.getHoldingSubLevel(subId);
         GlobalSavedSubLevelPointer pointer = holding != null ? holding.pointer() : train.bodyPointer();
         List<ChunkPos> candidates = candidateChunks(train, holding);
         if (candidates.isEmpty()) {
+            GhostConsistTrace.noteSnatch(train, "no candidate chunks, a body with no pointer and no chunk can never be found");
             return;
         }
         short storageIndex = pointer == null ? 0 : pointer.storageIndex();
@@ -494,6 +531,7 @@ public final class TrainResidency {
         return out.toString();
     }
 
+    // the body was filed under one of the world chunks it overlapped, the pose chunk first since that is nearly always it
     private static List<ChunkPos> candidateChunks(SableTrain train, HoldingSubLevel holding) {
         List<ChunkPos> out = new ArrayList<>();
         ChunkPos primary = holding != null ? chunkOf(new Vector3d(holding.data().pose().position()))
@@ -533,11 +571,14 @@ public final class TrainResidency {
         return new ChunkPos((int) Math.floor(pos.x()) >> 4, (int) Math.floor(pos.z()) >> 4);
     }
 
+    // true when nothing is left to retry, false when the body stays live and the next tick asks again
     private static boolean embody(SableTrain train) {
         ServerSubLevel sub = resolve(train);
         if (sub == null) {
             return true;
         }
+        HostThrashTrace.embody(train, train.car().carriage().railHostMissing(),
+                footprintLoaded(train.level(), railCursor(train.car())));
         Vector3d origin = new Vector3d();
         Quaterniond orient = SableTrainDriver.seatPose(sub, train, origin);
         boolean reseat = !train.isDerailed() && !train.isPhysics() && orient != null;
@@ -580,14 +621,17 @@ public final class TrainResidency {
         if (seated) {
             // sable gives back 0.9 of the saved speed or none, the rail speed is what the train really has
             SableTrainDriver.seedRailVelocity(sub, train.car(), train);
+            VELOCITY_CHECK.add(train.id());
         }
         zeroLeverOfStoppedGhost(train, sub);
+        GhostConsistTrace.noteEmbodied(train);
         train.setResidency(Residency.EMBODIED);
         EMBODIED_AT.put(train.id(), train.level().getGameTime());
         SNATCH_COOLDOWN.remove(train.id());
         SNATCH_MISSES.remove(train.id());
         SNATCH_MISS_LOGGED.remove(train.id());
         DEFER_UNTIL.remove(train.id());
+        DEFER_LOGGED.remove(train.id());
         RESEAT_FAILS.remove(train.id());
         SPLIT_PINNED.remove(train.id());
         SPLIT_GAVE_UP.remove(train.id());
@@ -608,11 +652,13 @@ public final class TrainResidency {
         }
         for (AnalogControllerBlockEntity controller : SubLevelBlocks.findAll(sub, AnalogControllerBlockEntity.class)) {
             if (controller.getCurrentPower() != 0 && !controller.hasUser()) {
+                GhostConsistTrace.noteLever(train, controller.getCurrentPower());
                 controller.setCurrentPower(0);
             }
         }
     }
 
+    // true when the train stays a ghost and the reseat is tried again after a pause, false once the tries ran out
     private static boolean retryReseat(SableTrain train, String failure) {
         UUID id = train.id();
         int fails = RESEAT_FAILS.merge(id, 1, Integer::sum);
@@ -649,29 +695,45 @@ public final class TrainResidency {
         boolean blind = train.car() != null && train.car().carriage().railHostMissing();
         if (!blind && targetLoaded(level, sub, origin)) {
             DEFER_UNTIL.remove(id);
+            DEFER_LOGGED.remove(id);
             return Target.PROCEED;
         }
         boolean aboard = !blind && playerAboard(level, sub);
         if (blind || aboard) {
             DEFER_UNTIL.put(id, now + DEFER_RECHECK_TICKS);
+            if (DEFER_LOGGED.add(id)) {
+                LoconauticsConstants.LOGGER.info("[ghostedge] embody deferred train={} body={} reason={} target={} "
+                                + "bodyAt={}", shortId(train.id()), shortId(sub),
+                        blind ? "the body its rail sits on is not loaded"
+                                : "a player is aboard and the cursor chunks are not loaded",
+                        v3(origin), v3(sub.logicalPose().position()));
+            }
             return Target.DEFERRED;
         }
         DEFER_UNTIL.remove(id);
+        DEFER_LOGGED.remove(id);
         Long last = REFILED_AT.get(id);
         if (last != null && now - last < REFILE_BACKOFF_TICKS) {
+            LoconauticsConstants.LOGGER.info("[ghostedge] refile skipped train={} body={} reason=refiled {} ticks ago "
+                    + "and sable brought it back", shortId(train.id()), shortId(sub), now - last);
             return Target.PROCEED;
         }
         if (hasEmbodiedMate(train)) {
+            LoconauticsConstants.LOGGER.info("[ghostedge] refile skipped train={} body={} reason=a mate is embodied",
+                    shortId(train.id()), shortId(sub));
             return Target.PROCEED;
         }
         int chain = SubLevelHelper.getLoadingDependencyChain(sub).size();
         if (chain > 1) {
+            LoconauticsConstants.LOGGER.info("[ghostedge] refile skipped train={} body={} reason=loading chain of {}",
+                    shortId(train.id()), shortId(sub), chain);
             return Target.PROCEED;
         }
         refile(train, sub, container, origin, orient, now);
         return Target.PARKED;
     }
 
+    // the same margin as sable, bounds shifted to the target and grown by one block
     private static boolean targetLoaded(ServerLevel level, ServerSubLevel sub, Vector3d origin) {
         BoundingBox3dc box = sub.boundingBox();
         Vector3d at = sub.logicalPose().position();
@@ -702,14 +764,17 @@ public final class TrainResidency {
         }).isEmpty();
     }
 
+    // the stored pose is written at the cursor before the body is filed, so a login point on it reads the real place
     private static void refile(SableTrain train, ServerSubLevel sub, ServerSubLevelContainer container,
                                Vector3d origin, Quaterniond orient, long now) {
         UUID subId = sub.getUniqueId();
+        Vector3d from = new Vector3d(sub.logicalPose().position());
         ChunkPos filing = chunkOf(origin);
         GhostWheelBodies.releaseAll(train);
         SableTrainDriver.forgetBodyState(train);
         SableTeleportation.writePose(train.level(), sub, origin, orient);
         sub.updateBoundingBox();
+        String bounds = boundsText(sub.boundingBox(), 1.0);
         SubLevelHoldingChunkMap map = container.getHoldingChunkMap();
         map.moveToUnloaded(sub, filing);
         train.setBodyChunk(filing);
@@ -718,7 +783,32 @@ public final class TrainResidency {
             train.setBodyPointer(filed.pointer());
         }
         REFILED_AT.put(train.id(), now);
+        LoconauticsConstants.LOGGER.info("[ghostedge] stale return refiled train={} body={} from={} to={} chunk={} "
+                + "grownBounds={}", shortId(train.id()), shortId(subId), v3(from), v3(origin), filing, bounds);
         SableTrainPersistence.persist(train);
+    }
+
+    private static void logEmbodiedVelocity(SableTrain train, ServerSubLevel sub) {
+        RigidBodyHandle handle = RigidBodyHandle.of(sub);
+        RailFrame frame = RailFrame.of(sub, train);
+        double raw = handle == null ? Double.NaN : handle.getLinearVelocity(new Vector3d()).length();
+        LoconauticsConstants.LOGGER.info("[ghostedge] velocity train={} mode={} bodySpeed={} alongRail={} railSpeed={} "
+                        + "blocks per second", shortId(train.id()), frame.mode(), f3(raw), f3(frame.speed()),
+                f3(train.speed() * 20.0));
+    }
+
+    private static void logUnload(SableTrain train, ServerSubLevel sub) {
+        MinecraftServer server = train.level().getServer();
+        ServerSubLevelContainer container = SubLevelContainer.getContainer(train.level());
+        if (server == null || !server.isRunning() || container == null) {
+            return;
+        }
+        HoldingSubLevel holding = container.getHoldingChunkMap().getHoldingSubLevel(sub.getUniqueId());
+        LoconauticsConstants.LOGGER.info("[ghostedge] unload train={} body={} bodyChunk={} pointer={} filed={} "
+                        + "storedBounds={} candidates={}", shortId(train.id()), shortId(sub), train.bodyChunk(),
+                train.bodyPointer(), holding != null,
+                holding == null ? "none" : boundsText(holding.data().bounds(), 0.0),
+                candidateChunks(train, holding));
     }
 
     private static String boundsText(BoundingBox3dc box, double grow) {
@@ -728,6 +818,10 @@ public final class TrainResidency {
 
     private static String v3(Vector3dc v) {
         return String.format(Locale.ROOT, "(%.1f,%.1f,%.1f)", v.x(), v.y(), v.z());
+    }
+
+    private static String f3(double value) {
+        return String.format(Locale.ROOT, "%.3f", value);
     }
 
     private static boolean hasEmbodiedMate(SableTrain train) {
@@ -749,11 +843,13 @@ public final class TrainResidency {
                 && train.level().getGameTime() - EMBODIED_AT.getOrDefault(train.id(), Long.MIN_VALUE / 2) < ticks;
     }
 
+    // nothing may pull a ghost back chunk holds, snatches right after sable took its body away on a flap
     public static boolean pullBlocked(SableTrain train) {
         Long until = PULL_BLOCKED_UNTIL.get(train.id());
         return until != null && train.level().getGameTime() < until;
     }
 
+    // the chunks sable tests for every body that loads and unloads with this car, bounds grown by one block like its own test
     public static Set<ChunkPos> chainChunks(SableTrain train) {
         Set<ChunkPos> out = new HashSet<>();
         ServerSubLevel sub = resolve(train);
@@ -825,6 +921,7 @@ public final class TrainResidency {
         return BlockPos.containing(cursor.x, cursor.y, cursor.z);
     }
 
+    // a rail whose host body is not loaded reads in plot space, nothing there can be pinned or counted as loaded
     public static boolean inPlotGrid(ServerLevel level, Vector3d pos) {
         ServerSubLevelContainer container = SubLevelContainer.getContainer(level);
         return container != null && container.inBounds(pos);
@@ -864,6 +961,8 @@ public final class TrainResidency {
         SNATCH_MISS_LOGGED.retainAll(live);
         REFILED_AT.keySet().retainAll(live);
         DEFER_UNTIL.keySet().retainAll(live);
+        DEFER_LOGGED.retainAll(live);
+        VELOCITY_CHECK.retainAll(live);
         SPLIT_PINNED.keySet().retainAll(live);
         SPLIT_GAVE_UP.retainAll(live);
         RESEAT_FAILS.keySet().retainAll(live);

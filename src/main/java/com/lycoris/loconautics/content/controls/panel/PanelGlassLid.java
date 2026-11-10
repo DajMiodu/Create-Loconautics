@@ -12,6 +12,7 @@ public final class PanelGlassLid {
     private record Key(float time, float value, Kind kind) {
     }
 
+    // keyframes copied from the open and close animations in the glass bbmodel
     private static final Key[] OPEN = {
             new Key(0f, 0f, Kind.LINEAR),
             new Key(0.5f, 100f, Kind.LINEAR),
@@ -56,6 +57,7 @@ public final class PanelGlassLid {
                 + (3f * p1 - p0 - 3f * p2 + p3) * t3);
     }
 
+    // handles sit a fixed time away from each key at the keys own value, so the curve eases in and out
     private static float bezier(Key before, Key after, float time) {
         float x0 = before.time;
         float x1 = before.time + BEZIER_HANDLE;

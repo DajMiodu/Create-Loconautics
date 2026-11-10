@@ -92,6 +92,7 @@ public final class CcControl {
     public static void release(UUID trainId) {
         CcControl released = ACTIVE.remove(trainId);
         if (released != null) {
+            com.lycoris.loconautics.LoconauticsConstants.LOGGER.info("[ccsteer] dropped control of {} steer={}", trainId, released.steer);
             released.abandonPark();
             released.clearTransmission();
         }
@@ -127,6 +128,7 @@ public final class CcControl {
         abandonStop();
     }
 
+    // parkatcoord blocks on this event, so every way a park ends has to send it
     private void abandonPark() {
         if (!isParking()) {
             return;

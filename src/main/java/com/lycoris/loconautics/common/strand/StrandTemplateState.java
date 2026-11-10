@@ -98,6 +98,7 @@ public final class StrandTemplateState {
         be.setChanged();
     }
 
+    // the saved offset may have been turned or mirrored by the placement, so every flip is tried
     @Nullable
     private BlockEntity findFar(ServerLevel level, BlockEntity be, CompoundTag record) {
         int[] far = record.getIntArray("Far");

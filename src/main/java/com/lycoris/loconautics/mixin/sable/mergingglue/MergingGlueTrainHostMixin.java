@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.mixin.sable.mergingglue;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.spawn.GlueHost;
 import com.lycoris.loconautics.trainphysics.sublevel.SubLevelContacts;
 import dev.ryanhcode.sable.Sable;
@@ -46,6 +47,8 @@ public abstract class MergingGlueTrainHostMixin {
         }
         ci.cancel();
         SubLevelContacts.enable(own.getUniqueId(), other.getUniqueId());
+        LoconauticsConstants.LOGGER.info("[gluemerge] piece {} goes into train body {}",
+                (train == own ? other : own).getUniqueId(), train.getUniqueId());
         ((MergingGlueAccessor) self).loconautics$breakGlue();
         if (train == own) {
             ((MergingGlueAccessor) partner).loconautics$disassembleToPartner(GlueHost.inverse(endRotation));

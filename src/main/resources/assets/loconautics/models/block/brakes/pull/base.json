@@ -1,0 +1,49 @@
+{
+    "parent": "block/block",
+    "render_type": "minecraft:cutout",
+    "textures": {
+        "0": "loconautics:block/brakes/pull/brass/sheet",
+        "particle": "loconautics:block/brakes/pull/brass/sheet"
+    },
+    "elements": [
+        {
+            "from": [4, 1, 14],
+            "to": [12, 5, 16],
+            "rotation": {"angle": 0, "axis": "y", "origin": [6, 10, 12]},
+            "faces": {
+                "north": {"uv": [4, 6, 8, 8], "texture": "#0"},
+                "east": {"uv": [14, 0, 15, 2], "texture": "#0"},
+                "south": {"uv": [7, 0, 11, 2], "texture": "#0"},
+                "west": {"uv": [15, 0, 16, 2], "texture": "#0"},
+                "up": {"uv": [11, 3, 7, 2], "texture": "#0"},
+                "down": {"uv": [11, 3, 7, 4], "texture": "#0"}
+            }
+        },
+        {
+            "from": [5, 5, 14],
+            "to": [11, 11, 16],
+            "rotation": {"angle": 0, "axis": "y", "origin": [6, 10, 12]},
+            "faces": {
+                "north": {"uv": [4, 0, 7, 3], "texture": "#0"},
+                "east": {"uv": [2, 8, 3, 11], "texture": "#0"},
+                "south": {"uv": [4, 3, 7, 6], "texture": "#0"},
+                "west": {"uv": [3, 8, 4, 11], "texture": "#0"},
+                "up": {"uv": [7, 9, 4, 8], "texture": "#0"},
+                "down": {"uv": [11, 6, 8, 7], "texture": "#0"}
+            }
+        },
+        {
+            "from": [6, 6, 13],
+            "to": [10, 10, 14],
+            "rotation": {"angle": 0, "axis": "y", "origin": [6, 10, 10]},
+            "faces": {
+                "north": {"uv": [7, 4, 9, 6], "texture": "#0"},
+                "east": {"uv": [6, 10, 6.5, 12], "texture": "#0"},
+                "south": {"uv": [0, 8, 2, 10], "texture": "#0"},
+                "west": {"uv": [11, 5, 11.5, 7], "texture": "#0"},
+                "up": {"uv": [11, 5.5, 9, 5], "texture": "#0"},
+                "down": {"uv": [11, 5.5, 9, 6], "texture": "#0"}
+            }
+        }
+    ]
+}

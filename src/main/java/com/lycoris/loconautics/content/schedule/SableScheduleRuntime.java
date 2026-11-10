@@ -14,7 +14,9 @@ import com.lycoris.loconautics.content.trainmail.PostalEntry;
 import com.lycoris.loconautics.content.trainmail.PostalPlan;
 import com.lycoris.loconautics.content.trainmail.SablePostalWorld;
 import com.lycoris.loconautics.content.trainmail.TrainMailTransfer;
+import com.lycoris.loconautics.common.sable.TrackHostFrames;
 import com.lycoris.loconautics.foundation.LoconauticsLang;
+import com.lycoris.loconautics.foundation.debug.TurntableTrace;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.common.sable.SubLevelBlocks;
 import com.lycoris.loconautics.trainphysics.TrainLength;
@@ -61,6 +63,7 @@ import org.joml.Vector3d;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -165,6 +168,7 @@ public final class SableScheduleRuntime implements PostalState {
     private final Set<UUID> postalWarned = new HashSet<>();
     private boolean waitingHere;
     private int conditionSaveCounter;
+    private boolean traceNow;
     private boolean maneuver;
     private int maneuverPercent = LoconauticsConstants.MANEUVER_DEFAULT_PERCENT;
     private final Set<UUID> former = new HashSet<>();
@@ -205,6 +209,7 @@ public final class SableScheduleRuntime implements PostalState {
         ConsistNose.forget(SableTrainRegistry.get(trainId));
     }
 
+    // the asking car first, then the rest by id, so every lookup walks a consist in the same order
     public static List<SableTrain> consistCars(SableTrain car) {
         List<SableTrain> mates = new ArrayList<>();
         for (UUID subLevelId : car.consistCache()) {
@@ -218,6 +223,7 @@ public final class SableScheduleRuntime implements PostalState {
         return mates;
     }
 
+    // one consist runs one schedule, kept under whichever car it drives from right now
     @Nullable
     public static UUID consistKey(SableTrain car) {
         List<SableTrain> cars = consistCars(car);
@@ -277,6 +283,7 @@ public final class SableScheduleRuntime implements PostalState {
         return Collections.unmodifiableSet(former);
     }
 
+    // wagons the loco may roll up to, the ones it left plus a train parked at the stop it is berthing behind
     public Set<UUID> maneuverFriends() {
         Set<UUID> friends = new HashSet<>(former);
         friends.addAll(berthed);
@@ -299,6 +306,7 @@ public final class SableScheduleRuntime implements PostalState {
         maneuverPlan = null;
         deadEndNotified = false;
         reversalUsed = false;
+        LoconauticsConstants.LOGGER.info("[maneuver] {} start, {} cars left behind", trainTag(), this.former.size());
         announcer.line(Component.literal("Maneuver started, " + this.former.size() + " cars left behind"));
         if (train != null) {
             TrainStatusChat.maneuverStarted(train);
@@ -308,6 +316,7 @@ public final class SableScheduleRuntime implements PostalState {
 
     public void endManeuver() {
         if (maneuver) {
+            LoconauticsConstants.LOGGER.info("[maneuver] {} end, {} cars still left behind", trainTag(), former.size());
             announcer.line(Component.literal("Maneuver done"));
             if (train != null) {
                 TrainStatusChat.maneuverEnded(train);
@@ -340,11 +349,40 @@ public final class SableScheduleRuntime implements PostalState {
         }
     }
 
+    private String trainTag() {
+        return train == null ? "none" : shortId(train.id());
+    }
+
+    private void traceTurn(String stage, TurntableRegistry.Exit hop, Turntable turntable) {
+        if (train == null || train.level() == null
+                || !TurntableTrace.due(trainTag() + stage, train.level().getGameTime(), 20)) {
+            return;
+        }
+        UUID plate = hop == null ? null : hop.plate();
+        TrackHostFrames.Frame frame = TrackHostFrames.frameOf(plate);
+        double error = turntable == null || hop == null ? Double.NaN
+                : TurntableRegistry.alignmentError(turntable, hop.movingHead(), hop.worldHead());
+        TurntableTrace.log(trainTag() + " " + stage + " ghost=" + train.isGhost() + " speed="
+                + String.format("%.3f", train.speed()) + " impl="
+                + (turntable == null ? "none" : turntable.getClass().getSimpleName()) + " powered="
+                + (turntable != null && turntable.turntablePowered()) + " sched="
+                + (turntable != null && turntable.turntableScheduleDriven()) + " aligning=" + turntableAligning
+                + " aligned=" + (turntable != null && turntable.turntableAligned()) + " settled="
+                + (turntable != null && turntable.turntableSettled()) + " error=" + String.format("%.2f", error)
+                + " frameAngle=" + (frame == null ? "none" : String.format("%.2f", frame.angle()))
+                + " frameLoaded=" + (frame != null && frame.loaded()) + " hostMissing="
+                + (train.car() != null && train.car().carriage().railHostMissing()) + " reserved="
+                + TurntableRegistry.reserved(plate) + " occupied=" + TurntableRegistry.occupied(plate)
+                + " entry=" + (hop != null && hop.entry()) + " plate=" + (plate == null ? "none" : shortId(plate)));
+    }
+
     int plannedRel() {
         return maneuverPlan == null ? 0 : maneuverPlan.currentRel();
     }
 
-    void maneuverPlanFailed() {
+    void maneuverPlanFailed(String why) {
+        LoconauticsConstants.LOGGER.info("[maneuver] {} stored plan {} found no route, planning again, {}",
+                trainTag(), maneuverPlan, why);
         maneuverPlan = null;
     }
 
@@ -353,6 +391,14 @@ public final class SableScheduleRuntime implements PostalState {
             maneuverPlan = new ManeuverPlan();
         }
         maneuverPlan.record(best.hop(), rel);
+        TurntableRegistry.Exit hop = best.hop();
+        String exit = hop == null ? "no plate" : hop.entry() ? "plate entry, leg ends at the approach end"
+                : ManeuverPlan.backsOut(hop) ? "plate exit, backs out the way it came in"
+                : "plate exit, spins and leaves " + (rel > 0 ? "cab" : "tail") + " end first";
+        LoconauticsConstants.LOGGER.info("[maneuver] {} plan legs {} leg sense {} dir {} {}{}",
+                trainTag(), maneuverPlan, rel > 0 ? "cab first" : "backing", best.direction(), exit,
+                hop == null ? "" : ", heads entry " + hop.entryHead() + " moving " + hop.movingHead()
+                        + " world " + hop.worldHead());
     }
 
     boolean reversalAllowed() {
@@ -364,8 +410,11 @@ public final class SableScheduleRuntime implements PostalState {
             maneuverPlan = new ManeuverPlan();
         }
         maneuverPlan.recordReversal(rel);
+        LoconauticsConstants.LOGGER.info("[maneuver] {} plan legs {} leg one {} then stop and reverse", trainTag(),
+                maneuverPlan, rel > 0 ? "cab first" : "backing");
     }
 
+    // a path with no station and no plate is a stop point where the train turns around
     private boolean reversalStop() {
         return maneuver && path != null && path.station() == null && path.hop() == null;
     }
@@ -377,6 +426,8 @@ public final class SableScheduleRuntime implements PostalState {
         clearRoute();
         parked = false;
         reversalUsed = true;
+        LoconauticsConstants.LOGGER.info("[maneuver] {} stopped at the reversal point, going back", trainTag());
+        traceCycle("turnAround");
         announcer.line(Component.literal("Stopped clear of the switch, reversing"));
         advanceManeuver();
         terminalSense = 0;
@@ -391,6 +442,7 @@ public final class SableScheduleRuntime implements PostalState {
     private void advanceManeuver() {
         if (maneuver && maneuverPlan != null) {
             maneuverPlan.advance();
+            LoconauticsConstants.LOGGER.info("[maneuver] {} plate leg done, plan now {}", trainTag(), maneuverPlan);
         }
     }
 
@@ -402,18 +454,22 @@ public final class SableScheduleRuntime implements PostalState {
         return maneuver ? Math.min(mag, TrainPropulsion.gearedTopBpt(train) * maneuverScale()) : mag;
     }
 
+    // the plain reason the last plan found no way, told once with the dead end line
     void explainManeuver(@Nullable Component why) {
         maneuverWhy = why;
     }
 
     private void maneuverDeadEnd(AnalogControllerBlockEntity controller) {
         train.setTargetSpeed(0.0);
+        // a hold full brakes the whole rake
         train.setScheduleHold(false);
         command(controller, 0);
         maneuverPlan = null;
         cooldown = LoconauticsConstants.MANEUVER_DEAD_END_RETRY_TICKS;
         String name = currentInstruction() instanceof DestinationInstruction destination
                 ? destination.getFilter() : "";
+        LoconauticsConstants.LOGGER.info("[maneuver] {} dead end to \"{}\", retry in {} ticks, told={}",
+                trainTag(), name, cooldown, deadEndNotified);
         if (!deadEndNotified) {
             deadEndNotified = true;
             TrainStatusChat.maneuverDeadEnd(train, name, maneuverWhy);
@@ -479,6 +535,7 @@ public final class SableScheduleRuntime implements PostalState {
         routeCarsAhead(route);
     }
 
+    // reversing, the cars in front lead the switch and the loco only pushes, so they need the route too
     private void routeCarsAhead(List<Couple<TrackNode>> route) {
         if (maneuver) {
             for (UUID id : TrainConsist.orderedChain(train.level(), train.car().subLevelId())) {
@@ -502,6 +559,7 @@ public final class SableScheduleRuntime implements PostalState {
         setRoute(null);
     }
 
+    // backing in, the trailing end takes the mark so the rake ends up where a forward arrival puts it
     private ConsistNose.Nose stopEnd() {
         return tailLanding ? ConsistNose.tail(train) : ConsistNose.of(train);
     }
@@ -576,6 +634,8 @@ public final class SableScheduleRuntime implements PostalState {
             creeping = true;
             released = false;
             train.setScheduleHold(false);
+            LoconauticsConstants.LOGGER.info("[maneuver] {} creeping toward the wagons, body direction {}",
+                    trainTag(), toWagons);
             drive(controller, toWagons);
             return;
         }
@@ -728,6 +788,8 @@ public final class SableScheduleRuntime implements PostalState {
             if (!loaded) {
                 resetConditions();
             }
+            ScheduleGhostTrace.event(null, "restored phase POST_TRANSIT entry=" + currentEntry
+                    + " conditionsLoaded=" + loaded + " " + conditionText());
         }
     }
 
@@ -775,14 +837,42 @@ public final class SableScheduleRuntime implements PostalState {
             runtime = rehydrate(train);
         }
         boolean keeps = runtime != null && keepsConsist(train);
+        issue301(train, controller, runtime != null, keeps);
         if (keeps) {
             runtime.tickSelf(train, controller);
             return;
         }
         if (controller != null && controller.isScheduleControlled()) {
             LoconauticsConstants.LOGGER.info("[schedule] {} no runtime, releasing controller", shortId(train.id()));
+            issue301(train, controller, runtime != null, false);
             controller.clearScheduleControl();
         }
+    }
+
+    private static final Map<UUID, Long> ISSUE301_LAST = new HashMap<>();
+
+    private static void issue301(SableTrain train, AnalogControllerBlockEntity controller, boolean hasRuntime,
+                                 boolean keeps) {
+        boolean live = Math.abs(train.targetSpeed()) > 1.0e-6 || Math.abs(train.speed()) > 1.0e-3
+                || controller != null && (controller.getCurrentPower() != 0 || controller.getSteerInput() != 0);
+        if (train.level() == null) {
+            return;
+        }
+        long now = train.level().getGameTime();
+        Long last = ISSUE301_LAST.get(train.id());
+        if (!live || last != null && now - last < 40L) {
+            return;
+        }
+        ISSUE301_LAST.put(train.id(), now);
+        LoconauticsConstants.LOGGER.info("[issue301] {} runtime={} keeps={} residency={} ctrl={} power={} locked={} user={} "
+                        + "schedCtrl={} steer={} speed={} target={} powered={} schedDriven={} schedHold={} station={}",
+                shortId(train.id()), hasRuntime, keeps, train.residency(), controller != null,
+                controller == null ? "none" : controller.getCurrentPower(),
+                controller != null && controller.isLocked(), controller != null && controller.hasUser(),
+                controller != null && controller.isScheduleControlled(),
+                controller == null ? "none" : controller.getSteerInput(), String.format("%.3f", train.speed()),
+                String.format("%.3f", train.targetSpeed()), train.isPowered(), train.isScheduleDriven(),
+                train.scheduleHold(), train.stationState());
     }
 
     @Nullable
@@ -803,6 +893,7 @@ public final class SableScheduleRuntime implements PostalState {
         return runtime;
     }
 
+    // a coupling or an old save can leave two schedules on one consist
     private static boolean keepsConsist(SableTrain train) {
         List<SableTrain> holders = new ArrayList<>();
         boolean allLoaded = true;
@@ -819,6 +910,7 @@ public final class SableScheduleRuntime implements PostalState {
         SableTrain keep = holders.contains(owner) ? owner
                 : holders.stream().min(Comparator.comparing(SableTrain::id)).orElse(train);
         for (SableTrain holder : holders) {
+            // an unloaded loser is only skipped, its item can be dropped once its body is back
             if (holder != keep && subLevelOf(holder) != null) {
                 dropDuplicate(holder, keep);
             }
@@ -852,6 +944,10 @@ public final class SableScheduleRuntime implements PostalState {
     private void tickSelf(SableTrain train, AnalogControllerBlockEntity controller) {
         this.train = train;
         this.controller = controller;
+        traceNow = state == State.POST_TRANSIT && ScheduleGhostTrace.due(train);
+        if (traceNow) {
+            ScheduleGhostTrace.log(train, stateText());
+        }
         if (chime != null && !chime.tick()) {
             chime = null;
         }
@@ -940,6 +1036,7 @@ public final class SableScheduleRuntime implements PostalState {
         return false;
     }
 
+    // the cab this ran from lost its conductor, another cab of the consist that still has one carries on
     private boolean handOff() {
         SableTrain next = drivableMate(train);
         if (next == null || !RUNTIMES.remove(train.id(), this)) {
@@ -1066,6 +1163,7 @@ public final class SableScheduleRuntime implements PostalState {
             return;
         }
         if (deadEndNotified) {
+            LoconauticsConstants.LOGGER.info("[maneuver] {} dead end cleared, a path appeared", trainTag());
             deadEndNotified = false;
         }
         released = false;
@@ -1089,6 +1187,7 @@ public final class SableScheduleRuntime implements PostalState {
         }
     }
 
+    // last guard for a plan that slipped through, a one cab train never parks with its nose against the station facing
     private boolean noseAgainstLanding(ScheduleInstruction instruction) {
         if (!maneuver || path.hop() != null || path.station() == null
                 || !(instruction instanceof DestinationInstruction destination) || !destination.landsFront()
@@ -1100,6 +1199,9 @@ public final class SableScheduleRuntime implements PostalState {
         int rel = sense == path.direction() ? 1 : -1;
         Boolean along = StationRouting.travelAlongFacing(train, path);
         boolean against = along != null && along != (rel > 0);
+        LoconauticsConstants.LOGGER.info("[maneuver] {} landing check at {}: leg direction {} cab end looks sense {} so the cab "
+                + "end {}, travel along the facing {}, nose ends against it {}", trainTag(), path.station().name,
+                path.direction(), sense, rel > 0 ? "leads" : "trails", along == null ? "unknown" : along, against);
         if (!against) {
             return false;
         }
@@ -1109,6 +1211,7 @@ public final class SableScheduleRuntime implements PostalState {
         return true;
     }
 
+    // the nose is the end that leads, the far end when backing
     private void orientNose() {
         tailLanding = maneuver && plannedRel() < 0 && path.hop() == null && path.station() != null && berthed.isEmpty();
         Vec3 forward = train.isTrackless() ? null : ConsistNose.noseTangent(train);
@@ -1116,6 +1219,33 @@ public final class SableScheduleRuntime implements PostalState {
             return;
         }
         ConsistNose.pinTravel(train, forward.scale(path.direction()));
+        LoconauticsConstants.LOGGER.info("[nose2c] schedule {} leg direction {} nose car {} sense now {} flip {}",
+                shortId(train.id()), path.direction(), shortId(ConsistNose.of(train).car().id()),
+                ConsistNose.senseOf(train), ConsistNose.frameFlip(train));
+        traceFacing("leg start");
+        LoconauticsConstants.LOGGER.info("[maneuver] {} leg lands on the {} end, nose car {} tail car {}",
+                trainTag(), tailLanding ? "trailing" : "leading", shortId(ConsistNose.of(train).car().id()),
+                shortId(ConsistNose.tail(train).car().id()));
+    }
+
+    private static String dirText(@Nullable Vec3 dir) {
+        return dir == null ? "null" : String.format("(%.2f,%.2f,%.2f)", dir.x, dir.y, dir.z);
+    }
+
+    // temporary, the world facing of both ends and the signs the plate legs depend on
+    private void traceFacing(String when) {
+        if (!maneuver || train.isTrackless()) {
+            return;
+        }
+        ConsistNose.Nose lead = ConsistNose.of(train);
+        ConsistNose.Nose trail = ConsistNose.tail(train);
+        LoconauticsConstants.LOGGER.info("[maneuver] {} facing at {}: cab {} look {} axle {} lead end car {} tangent {} "
+                        + "trail end car {} tangent {} rel {} direction {} sense {} flip {} speed {}",
+                trainTag(), when, dirText(SableTrainDriver.headingNose(train)), dirText(SableTrainDriver.driverLook(train)),
+                dirText(SableTrainDriver.axleNose(train)), shortId(lead.car().id()), dirText(ConsistNose.noseTangent(lead)),
+                shortId(trail.car().id()), dirText(ConsistNose.noseTangent(trail)), plannedRel(),
+                path == null ? 0 : path.direction(), ConsistNose.senseOf(train), ConsistNose.frameFlip(train),
+                String.format("%.3f", train.speed()));
     }
 
     private void startHopLeg() {
@@ -1127,11 +1257,13 @@ public final class SableScheduleRuntime implements PostalState {
         TurntableRegistry.reserve(hop.plate());
     }
 
+    // which way the leg runs in the sense of the point the nose is on right now
     private int noseDirection() {
         int sense = train.isTrackless() ? 0 : ConsistNose.senseOf(train);
         return sense != 0 ? sense : path.direction();
     }
 
+    // the same direction as this cars own speed sign, which is what target speed and the lever read
     private int bodyDirection() {
         return noseDirection() * ConsistNose.frameFlip(train);
     }
@@ -1148,6 +1280,7 @@ public final class SableScheduleRuntime implements PostalState {
             return;
         }
         if (berthCoupled()) {
+            LoconauticsConstants.LOGGER.info("[maneuver] {} coupled to the train it berthed behind, arriving", trainTag());
             train.setTargetSpeed(0.0);
             train.setScheduleHold(true);
             command(controller, 0);
@@ -1175,6 +1308,7 @@ public final class SableScheduleRuntime implements PostalState {
         if (path.hop() != null) {
             TurntableRegistry.reserve(path.hop().plate());
         }
+        // a plate stop sits past the center, so its gap is the landing error
         boolean centered = centersOnPlate();
         double ahead = centered ? aheadOfTarget(loc, remaining) : remaining;
         double toStop = centered ? Math.abs(ahead + landingOffset()) : remaining;
@@ -1195,7 +1329,7 @@ public final class SableScheduleRuntime implements PostalState {
                 passWaypoint(controller);
                 return;
             }
-            drive(controller);
+            driveUnderCurveCap(controller);
             reportNextJunction(rail);
             return;
         }
@@ -1207,7 +1341,7 @@ public final class SableScheduleRuntime implements PostalState {
             return;
         }
 
-        drive(controller);
+        driveUnderCurveCap(controller);
         reportNextJunction(rail);
 
         if (remaining <= ARRIVE_RADIUS && path.hop() == null) {
@@ -1215,6 +1349,7 @@ public final class SableScheduleRuntime implements PostalState {
         }
     }
 
+    // the knuckles met on the way in, so the nose now sits at the far end of the joined consist
     private boolean berthCoupled() {
         if (!maneuver || berthed.isEmpty() || path.hop() != null || train.level() == null) {
             return false;
@@ -1234,13 +1369,17 @@ public final class SableScheduleRuntime implements PostalState {
                 && path.hop() == null && path.station() != null;
     }
 
+    // a waypoint is only routed through, so the train keeps its speed and the next entry plans from here
     private void passWaypoint(AnalogControllerBlockEntity controller) {
+        LoconauticsConstants.LOGGER.info("[maneuver] {} passed waypoint {} at speed {}", trainTag(), stationName(),
+                String.format("%.2f", train.speed()));
         int next = currentEntry + 1;
         if (next >= schedule.entries.size()) {
             if (!schedule.cyclic) {
                 finish(controller);
                 return;
             }
+            traceCycle("waypoint wrap");
             next = 0;
         }
         currentEntry = next;
@@ -1363,6 +1502,29 @@ public final class SableScheduleRuntime implements PostalState {
         drive(controller, bodyDirection());
     }
 
+    private double curveCap() {
+        ConsistNose.Nose nose = ConsistNose.of(train);
+        TravellingPoint point = pointOf(nose);
+        RailCarriage rail = nose.rail();
+        TrackGraph graph = RailSeams.liveGraphOf(point, rail == null ? leadRail().graph() : rail.graph());
+        return ScheduleCurveSpeed.allowedBpt(train, point, graph, path.route(), StationLanding.decelerationFor(train));
+    }
+
+    // same hold as a red signal approach, only the speed comes from the curve
+    private void driveUnderCurveCap(AnalogControllerBlockEntity controller) {
+        double cap = curveCap();
+        if (!(cap < TrainPropulsion.gearedTopBpt(train) * maneuverScale())) {
+            drive(controller);
+            return;
+        }
+        double mag = cappedSpeed(cap);
+        train.setTargetSpeed(bodyDirection() * mag);
+        train.setServoBrake(Math.abs(train.speed()) > mag);
+        if (controller != null) {
+            command(controller, StationLanding.powerNotches(train, mag) * leverFor(bodyDirection()));
+        }
+    }
+
     private void drive(AnalogControllerBlockEntity controller, int direction) {
         if (controller == null) {
             train.setTargetSpeed(direction * ghostCruiseSpeed());
@@ -1442,8 +1604,16 @@ public final class SableScheduleRuntime implements PostalState {
         }
         if (parked && (controller == null || !controller.hasUser())) {
             TrainBrakes.holdSoft(train);
+            if (traceNow && Math.abs(train.speed()) > StationLanding.PARK_SPEED) {
+                LoconauticsConstants.LOGGER.info("[parkdrift] {} moving while parked speed={} target={} lever={} axleRpm={} braked={} hold={} powered={}",
+                        shortId(train.id()), String.format("%.3f", train.speed()), String.format("%.3f", train.targetSpeed()),
+                        controller == null ? "none" : controller.getCurrentPower(),
+                        String.format("%.1f", TrainPropulsion.axleRpm(train)), train.isBraked(), train.brakeHold(), train.isPowered());
+            }
         }
         if (driftedOffStop()) {
+            ScheduleGhostTrace.event(train, "drifted off the stop, back to IN_TRANSIT, conditions restart on arrival "
+                    + conditionText());
             parked = false;
             train.setScheduleHold(false);
             state = State.IN_TRANSIT;
@@ -1466,6 +1636,7 @@ public final class SableScheduleRuntime implements PostalState {
             List<ScheduleWaitCondition> column = columns.get(i);
             int progress = conditionProgress.get(i);
             if (progress >= column.size()) {
+                ScheduleGhostTrace.event(train, "column " + i + " finished, departing " + conditionText());
                 depart(controller);
                 return;
             }
@@ -1473,16 +1644,40 @@ public final class SableScheduleRuntime implements PostalState {
             CompoundTag context = conditionContext.get(i);
             if (condition.needsBody() && consistHasGhost(train)) {
                 announcer.waitingForBody(i, columns.size(), condition);
+                if (traceNow) {
+                    ScheduleGhostTrace.log(train, "column " + i + " " + condition.getId().getPath()
+                            + " needs the body, cars are unloaded, ctx=" + context);
+                }
                 continue;
             }
             announcer.waiting(i, columns.size(), condition, stationName(), context);
             boolean met = condition.tickCompletion(train.level(), train, context);
+            if (traceNow) {
+                ScheduleGhostTrace.log(train, "column " + i + " " + condition.getId().getPath() + " progress="
+                        + progress + "/" + column.size() + " met=" + met + " ctx=" + context);
+            }
             if (met) {
                 announcer.met(i, columns.size(), condition, context);
                 conditionProgress.set(i, progress + 1);
                 conditionContext.set(i, new CompoundTag());
             }
         }
+    }
+
+    private String stateText() {
+        return "entry=" + currentEntry + " paused=" + paused + " completed=" + completed + " held=" + heldReason
+                + " cooldown=" + cooldown + " grace=" + transientTicks + " parked=" + parked + " path=" + (path != null)
+                + " stoppedAt=" + (train.stoppedAt() == null ? "none" : train.stoppedAt().name)
+                + " stationState=" + train.stationState() + " scheduleHold=" + train.scheduleHold()
+                + " speed=" + String.format(java.util.Locale.ROOT, "%.3f", train.speed()) + " " + conditionText();
+    }
+
+    private String conditionText() {
+        StringBuilder text = new StringBuilder("conditions=[");
+        for (int i = 0; i < conditionProgress.size(); i++) {
+            text.append(i == 0 ? "" : " ").append(i).append(":").append(conditionProgress.get(i)).append(conditionContext.get(i));
+        }
+        return text.append("]").toString();
     }
 
     private static boolean consistHasGhost(SableTrain train) {
@@ -1538,7 +1733,9 @@ public final class SableScheduleRuntime implements PostalState {
     private void tickTurntable(AnalogControllerBlockEntity controller) {
         TurntableRegistry.Exit hop = path == null ? null : path.hop();
         Turntable turntable = hop == null ? null : TurntableRegistry.byPlate(hop.plate());
+        traceTurn("enter", hop, turntable);
         if (turntable == null) {
+            traceTurn("turntable gone, registered " + TurntableRegistry.all().size(), hop, null);
             skipTurn("the turntable is gone");
             return;
         }
@@ -1549,57 +1746,80 @@ public final class SableScheduleRuntime implements PostalState {
         // the plate throws the car outward the whole way round, and nothing else on a stopped train resists that
         TrainBrakes.holdSoft(train);
         if (Math.abs(train.speed()) > StationLanding.PARK_SPEED) {
+            traceTurn("waiting to stop", hop, turntable);
             return;
         }
 
         TrackGraph graph = TurntableRegistry.graphHolding(hop.movingHead());
         if (graph == null) {
+            traceTurn("no graph holds the moving head", hop, turntable);
             return;
         }
         double span = TurntableRegistry.spanOf(hop.plate());
         double consistLength = TrainLength.consistLength(train.level(), train.car().subLevelId());
         if (!turntableAligning && span + TurntableRegistry.FIT_SLACK < consistLength) {
+            LoconauticsConstants.LOGGER.info("[maneuver] {} plate overhang, span {} consist {}", trainTag(),
+                    String.format("%.2f", span), String.format("%.2f", consistLength));
+            traceTurn("overhang span " + span + " consist " + consistLength, hop, turntable);
             TrainStatusChat.turntableOverhang(train);
             return;
         }
         if (!turntableAligning && TurntableRegistry.exitOpen(graph, hop.movingHead(), hop.worldHead())) {
+            traceTurn("exit already open", hop, turntable);
             advanceManeuver();
             skipTurn("the exit is already open");
             return;
         }
         if (hop.entry() && TurntableRegistry.occupied(hop.plate())) {
+            traceTurn("entry waits, plate occupied", hop, turntable);
             return;
         }
         if (!turntableAligning && !hop.entry() && !TurntableRegistry.wholeTrainOn(hop.plate(), train)) {
+            traceTurn("not wholly on the plate", hop, turntable);
             turntable.turntableClearAlignment();
             skipTurn("the train is not wholly on the plate");
             return;
         }
         if (!turntable.turntablePowered()) {
+            traceTurn("no power", hop, turntable);
             TrainStatusChat.turntableNoPower(train);
             return;
         }
         if (!turntableAligning) {
+            traceTurn("start", hop, turntable);
+            LoconauticsConstants.LOGGER.info("[maneuver] {} plate turn starts, entry head {} moving head {} world head {} "
+                            + "degrees {} backs out {} entry hop {} turn needed {}", trainTag(), hop.entryHead(),
+                    hop.movingHead(), hop.worldHead(), String.format("%.1f", hop.degrees()),
+                    ManeuverPlan.backsOut(hop), hop.entry(),
+                    String.format("%.1f", TurntableRegistry.alignmentError(turntable, hop.movingHead(), hop.worldHead())));
+            traceFacing("plate before turn");
             turntable.turntableAlignTo(hop.movingHead(), hop.worldHead());
             turntableAligning = true;
             return;
         }
         if (!turntable.turntableAligned()) {
+            traceTurn("turning", hop, turntable);
             return;
         }
-        TurntableRegistry.weldAligned(turntable, hop.movingHead(), hop.worldHead());
+        boolean welded = TurntableRegistry.weldAligned(turntable, hop.movingHead(), hop.worldHead());
         if (!TurntableRegistry.exitOpen(graph, hop.movingHead(), hop.worldHead())) {
+            traceTurn("aligned but exit not open, welded " + welded, hop, turntable);
             return;
         }
         turntable.turntableClearAlignment();
         TurntableRegistry.noteServed(hop.plate());
+        LoconauticsConstants.LOGGER.info("[maneuver] {} plate turn done, error left {} degrees", trainTag(),
+                String.format("%.2f", TurntableRegistry.alignmentError(turntable, hop.movingHead(), hop.worldHead())));
+        traceFacing("plate after turn");
         TrainStatusChat.turntableReady(train);
         idleTurns = 0;
         advanceManeuver();
         resumeAfterTurn();
     }
 
+    // a replan with no turn can pick the same leg again, so a streak ends in a wait
     private void skipTurn(String why) {
+        LoconauticsConstants.LOGGER.info("[maneuver] {} plate turn skipped, {}", trainTag(), why);
         if (++idleTurns >= MAX_IDLE_TURNS) {
             idleTurns = 0;
             startCooldown();
@@ -1630,6 +1850,7 @@ public final class SableScheduleRuntime implements PostalState {
             command(controller, 0);
         }
         if (maneuver) {
+            LoconauticsConstants.LOGGER.info("[maneuver] {} arrived at {}, maneuver over", trainTag(), stationName());
             endManeuver();
         }
         clearRoute();
@@ -1638,6 +1859,7 @@ public final class SableScheduleRuntime implements PostalState {
         state = State.POST_TRANSIT;
         if (path != null && path.station() != null) {
             train.setCurrentStation(path.station());
+            // the schedule lands the train itself, so trainstations never runs its own latch,
             train.setAtStation(path.station());
             if (stopped) {
                 train.setStationState(SableTrain.StationState.STOPPED);
@@ -1653,6 +1875,7 @@ public final class SableScheduleRuntime implements PostalState {
         }
         loconautics$setTripped(false);
         resetConditions();
+        ScheduleGhostTrace.event(train, "arrived, conditions reset entry=" + currentEntry + " stopped=" + stopped);
         if (schedule.entries.get(currentEntry).conditions.isEmpty()) {
             announcer.parked(stationName(), stopped);
         }
@@ -1669,6 +1892,7 @@ public final class SableScheduleRuntime implements PostalState {
             finish(controller);
             return;
         }
+        traceCycle("wrapOrFinish");
         currentEntry = 0;
         state = State.PRE_TRANSIT;
         sync();
@@ -1689,11 +1913,22 @@ public final class SableScheduleRuntime implements PostalState {
                 finish(controller);
                 return;
             }
+            traceCycle("depart wrap");
             next = 0;
         }
         currentEntry = next;
         state = State.PRE_TRANSIT;
         sync();
+    }
+
+    // temporary, tag maneuvercycle, what the maneuver state holds when a cyclic schedule wraps
+    private void traceCycle(String where) {
+        GlobalStation at = train == null ? null : train.atStation();
+        LoconauticsConstants.LOGGER.info("[maneuver-cycle] {} {} entry={} of {} maneuver={} reversalUsed={} plan={} "
+                + "plannedRel={} former={} berthed={} atStation={} speed={} state={}", trainTag(), where, currentEntry,
+                schedule == null ? -1 : schedule.entries.size(), maneuver, reversalUsed, maneuverPlan, plannedRel(),
+                former.size(), berthed.size(), at == null ? "none" : at.name,
+                train == null ? "none" : String.format("%.2f", train.speed()), state);
     }
 
     private void sync() {
@@ -1774,6 +2009,7 @@ public final class SableScheduleRuntime implements PostalState {
         return centersOnPlate() ? noseToBodyMiddle() : -ENTRY_CLEARANCE;
     }
 
+    // the nose wheel runs this far past the plate center so the body middle ends on it
     private double noseToBodyMiddle() {
         UUID carId = train.car().subLevelId();
         Vec3 wheel = ConsistNose.wheelPos(train);
@@ -1789,12 +2025,14 @@ public final class SableScheduleRuntime implements PostalState {
                 : wheel.distanceTo(new Vec3(ref[0].x, ref[0].y, ref[0].z));
     }
 
+    // distance the nose still has to run to the target, negative once it is past it
     private double aheadOfTarget(TrackGraphLocation loc, double remaining) {
         double onEdge = signedTerminalOffset(loc);
         if (Double.isNaN(onEdge)) {
             return remaining;
         }
         if (terminalSense == 0) {
+            // a plate leg lands the way it runs, the nose can already stand past the middle of the plate
             terminalSense = path.hop() != null ? noseDirection() : onEdge >= 0.0 ? 1 : -1;
         }
         return terminalSense * onEdge;
@@ -1810,8 +2048,13 @@ public final class SableScheduleRuntime implements PostalState {
             brakeSense = error >= 0.0 ? 1 : -1;
         }
         if (StationLanding.canSnap(train, gap) || StationLanding.wentPast(error, brakeSense)) {
+            LoconauticsConstants.LOGGER.info("[nose2c] schedule {} lands error {} dir {} terminalSense {} flip {} nose car {}",
+                    shortId(train.id()), String.format("%.3f", error), dir, terminalSense,
+                    ConsistNose.frameFlip(train), shortId(ConsistNose.of(train).car().id()));
+            traceLanding(loc, error);
             StationLanding.snapConsist(train, stopEnd(), dir * error,
                     path.hop() == null ? StationLanding.WHEEL_TOUCH_REACH : 0.0);
+            traceLanding(loc, error);
             train.setScheduleHold(true);
             command(controller, 0);
             landed(controller);
@@ -1820,6 +2063,7 @@ public final class SableScheduleRuntime implements PostalState {
         if (brakeSense < 0) {
             boolean plate = path.hop() != null;
             if (centersOnPlate() && Math.abs(train.speed()) > StationLanding.PARK_SPEED) {
+                // stand first, then move back to the middle
                 train.setTargetSpeed(0.0);
                 train.setServoBrake(true);
                 command(controller, 0);
@@ -1834,13 +2078,101 @@ public final class SableScheduleRuntime implements PostalState {
 
         double approach = path.hop() != null ? StationLanding.gentleApproachSpeed(train, gap)
                 : StationLanding.approachSpeed(train, gap);
-        double mag = cappedSpeed(approach);
+        double mag = Math.min(cappedSpeed(approach), curveCap());
         double railTarget = (tailLanding ? bodyDirection() : dir * ConsistNose.frameFlip(train)) * mag;
+        traceBrake(loc, remaining, error, mag);
         train.setTargetSpeed(railTarget);
         train.setServoBrake(true);
         if (controller != null) {
             command(controller, StationLanding.powerNotches(train, mag) * leverFor(railTarget < 0.0 ? -1 : 1));
         }
+    }
+
+    private void traceBrake(TrackGraphLocation loc, double remaining, double error, double mag) {
+        if (!maneuver || train.level().getGameTime() % 10 != 0) {
+            return;
+        }
+        LoconauticsConstants.LOGGER.info("[maneuver] {} brake end {} measured {} error {} offset {} speed {} approach {} "
+                        + "gap to mark lead {} trail {}, to the end of the last edge lead {} trail {}", trainTag(),
+                tailLanding ? "trailing" : "leading", String.format("%.2f", remaining), String.format("%.3f", error),
+                String.format("%.3f", landingOffset()), String.format("%.3f", train.speed()),
+                String.format("%.3f", mag), markGap(ConsistNose.of(train), loc), markGap(ConsistNose.tail(train), loc),
+                endGap(ConsistNose.of(train)), endGap(ConsistNose.tail(train)));
+    }
+
+    // temporary, the real wheel to wheel gap between the leading end and the train it berthed behind
+    private void traceBerthGap() {
+        TrackGraph graph = leadRail().graph();
+        TravellingPoint lead = pointOf(stopEnd());
+        Vec3 here = graph == null || lead == null ? null : lead.getPosition(graph);
+        for (UUID id : berthed) {
+            SableTrain wagon = SableTrainRegistry.get(id);
+            if (wagon == null || here == null) {
+                continue;
+            }
+            for (ConsistNose.Nose end : List.of(ConsistNose.of(wagon), ConsistNose.tail(wagon))) {
+                Vec3 there = end.point() == null ? null : end.point().getPosition(graph);
+                LoconauticsConstants.LOGGER.info("[maneuver] {} berth gap, lead wheel {} to wheel of train {} at {} is {}",
+                        trainTag(), dirText(here), shortId(id), dirText(there),
+                        there == null ? "unknown" : String.format("%.2f", here.distanceTo(there)));
+            }
+        }
+    }
+
+    // temporary, tag platepark, where the body middle stands against the plate axis at each landing
+    private void tracePlatePark(double error) {
+        TurntableRegistry.Exit hop = path == null ? null : path.hop();
+        TrackHostFrames.Frame frame = hop == null ? null : TrackHostFrames.frameOf(hop.plate());
+        Vec3 center = train.car().carriage().moveCenter();
+        Vec3 axis = frame == null ? null : frame.axis();
+        Vec3 wheel = ConsistNose.wheelPos(train);
+        LoconauticsConstants.LOGGER.info("[platepark] {} rel {} dir {} tailLanding {} plate {} error {} offset {} noseToMiddle {} "
+                        + "bodyMiddle {} axis {} wheel {} middleToAxis {} wheelToAxis {} speed {}",
+                trainTag(), plannedRel(), path == null ? 0 : path.direction(), tailLanding, hop != null && !hop.entry(),
+                String.format("%.3f", error), String.format("%.3f", landingOffset()),
+                hop != null && !hop.entry() ? String.format("%.3f", noseToBodyMiddle()) : "n/a", dirText(center), dirText(axis),
+                dirText(wheel), center == null || axis == null ? "n/a" : String.format("%.3f", center.distanceTo(axis)),
+                wheel == null || axis == null ? "n/a" : String.format("%.3f", wheel.distanceTo(axis)),
+                String.format("%.3f", train.speed()));
+    }
+
+    private void traceLanding(TrackGraphLocation loc, double error) {
+        if (!maneuver) {
+            return;
+        }
+        traceBerthGap();
+        tracePlatePark(error);
+        LoconauticsConstants.LOGGER.info("[maneuver] {} landing on the {} end, error {} speed {}, gap to mark lead {} trail {}, "
+                        + "to the end of the last edge lead {} trail {}, nose car {} tail car {}", trainTag(),
+                tailLanding ? "trailing" : "leading", String.format("%.3f", error), String.format("%.3f", train.speed()),
+                markGap(ConsistNose.of(train), loc), markGap(ConsistNose.tail(train), loc),
+                endGap(ConsistNose.of(train)), endGap(ConsistNose.tail(train)),
+                shortId(ConsistNose.of(train).car().id()), shortId(ConsistNose.tail(train).car().id()));
+    }
+
+    // temporary, how far an end still is from the far end of the last edge of the route, the track end when it is a dead end
+    private String endGap(ConsistNose.Nose end) {
+        List<Couple<TrackNode>> route = path == null ? null : path.route();
+        TrackGraph graph = leadRail().graph();
+        if (route == null || route.isEmpty() || graph == null) {
+            return "unknown";
+        }
+        Couple<TrackNode> last = route.get(route.size() - 1);
+        TrackEdge edge = graph.getConnection(last);
+        if (edge == null) {
+            return "unknown";
+        }
+        TrackGraphLocation tip = new TrackGraphLocation();
+        tip.graph = graph;
+        tip.edge = Couple.create(last.getFirst().getLocation(), last.getSecond().getLocation());
+        tip.position = edge.getLength();
+        boolean deadEnd = graph.getConnectionsFrom(last.getSecond()).size() <= 1;
+        return markGap(end, tip) + (deadEnd ? " dead end" : " open");
+    }
+
+    private String markGap(ConsistNose.Nose end, TrackGraphLocation loc) {
+        double gap = measureFrom(end, loc).distance();
+        return gap == RouteDistance.UNKNOWN ? "unknown" : String.format("%.2f", gap);
     }
 
     @Nullable

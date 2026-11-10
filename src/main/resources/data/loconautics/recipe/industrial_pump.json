@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AB"
+  ],
+  "key": {
+    "A": {
+      "item": "create:cogwheel"
+    },
+    "B": {
+      "item": "loconautics:industrial_pipe"
+    }
+  },
+  "result": {
+    "id": "loconautics:industrial_pump",
+    "count": 1
+  }
+}

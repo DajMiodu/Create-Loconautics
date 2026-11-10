@@ -103,6 +103,8 @@ public final class SableTrainPersistence {
         dropShadowRecords(server, leakedShadows);
         restoreTicks = 0;
         snapshotCounter = 0;
+        LoconauticsConstants.LOGGER.info("[sabletrain] persistence active, {} saved train(s) to restore",
+                pending.size());
     }
 
     private static void dropShadowRecords(MinecraftServer server, Set<UUID> shadowSubLevels) {
@@ -173,6 +175,8 @@ public final class SableTrainPersistence {
                     TrainResidency.queueReconcile(train);
                 }
                 it.remove();
+                LoconauticsConstants.LOGGER.info("[sabletrain] restored cart {} in {}",
+                        train.id(), train.level().dimension().location());
             } else if (giveUp) {
                 LoconauticsConstants.LOGGER.warn(
                         "[sabletrain] giving up on train {} this session (track graph or sub-level never became available), kept on disk for next launch",
@@ -276,6 +280,7 @@ public final class SableTrainPersistence {
                 writeVec3d(tag, "LastPos", train.lastKnownPos());
             } else {
                 Vector3d cursor = TrainResidency.railCursor(car);
+                // a rail on a body that is not loaded reads in plot space, which is no place a player could look for the train
                 if (cursor != null && !TrainResidency.inPlotGrid(train.level(), cursor)) {
                     writeVec3d(tag, "LastPos", cursor);
                 }
@@ -311,7 +316,7 @@ public final class SableTrainPersistence {
             c.put("Bogeys", bogeyList);
             tag.put("Car", c);
         }
-        dims.write(tag);
+        dims.write(tag); // after the car, so the palette has gathered every dimension the points reference
         return tag;
     }
 

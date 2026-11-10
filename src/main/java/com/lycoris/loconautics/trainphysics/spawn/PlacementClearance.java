@@ -20,6 +20,7 @@ import java.util.UUID;
 
 public final class PlacementClearance {
 
+    // coupled cars touch at a gap of 0, trim or neighbors read as hits
     private static final double END_INSET = 0.5;
     private static final double MIN_DISTANCE = 0.5;
     private static final double EPSILON = 1.0e-9;
@@ -96,6 +97,7 @@ public final class PlacementClearance {
         return null;
     }
 
+    // a derailed or trackless car has no live rail points, so its body says where it is
     @Nullable
     private static Span spanOf(ServerLevel level, SableTrain train) {
         double length = TrainLength.carLength(level, train);

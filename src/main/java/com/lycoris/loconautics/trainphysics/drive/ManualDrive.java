@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.drive;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlock;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlockEntity;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.WeakHashMap;
 
 public final class ManualDrive {
 
@@ -27,6 +29,7 @@ public final class ManualDrive {
 
     private static final double IDLE_TARGET = 1.0e-4;
 
+    private static final Map<AnalogControllerBlockEntity, Boolean> CURVE_TRACE = new WeakHashMap<>();
 
     record Driver(AnalogControllerBlockEntity controller, ServerSubLevel sub) {}
 
@@ -57,6 +60,7 @@ public final class ManualDrive {
         return drivers;
     }
 
+    // a tug of war between cabs, the side with more drivers wins and an even split goes nowhere
     static Pull pull(List<Driver> drivers, Map<UUID, SableTrain> cars, Map<UUID, Integer> orientation,
                      boolean engineTurning, double gearedTop, double rpmTop) {
         int ahead = 0;
@@ -101,6 +105,11 @@ public final class ManualDrive {
             if (Double.isNaN(controller.cruiseSpeed()) || (input != 0 && !onCurve)) {
                 controller.setCruiseSpeed(car.speed());
             }
+            Boolean wasOnCurve = CURVE_TRACE.put(controller, onCurve);
+            if (wasOnCurve == null || wasOnCurve != onCurve) {
+                LoconauticsConstants.LOGGER.info("[cruisecurve] onCurve {} input {} speed {} cruise {}", onCurve, input,
+                        String.format("%.4f", car.speed()), String.format("%.4f", controller.cruiseSpeed()));
+            }
             if (input == 0) {
                 double cruise = controller.cruiseSpeed() * flip;
                 return onCurve ? Math.copySign(Math.min(Math.abs(cruise), curveTop(gearedTop)), cruise) : cruise;
@@ -119,9 +128,11 @@ public final class ManualDrive {
         }
         double top = onCurve ? Math.min(rpmTop, curveTop(gearedTop)) : rpmTop;
         int direction = input * (along < 0.0 ? -1 : 1) * flip;
+        // the slow direction from create, a hand driven train backs up at a quarter of its top speed
         return direction < 0 ? top / REVERSE_DIVISOR * direction : top * direction;
     }
 
+    // creates turning top speed, scaled up with the gearing the same way the straight top speed is
     static double curveTop(double gearedTop) {
         double baseline = TrainPropulsion.bearingAxleCapBpt();
         return AllConfigs.server().trains.trainTurningTopSpeed.getF() / 20.0

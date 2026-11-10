@@ -2,6 +2,7 @@ package com.lycoris.loconautics.compat.gauge;
 
 import com.lycoris.loconautics.compat.Reflected;
 import com.lycoris.loconautics.content.controls.panelgauge.GaugeMetric;
+import com.lycoris.loconautics.content.boiler.firebox.FireboxBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
@@ -70,7 +71,7 @@ public final class DieselGauges {
         Float perTick = tank == null ? null : burnPerTick(be);
         if (tank == null || perTick == null) return null;
         if (perTick <= 0f) return Component.translatable("loconautics.gui.goggles.gauge_diesel_idle").getString();
-        return GaugeMetric.formatTime((int) (tank.getFluidAmount() / perTick / 20f));
+        return FireboxBlockEntity.formatTime((int) (tank.getFluidAmount() / perTick / 20f));
     }
 
     @Nullable

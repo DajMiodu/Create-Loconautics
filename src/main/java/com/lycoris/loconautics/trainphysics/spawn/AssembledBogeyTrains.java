@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.spawn;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.BogeyGroundDrop;
 import com.lycoris.loconautics.network.packets.train.SableTrainSyncPacket;
 import com.lycoris.loconautics.trainphysics.SableTrain;
@@ -83,6 +84,8 @@ public final class AssembledBogeyTrains {
         SubLevelSplitWatcher.ensureObserver(level);
         SableTrainPersistence.persist(train);
         SableTrainSyncPacket.broadcast(train);
+        LoconauticsConstants.LOGGER.info("[sabletrain] assembled body {} became train {}, {} bogey(s), {}",
+                sub.getUniqueId(), train.id(), car.bogeys().size(), railed ? "on rail" : "trackless and derailed");
         return true;
     }
 }

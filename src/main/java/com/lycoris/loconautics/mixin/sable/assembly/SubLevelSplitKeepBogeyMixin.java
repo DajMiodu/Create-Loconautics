@@ -31,7 +31,7 @@ public abstract class SubLevelSplitKeepBogeyMixin {
     private void loconautics$keepBogeyIsland(SubLevelContainer container, SubLevel subLevel,
                                              SubLevelRemovalReason reason) {
         if (subLevel instanceof ServerSubLevel ssl && loconautics$plotHasBogey(ssl.getPlot())) {
-            return;
+            return; // bogey island keep it processpendingsplits will register it as a train next tick
         }
         container.removeSubLevel(subLevel, reason);
     }

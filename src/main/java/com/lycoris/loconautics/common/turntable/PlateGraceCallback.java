@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.common.turntable;
 
+import com.lycoris.loconautics.foundation.debug.TurntableTrace;
 import dev.ryanhcode.sable.api.physics.callback.BlockSubLevelCollisionCallback;
 import dev.ryanhcode.sable.companion.SableCompanion;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
@@ -41,6 +42,10 @@ public final class PlateGraceCallback implements BlockSubLevelCollisionCallback 
         }
         for (Direction side : Direction.Plane.HORIZONTAL) {
             if (level.getBlockState(blockPos.relative(side)).isAir()) {
+                if (TurntableTrace.due("grace" + plate.getUniqueId(), level.getGameTime(), 40)) {
+                    TurntableTrace.log("grace plate " + plate.getUniqueId().toString().substring(0, 8) + " edge "
+                            + blockPos.toShortString() + " world " + otherBlockPos.toShortString());
+                }
                 return true;
             }
         }

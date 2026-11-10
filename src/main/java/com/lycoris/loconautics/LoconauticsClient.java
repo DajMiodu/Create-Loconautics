@@ -60,8 +60,10 @@ public final class LoconauticsClient {
         modBus.addListener(this::onRegisterParticleProviders);
         modBus.addListener(this::onRegisterGeometryLoaders);
         modBus.addListener(this::onRegisterClientExtensions);
+        modBus.addListener(this::onRegisterBlockColors);
         modBus.addListener(this::onAddPackFinders);
 
+        NeoForge.EVENT_BUS.addListener(this::onRegisterClientCommands);
         NeoForge.EVENT_BUS.addListener(this::onClientTick);
         NeoForge.EVENT_BUS.addListener(this::onKeyInput);
         NeoForge.EVENT_BUS.addListener(this::onMouseScroll);
@@ -70,6 +72,7 @@ public final class LoconauticsClient {
         NeoForge.EVENT_BUS.addListener(this::onUseItem);
         NeoForge.EVENT_BUS.addListener(this::onRenderLevelStage);
         NeoForge.EVENT_BUS.addListener(this::onRenderGuiLayer);        NeoForge.EVENT_BUS.addListener(net.neoforged.bus.api.EventPriority.LOWEST, this::onCalculatePlayerTurn);
+        NeoForge.EVENT_BUS.addListener(com.lycoris.loconautics.client.gui.CreateConfigRedirect::onScreenInit);
     }
 
     // railways already writes the casing summary, a second one would fight it over pack order
@@ -90,13 +93,26 @@ public final class LoconauticsClient {
         event.registerSpriteSet(
                 com.lycoris.loconautics.registry.LoconauticsRegistries.HOSE_WATER_SPRAY.get(),
                 com.lycoris.loconautics.content.hose.spray.entity.HoseSprayParticle.Provider::new);
+        event.registerSpriteSet(
+                LoconauticsRegistries.SMOKE.get(),
+                com.lycoris.loconautics.foundation.smoke.SmokeParticle.Provider::new);
+    }
+
+    private void onRegisterBlockColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Block event) {
+        event.register((state, level, pos, tintIndex) -> com.lycoris.loconautics.content.cerisene.CeriseneTint.color(state),
+                com.lycoris.loconautics.content.cerisene.CeriseneBlocks.CERISENE_BLOCK.get());
     }
 
     private void onRegisterClientExtensions(
             net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent event) {
+        event.registerFluidType(com.lycoris.loconautics.content.cerisene.CeriseneFluidType.clientExtensions(),
+                com.lycoris.loconautics.content.cerisene.CeriseneBlocks.CERISENE_TYPE.get());
+        event.registerBlock(
+                com.lycoris.loconautics.content.boiler.barrel.BarrelConnectorBlock.clientExtensions(),
+                com.lycoris.loconautics.content.boiler.BoilerBlocks.BARREL_PIPE_CONNECTOR.get());
         event.registerBlock(
                 GaugeBlock.clientExtensions(),
-                com.lycoris.loconautics.content.controls.ControlsBlocks.LOCOMOTIVE_GAUGE.get());
+                com.lycoris.loconautics.content.boiler.BoilerBlocks.LOCOMOTIVE_GAUGE.get());
         event.registerBlock(
                 com.lycoris.loconautics.content.ghostwheel.GhostWheelBlock.clientExtensions(),
                 LoconauticsRegistries.GHOST_WHEEL.get());
@@ -121,6 +137,9 @@ public final class LoconauticsClient {
     }
 
     private void onCommonSetup(net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent event) {
+        com.lycoris.loconautics.content.boiler.barrel.BoilerCTType.register();
+        registerBarrelCT(com.lycoris.loconautics.content.boiler.BoilerBlocks.BOILER_BODY.get(), "boiler_body");
+        registerCeriseneCT();
         com.lycoris.loconautics.content.industrial.IndustrialClientSetup.register();
         for (net.minecraft.world.level.block.Block block : net.minecraft.core.registries.BuiltInRegistries.BLOCK) {
             if (block instanceof com.simibubi.create.content.trains.bogey.AbstractBogeyBlock<?>) {
@@ -137,8 +156,33 @@ public final class LoconauticsClient {
                 original -> new com.lycoris.loconautics.content.bearingaxle.DrivenBogeyModel(original, standard));
     }
 
+    private static void registerCeriseneCT() {
+        var shift = com.simibubi.create.foundation.block.connected.CTSpriteShifter.getCT(
+                com.simibubi.create.foundation.block.connected.AllCTTypes.OMNIDIRECTIONAL,
+                LoconauticsConstants.id("block/cerisene/block"),
+                LoconauticsConstants.id("block/cerisene/block_connected"));
+        com.simibubi.create.CreateClient.MODEL_SWAPPER.getCustomBlockModels().register(
+                net.createmod.catnip.registry.RegisteredObjectsHelper.getKeyOrThrow(
+                        com.lycoris.loconautics.content.cerisene.CeriseneBlocks.CERISENE_BLOCK.get()),
+                model -> new com.simibubi.create.foundation.block.connected.CTModel(
+                        model,
+                        new com.simibubi.create.foundation.block.connected.SimpleCTBehaviour(shift)));
+    }
+
+    private static void registerBarrelCT(net.minecraft.world.level.block.Block block, String folder) {
+        String base = "block/boiler/barrel/" + folder + "/barrel_side";
+        var shift = com.lycoris.loconautics.content.boiler.barrel.BoilerCTShiftEntry.get(
+                LoconauticsConstants.id(base), LoconauticsConstants.id(base + "_ct"));
+        com.simibubi.create.CreateClient.MODEL_SWAPPER.getCustomBlockModels().register(
+                net.createmod.catnip.registry.RegisteredObjectsHelper.getKeyOrThrow(block),
+                model -> new com.simibubi.create.foundation.block.connected.CTModel(
+                        model,
+                        new com.lycoris.loconautics.content.boiler.barrel.BarrelCTBehaviour(shift)));
+    }
+
     private void onClientSetup(FMLClientSetupEvent event) {
         com.lycoris.loconautics.content.controls.panellever.LeverHoldInteraction.registered();
+        com.lycoris.loconautics.content.brakes.pull.PullBrakeHold.registered();
         LoconauticsConstants.LOGGER.info("Loconautics client setup");
         LoconauticsPartialModels.init();
         LoconauticsSpriteShifts.init();
@@ -147,18 +191,39 @@ public final class LoconauticsClient {
                 LoconauticsRegistries.CREATIVE_TRAIN_RELOCATOR.get());
         com.simibubi.create.foundation.item.render.CustomRenderedItems.register(LoconauticsRegistries.BOGEY.get());
 
+        event.enqueueWork(() -> net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                com.lycoris.loconautics.content.cerisene.CeriseneBlocks.CERISENE.get(), net.minecraft.client.renderer.RenderType.translucent()));
+        event.enqueueWork(() -> net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                com.lycoris.loconautics.content.cerisene.CeriseneBlocks.CERISENE_FLOWING.get(), net.minecraft.client.renderer.RenderType.translucent()));
+
         PonderIndex.addPlugin(new LoconauticsPonderPlugin());
-        PonderIndex.addPlugin(new com.lycoris.loconautics.client.ponder.PanelPonderPlugin());
+        PonderIndex.addPlugin(new com.lycoris.loconautics.client.ponder.BoilerPonderPlugin());
         PonderIndex.addPlugin(new com.lycoris.loconautics.client.ponder.HosePonderPlugin());
+        PonderIndex.addPlugin(new com.lycoris.loconautics.client.ponder.SmallEnginePonderPlugin());
 
         SimpleBlockEntityVisualizer
-                .builder(com.lycoris.loconautics.content.controls.ControlsBlocks.LOCOMOTIVE_GAUGE_BE.get())
+                .builder(com.lycoris.loconautics.content.boiler.BoilerBlocks.FIREBOX_BE.get())
+                .factory(com.lycoris.loconautics.content.boiler.firebox.FireboxVisual::new)
+                .apply();
+
+        SimpleBlockEntityVisualizer
+                .builder(com.lycoris.loconautics.content.boiler.BoilerBlocks.LOCOMOTIVE_GAUGE_BE.get())
                 .factory(com.lycoris.loconautics.content.controls.panel.visual.PanelVisual::new)
                 .apply();
 
         SimpleBlockEntityVisualizer
                 .builder(com.lycoris.loconautics.content.dashboard.DashboardBlocks.DASHBOARD_BE.get())
                 .factory(com.lycoris.loconautics.content.controls.panel.visual.PanelVisual::new)
+                .apply();
+
+        SimpleBlockEntityVisualizer
+                .builder(com.lycoris.loconautics.content.combustion.SmallEngineBlocks.ENGINE_BE.get())
+                .factory(com.lycoris.loconautics.content.combustion.SmallEngineVisual::new)
+                .apply();
+
+        SimpleBlockEntityVisualizer
+                .builder(LoconauticsRegistries.PULL_BRAKE_BE.get())
+                .factory(com.lycoris.loconautics.content.brakes.pull.PullBrakeVisual::new)
                 .apply();
 
         SimpleBlockEntityVisualizer
@@ -193,24 +258,35 @@ public final class LoconauticsClient {
         com.lycoris.loconautics.common.strand.StrandKnotPicker.registerSource(
                 new com.lycoris.loconautics.content.hose.winch.HoseWinchKnotSource());
 
+        registerTooltip(com.lycoris.loconautics.content.cerisene.CeriseneBlocks.RAW_CERISENE.get(), "item.loconautics.raw_cerisene");
+        registerTooltip(com.lycoris.loconautics.content.cerisene.CeriseneBlocks.CERISENE_BLOCK_ITEM.get(), "block.loconautics.cerisene_block");
         registerTooltip(LoconauticsRegistries.HOSE.get(), "item.loconautics.hose");
+        com.lycoris.loconautics.content.combustion.SmallEngineBlocks.ENGINE_ITEMS
+                .forEach((color, item) -> registerTooltip(item.get(), "block.loconautics.small_combustion_engine"));
 
         com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlocks.CONTROLLER_ITEMS
                 .forEach((color, item) -> registerTooltip(item.get(), "block.loconautics.analog_controller"));
         registerTooltip(LoconauticsRegistries.BEARING_AXLE_ITEM.get(), "block.loconautics.bearing_axle");
         registerTooltip(LoconauticsRegistries.TRANSMISSION_ITEM.get(), "block.loconautics.transmission");
-        registerTooltip(com.lycoris.loconautics.content.controls.ControlsBlocks.LOCOMOTIVE_GAUGE_ITEM.get(),
+        registerTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.LOCOMOTIVE_GAUGE_ITEM.get(),
                 "block.loconautics.locomotive_gauge");
+        registerTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.SMART_SAFETY_VALVE_ITEM.get(),
+                "block.loconautics.smart_safety_valve");
         com.lycoris.loconautics.content.dashboard.DashboardBlocks.DASHBOARD_ITEMS
                 .forEach((color, item) -> registerTooltip(item.get(), "block.loconautics.dashboard"));
-        registerTooltip(com.lycoris.loconautics.content.controls.ControlsBlocks.VALVE_ITEM.get(),
+        registerTooltip(LoconauticsRegistries.SMOKESTACK_ITEM.get(), "block.loconautics.smokestack");
+        registerTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.VALVE_ITEM.get(),
                 "item.loconautics.locomotive_valve");
-        registerTooltip(com.lycoris.loconautics.content.controls.ControlsBlocks.GAUGE_BUTTON_ITEM.get(),
+        registerTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.GAUGE_BUTTON_ITEM.get(),
                 "item.loconautics.gauge_button");
-        registerTooltip(com.lycoris.loconautics.content.controls.ControlsBlocks.GAUGE_LEVER_ITEM.get(),
+        registerTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.GAUGE_LEVER_ITEM.get(),
                 "item.loconautics.gauge_lever");
-        registerTooltip(com.lycoris.loconautics.content.controls.ControlsBlocks.GAUGE_SWITCH_ITEM.get(),
+        registerTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.GAUGE_SWITCH_ITEM.get(),
                 "item.loconautics.gauge_switch");
+        registerTooltip(com.lycoris.loconautics.content.industrial.IndustrialBlocks.TANK_ITEM.get(),
+                "block.loconautics.industrial_fluid_tank");
+        registerTooltip(com.lycoris.loconautics.content.industrial.IndustrialBlocks.PUMP_ITEM.get(),
+                "block.loconautics.industrial_pump");
     }
 
     private static void registerTooltip(net.minecraft.world.item.Item item, String key) {
@@ -226,6 +302,14 @@ public final class LoconauticsClient {
                 AnalogControllerRenderer::new
         );
         event.registerBlockEntityRenderer(
+                com.lycoris.loconautics.content.combustion.SmallEngineBlocks.ENGINE_BE.get(),
+                com.lycoris.loconautics.content.combustion.SmallEngineRenderer::new
+        );
+        event.registerBlockEntityRenderer(
+                LoconauticsRegistries.PULL_BRAKE_BE.get(),
+                com.lycoris.loconautics.content.brakes.pull.PullBrakeRenderer::new
+        );
+        event.registerBlockEntityRenderer(
                 LoconauticsRegistries.TURNTABLE_BEARING_BE.get(),
                 com.lycoris.loconautics.content.turntablebearing.TurntableBearingRenderer::new
         );
@@ -234,7 +318,15 @@ public final class LoconauticsClient {
                 BearingAxleRenderer::new
         );
         event.registerBlockEntityRenderer(
-                com.lycoris.loconautics.content.controls.ControlsBlocks.LOCOMOTIVE_GAUGE_BE.get(),
+                com.lycoris.loconautics.content.boiler.BoilerBlocks.STEAM_TAKEOFF_BE.get(),
+                com.lycoris.loconautics.content.boiler.steamtakeoff.SteamTakeoffRenderer::new
+        );
+        event.registerBlockEntityRenderer(
+                com.lycoris.loconautics.content.boiler.BoilerBlocks.BARREL_PIPE_CONNECTOR_BE.get(),
+                com.lycoris.loconautics.content.boiler.barrel.BarrelConnectorRenderer::new
+        );
+        event.registerBlockEntityRenderer(
+                com.lycoris.loconautics.content.boiler.BoilerBlocks.LOCOMOTIVE_GAUGE_BE.get(),
                 com.lycoris.loconautics.content.controls.panel.PanelRenderer::new
         );
         event.registerBlockEntityRenderer(
@@ -244,6 +336,10 @@ public final class LoconauticsClient {
         event.registerBlockEntityRenderer(
                 LoconauticsRegistries.TRANSMISSION_BE.get(),
                 SplitShaftRenderer::new
+        );
+        event.registerBlockEntityRenderer(
+                com.lycoris.loconautics.content.industrial.IndustrialBlocks.TANK_BE.get(),
+                com.lycoris.loconautics.content.industrial.IndustrialTankRenderer::new
         );
         event.registerBlockEntityRenderer(
                 LoconauticsRegistries.KNUCKLE_BE.get(),
@@ -264,6 +360,10 @@ public final class LoconauticsClient {
         event.registerBlockEntityRenderer(
                 LoconauticsRegistries.FLUID_HATCH_BE.get(),
                 com.lycoris.loconautics.content.hatch.HatchRenderer::new
+        );
+        event.registerBlockEntityRenderer(
+                com.lycoris.loconautics.content.boiler.BoilerBlocks.FIREBOX_BE.get(),
+                com.lycoris.loconautics.content.boiler.firebox.FireboxRenderer::new
         );
         event.registerEntityRenderer(
                 com.lycoris.loconautics.content.hose.spray.entity.HoseSprayEntities.HOSE_SPRAY.get(),
@@ -289,6 +389,13 @@ public final class LoconauticsClient {
                 com.lycoris.loconautics.client.scrollmenu.ScrollMenuRenderer.OVERLAY);
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, LoconauticsConstants.id("grab_crosshair"),
                 com.lycoris.loconautics.content.grab.GrabCrosshair.OVERLAY);
+        event.registerAboveAll(LoconauticsConstants.id("tick_meter"),
+                com.lycoris.loconautics.foundation.debug.TickMeterHud.OVERLAY);
+    }
+
+    private void onRegisterClientCommands(
+            net.neoforged.neoforge.client.event.RegisterClientCommandsEvent event) {
+        com.lycoris.loconautics.trainphysics.visual.BogeyTurnTweakCommand.register(event.getDispatcher());
     }
 
     private void onClientTick(ClientTickEvent.Pre event) {
@@ -296,6 +403,7 @@ public final class LoconauticsClient {
             com.lycoris.loconautics.trainphysics.rail.RailSeams.trackClientLevel(
                     net.minecraft.client.Minecraft.getInstance().level);
         }
+        com.lycoris.loconautics.trainphysics.portal.PortalCutsClient.tickReport();
         AnalogControllerClientHandler.tick();
         AnalogControllerHUD.tick();
         SableTrainRelocator.clientTick();
@@ -310,6 +418,7 @@ public final class LoconauticsClient {
         com.lycoris.loconautics.content.steelcable.SteelCableHover.tick();
         com.lycoris.loconautics.content.grab.GrabClientHandler.tick();
         com.lycoris.loconautics.content.grab.GrabHandRenderer.tick();
+        com.lycoris.loconautics.foundation.debug.DebugLinesClient.tick();
         com.lycoris.loconautics.client.scrollmenu.ScrollMenuHandler.tick();
     }
 
@@ -388,6 +497,10 @@ public final class LoconauticsClient {
 
     private void onRenderLevelStage(net.neoforged.neoforge.client.event.RenderLevelStageEvent event) {
         if (event.getStage() == net.neoforged.neoforge.client.event.RenderLevelStageEvent.Stage.AFTER_WEATHER) {
+            var lineBuffers = net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource();
+            com.lycoris.loconautics.foundation.debug.DebugLinesClient.renderAll(
+                    event.getPoseStack(), lineBuffers, event.getCamera().getPosition());
+            lineBuffers.endBatch();
             com.lycoris.loconautics.foundation.particle.LateParticles.renderAll(
                     event.getCamera(), event.getModelViewMatrix(),
                     event.getPartialTick().getGameTimeDeltaPartialTick(false));
@@ -398,6 +511,9 @@ public final class LoconauticsClient {
         }
         var buffers = net.minecraft.client.Minecraft.getInstance().renderBuffers().bufferSource();
         com.lycoris.loconautics.content.steelcable.SteelCableStrandRenderer.renderAll(
+                event.getPoseStack(), buffers, event.getCamera().getPosition(),
+                event.getPartialTick().getGameTimeDeltaPartialTick(false));
+        com.lycoris.loconautics.content.screwlink.ScrewLinkStrandRenderer.renderAll(
                 event.getPoseStack(), buffers, event.getCamera().getPosition(),
                 event.getPartialTick().getGameTimeDeltaPartialTick(false));
         buffers.endBatch();
@@ -421,6 +537,7 @@ public final class LoconauticsClient {
         com.lycoris.loconautics.content.analogcontroller.WhistleHonks.clear();
         StationParkingFlagClient.clear();
         com.lycoris.loconautics.trainphysics.portal.PortalCutsClient.clear();
+        com.lycoris.loconautics.foundation.debug.DebugLinesClient.clear();
         com.lycoris.loconautics.client.scrollmenu.ScrollMenuHandler.forceClose();
         com.lycoris.loconautics.content.analogcontroller.AnalogControllerClientHandler.clear();
     }

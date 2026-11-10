@@ -54,6 +54,7 @@ public class ManeuverEditorInstruction extends ScheduleInstruction {
         }
     }
 
+    // the knuckle item model override shows the open knuckle for this value
     private static final int OPEN_KNUCKLE_MODEL = 1;
 
     private final Kind kind;

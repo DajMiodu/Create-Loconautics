@@ -31,12 +31,12 @@ public class GaugeBlockItem extends PanelBlockItem {
 
     public static GaugeMetric boundMetric(ItemStack stack) {
         GaugeMetric metric = stack.get(LoconauticsRegistries.LOCOMOTIVE_GAUGE_METRIC.get());
-        return metric == null ? GaugeMetric.SPEEDOMETER_RPM : metric;
+        return metric == null ? GaugeMetric.TEMPERATURE : metric;
     }
 
     public static ItemStack stackFor(GaugeBlockEntity.Gauge gauge) {
         ItemStack stack = new ItemStack(
-                com.lycoris.loconautics.content.controls.ControlsBlocks.LOCOMOTIVE_GAUGE_ITEM.get());
+                com.lycoris.loconautics.content.boiler.BoilerBlocks.LOCOMOTIVE_GAUGE_ITEM.get());
         if (gauge != null && gauge.bound()) {
             stack.set(LoconauticsRegistries.LOCOMOTIVE_GAUGE_TARGET.get(), gauge.firebox());
             stack.set(LoconauticsRegistries.LOCOMOTIVE_GAUGE_METRIC.get(), gauge.metric());

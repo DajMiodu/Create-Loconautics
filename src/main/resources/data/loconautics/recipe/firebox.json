@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "CDC",
+    "AEA"
+  ],
+  "key": {
+    "A": {
+      "item": "create:industrial_iron_block"
+    },
+    "B": {
+      "item": "create:railway_casing"
+    },
+    "C": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "D": {
+      "item": "minecraft:iron_bars"
+    },
+    "E": {
+      "item": "minecraft:charcoal"
+    }
+  },
+  "result": {
+    "id": "loconautics:firebox",
+    "count": 1
+  }
+}

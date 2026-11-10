@@ -478,10 +478,11 @@ public final class GhostWheelBodies {
             return;
         }
         if (train.isDerailed() || train.isPhysics()) {
-            return;
+            return; // weld stays, it just freezes on the last chord since the rail data is stale now
         }
         UUID carId = carSub.getUniqueId();
         Quaterniond carQ = new Quaterniond(carSub.logicalPose().orientation());
+        Quaterniond rollTurn = rollTurnOf(carSub, train);
         for (SableTrain.Bogey bogey : train.car().bogeys()) {
             if (train.isBogeyOffTrack(bogey.localPos())) {
                 continue;
@@ -495,9 +496,25 @@ public final class GhostWheelBodies {
             if (chord == null) {
                 continue;
             }
+            if (rollTurn != null) {
+                chord = new Quaterniond(rollTurn).mul(chord);
+            }
             rig.constraint().setFrame1(pivotFor(carSub, train, rig.pivotInCar()),
                     new Quaterniond(carQ).conjugate().mul(chord).normalize());
         }
+    }
+
+    // a rolling car carries its plates over with it, the roll the last post step wrote about the chord
+    private static Quaterniond rollTurnOf(ServerSubLevel carSub, SableTrain train) {
+        if (!com.lycoris.loconautics.trainphysics.glue.CarriageRoll.isRolling(carSub.getUniqueId())) {
+            return null;
+        }
+        double phi = com.lycoris.loconautics.trainphysics.glue.CarriageRoll.of(carSub.getUniqueId()).phi;
+        Vector3d[] ref = com.lycoris.loconautics.trainphysics.drive.TrainRailAdvance.bogeyReference(carSub, train.car());
+        if (ref == null || Math.abs(phi) < 1.0e-6) {
+            return null;
+        }
+        return new Quaterniond().rotateAxis(phi, ref[1].x, ref[1].y, ref[1].z);
     }
 
     public static void syncSwing(SableTrain train) {
@@ -535,6 +552,28 @@ public final class GhostWheelBodies {
                 .mul(new Quaterniond(rig.wheelRest()).conjugate())
                 .mul(rig.carRest())
                 .normalize();
+    }
+
+    // twist of each plate against the car about the rail, should stay under a degree on a rolling car
+    public static String plateRollLine(ServerSubLevel carSub, SableTrain train) {
+        ServerSubLevelContainer container = SubLevelContainer.getContainer(carSub.getLevel());
+        var carriage = train.car() == null ? null : train.car().carriage();
+        Vector3d forward0 = carriage == null ? null : carriage.referenceForward();
+        if (container == null || forward0 == null) {
+            return "none";
+        }
+        Quaterniond carQ = new Quaterniond(carSub.logicalPose().orientation());
+        StringBuilder out = new StringBuilder("[");
+        for (Map.Entry<Key, Rig> entry : RIGS.entrySet()) {
+            if (!entry.getKey().carSub().equals(carSub.getUniqueId())) {
+                continue;
+            }
+            Quaterniond swing = swingOf(container, entry.getValue(), carQ);
+            out.append(swing == null ? "gone" : com.lycoris.loconautics.foundation.LogFormat.f(Math.toDegrees(
+                    com.lycoris.loconautics.trainphysics.glue.CarriageRoll.twist(new Quaterniond(), swing, forward0))))
+                    .append(' ');
+        }
+        return out.append(']').toString();
     }
 
     public static void releaseAll(SableTrain train) {

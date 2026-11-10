@@ -1,0 +1,89 @@
+{
+  "entries": [
+    {
+      "block": "hullsteel:boiler/big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/black_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/blue_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/brown_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/cyan_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/gray_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/green_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/light_blue_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/light_gray_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/lime_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/magenta_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/orange_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/pink_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/purple_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/red_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/white_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    },
+    {
+      "block": "hullsteel:boiler/yellow_big_boiler",
+      "boiler_capacity": 2.0,
+      "water_capacity": 16000
+    }
+  ]
+}

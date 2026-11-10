@@ -2,6 +2,7 @@ package com.lycoris.loconautics.content.analogcontroller;
 
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.lycoris.loconautics.common.DyedBlock;
+import com.lycoris.loconautics.common.ShiftPlacement;
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.AllShapes;
 import net.minecraft.core.BlockPos;
@@ -84,12 +85,7 @@ public class AnalogControllerBlock extends HorizontalDirectionalBlock implements
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
-        Direction dir = ctx.getHorizontalDirection().getOpposite();
-        Player player = ctx.getPlayer();
-        if (player != null && player.isShiftKeyDown()) {
-            dir = dir.getOpposite();
-        }
-        return this.defaultBlockState().setValue(FACING, dir);
+        return this.defaultBlockState().setValue(FACING, ShiftPlacement.facing(ctx));
     }
 
     @Override

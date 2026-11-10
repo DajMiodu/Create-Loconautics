@@ -1,6 +1,7 @@
 package com.lycoris.loconautics.common.turntable;
 
 import com.lycoris.loconautics.common.sable.TrackHostFrames;
+import com.lycoris.loconautics.foundation.debug.TurntableTrace;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
 import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
@@ -72,7 +73,12 @@ public final class TurntableRegistry {
     public static void register(Turntable turntable) {
         UUID id = turntable.plateSubLevelId();
         if (id != null) {
-            TURNTABLES.put(id, turntable);
+            Turntable previous = TURNTABLES.put(id, turntable);
+            if (previous != turntable) {
+                TurntableTrace.log("register plate " + id.toString().substring(0, 8) + " "
+                        + turntable.getClass().getSimpleName() + " replaces "
+                        + (previous == null ? "nothing" : previous.getClass().getSimpleName()));
+            }
         }
     }
 
@@ -103,6 +109,10 @@ public final class TurntableRegistry {
     public static void unregister(@Nullable UUID plate) {
         if (plate == null) {
             return;
+        }
+        if (TURNTABLES.containsKey(plate)) {
+            TurntableTrace.log("unregister plate " + plate.toString().substring(0, 8) + " via "
+                    + TurntableTrace.callers());
         }
         TURNTABLES.remove(plate);
         GEOMETRY.remove(plate);
@@ -156,6 +166,7 @@ public final class TurntableRegistry {
         return anyTrainOn(plate, consist, false);
     }
 
+    // inside true counts only trains in the set, false counts every train but those
     private static boolean anyTrainOn(UUID plate, @Nullable Set<UUID> set, boolean inside) {
         for (SableTrain train : SableTrainRegistry.all()) {
             SableTrain.Car car = train.car();
@@ -180,6 +191,7 @@ public final class TurntableRegistry {
         }
     }
 
+    // turns served lately, one drops off every cooldown
     public static int heatOf(@Nullable UUID plate) {
         Heat heat = plate == null ? null : HEAT.get(plate);
         return heat == null ? 0 : Math.max(0, heat.count() - (tick - heat.stamp()) / HEAT_COOLDOWN_TICKS);
@@ -330,6 +342,33 @@ public final class TurntableRegistry {
         return exits;
     }
 
+    // why exits comes back empty for a plate head, null when it is not a plate head at all
+    @Nullable
+    public static String refusal(@Nullable TrackNode plateNode, double trainLength) {
+        UUID plate = plateNode == null ? null : PLATE_HEADS.get(plateNode.getLocation());
+        if (plate == null) {
+            return null;
+        }
+        Turntable turntable = byPlate(plate);
+        if (turntable == null) {
+            return "the plate has no registered turntable";
+        }
+        if (!turntable.turntableScheduleDriven()) {
+            return "the turntable is not schedule driven";
+        }
+        if (!turntable.turntablePowered()) {
+            return "the turntable has no power";
+        }
+        Geometry geometry = geometryOf(turntable);
+        if (geometry == null) {
+            return "the plate does not have exactly two heads";
+        }
+        return geometry.span() + FIT_SLACK < trainLength
+                ? "the plate span " + String.format("%.1f", geometry.span()) + " is shorter than the train "
+                + String.format("%.1f", trainLength)
+                : null;
+    }
+
     private static void addExits(List<Exit> exits, TrackGraph graph, Turntable turntable, UUID plate,
                                  TrackNodeLocation entryHead, TrackNodeLocation moving,
                                  @Nullable TrackNodeLocation turnBack) {
@@ -460,6 +499,7 @@ public final class TurntableRegistry {
         }
     }
 
+    // how far the middle of the whole body sits from the plate center along the plate, for the aligning trace
     public static double spanOf(UUID plate) {
         Geometry geometry = geometryOf(byPlate(plate));
         return geometry == null ? 0.0 : geometry.span();
@@ -494,6 +534,13 @@ public final class TurntableRegistry {
                                       TrackNodeLocation target) {
         boolean aligned = RailSeams.aligned(movingHead, target);
         boolean welded = aligned && RailSeams.weldNow(movingHead, target);
+        if (!welded && TurntableTrace.due("weld" + movingHead, tick, 20)) {
+            Vec3 a = RailSeams.worldPosOf(movingHead);
+            Vec3 b = RailSeams.worldPosOf(target);
+            TurntableTrace.log("weld refused aligned=" + aligned + " gap="
+                    + (a == null || b == null ? "none" : String.format("%.3f", a.distanceTo(b))) + " moving=" + a
+                    + " target=" + b);
+        }
         return welded;
     }
 
@@ -538,7 +585,13 @@ public final class TurntableRegistry {
         Geometry cached = GEOMETRY.get(plate);
         if (cached == null || tick - cached.stamp() >= RESCAN_TICKS) {
             cached = scan(turntable);
-            GEOMETRY.put(plate, cached);
+            Geometry before = GEOMETRY.put(plate, cached);
+            if (before == null || before.heads().size() != cached.heads().size()) {
+                TurntableTrace.log("plate " + plate.toString().substring(0, 8) + " scan heads "
+                        + (before == null ? "first" : before.heads().size()) + " to " + cached.heads().size()
+                        + " span " + String.format("%.2f", cached.span()) + " axis " + turntable.turntableAxisWorld()
+                        + " impl " + turntable.getClass().getSimpleName());
+            }
             PLATE_HEADS.values().removeIf(plate::equals);
             for (TrackNodeLocation head : cached.heads()) {
                 PLATE_HEADS.put(head, plate);

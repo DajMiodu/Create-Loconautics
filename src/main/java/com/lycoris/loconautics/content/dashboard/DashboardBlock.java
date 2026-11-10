@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.dashboard;
 
+import com.lycoris.loconautics.common.ShiftPlacement;
 import com.lycoris.loconautics.client.connected.ConnectedBlock;
 import com.lycoris.loconautics.client.connected.ConnectionBounds;
 import com.lycoris.loconautics.common.DyedBlock;
@@ -105,7 +106,7 @@ public class DashboardBlock extends HorizontalDirectionalBlock
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction facing = context.getHorizontalDirection().getOpposite();
+        Direction facing = ShiftPlacement.facing(context);
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         int leftLength = freeEndLength(level, pos.relative(facing.getCounterClockWise()), facing, JOIN_CW);
@@ -431,6 +432,7 @@ public class DashboardBlock extends HorizontalDirectionalBlock
         level.setBlock(pos, neighbor.setValue(property, joined), Block.UPDATE_ALL);
     }
 
+    // anchors depend on the whole run, vanilla only redraws the direct neighbors
     private void refreshRun(Level level, BlockState state, BlockPos pos) {
         if (!level.isClientSide) return;
         Direction facing = state.getValue(FACING);

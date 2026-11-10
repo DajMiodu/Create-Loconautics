@@ -5,6 +5,7 @@ import com.lycoris.loconautics.common.grab.GrabbableActor;
 import com.lycoris.loconautics.common.strand.StrandKnotPicker;
 import com.lycoris.loconautics.network.packets.attachment.GrabDragPacket;
 import com.lycoris.loconautics.network.packets.attachment.GrabStopPacket;
+import com.lycoris.loconautics.network.packets.attachment.StrandHookGrabPacket;
 import com.lycoris.loconautics.network.packets.attachment.StrandKnotGrabPacket;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.ryanhcode.sable.Sable;
@@ -45,6 +46,7 @@ public final class GrabClientHandler {
     private static final double SENSITIVITY_THAT_ZEROES_THE_TURN = -1.0 / 3.0;
 
     @Nullable private static UUID grabSub;
+    @Nullable private static UUID grabStrand;
     @Nullable private static UUID grabKnotStrand;
     private static int grabKnotIndex;
     @Nullable private static BlockPos grabLocalPos;
@@ -57,13 +59,21 @@ public final class GrabClientHandler {
     }
 
     public static boolean grabbing() {
-        return grabSub != null || grabKnotStrand != null;
+        return grabSub != null || grabStrand != null || grabKnotStrand != null;
+    }
+
+    @Nullable
+    public static UUID grabbedStrand() {
+        return grabStrand;
     }
 
     @Nullable
     public static Vec3 grabAnchorWorld(float partialTick) {
         if (grabKnotStrand != null) {
             return StrandKnotPicker.knotPosition(grabKnotStrand, grabKnotIndex, partialTick);
+        }
+        if (grabStrand != null) {
+            return com.lycoris.loconautics.content.screwlink.ScrewLinkGrabClient.hookPosition(grabStrand, partialTick);
         }
         Minecraft mc = Minecraft.getInstance();
         if (grabSub == null || grabLocalPos == null || mc.level == null) {
@@ -104,6 +114,12 @@ public final class GrabClientHandler {
                 return;
             }
         }
+        UUID hookStrand = com.lycoris.loconautics.content.screwlink.ScrewLinkGrabClient.pickHook();
+        if (hookStrand != null) {
+            startHookGrab(player, hookStrand);
+            event.setCanceled(true);
+            return;
+        }
         if (!(mc.hitResult instanceof BlockHitResult hit) || hit.getType() != HitResult.Type.BLOCK) {
             return;
         }
@@ -123,6 +139,8 @@ public final class GrabClientHandler {
         rotating = false;
         sawFree = false;
         grabOrientation.set(sub.logicalPose().orientation());
+        com.lycoris.loconautics.LoconauticsConstants.LOGGER.info("[undockdbg] client grab pos={} powered={}",
+                hitPos, isPowered(sub, hitPos));
         if (isPowered(sub, hitPos)) {
             PacketDistributor.sendToServer(new com.lycoris.loconautics.network.packets.attachment.GrabUndockPacket(
                     grabSub, grabLocalPos, range));
@@ -150,6 +168,12 @@ public final class GrabClientHandler {
         if (grabKnotStrand != null) {
             if (StrandKnotPicker.knotCount(grabKnotStrand) <= grabKnotIndex + 1) {
                 stopGrabbing();
+            }
+            return;
+        }
+        if (grabStrand != null) {
+            if (!com.lycoris.loconautics.content.screwlink.ScrewLinkGrabClient.stillLoaded(grabStrand)) {
+                reset();
             }
             return;
         }
@@ -224,6 +248,7 @@ public final class GrabClientHandler {
     private static void startKnotGrab(StrandKnotPicker.Knot knot) {
         grabKnotStrand = knot.strand();
         grabKnotIndex = knot.index();
+        grabStrand = null;
         grabSub = null;
         grabLocalPos = null;
         rotating = false;
@@ -232,9 +257,26 @@ public final class GrabClientHandler {
         sendUpdate();
     }
 
+    private static void startHookGrab(LocalPlayer player, UUID strandId) {
+        grabStrand = strandId;
+        grabSub = null;
+        grabLocalPos = null;
+        rotating = false;
+        sawFree = false;
+        range = clampRange((float) Math.min(
+                player.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue(), MAX_GRAB_DISTANCE));
+        grabOrientation.identity();
+        sendUpdate();
+    }
+
     private static void sendUpdate() {
         if (grabKnotStrand != null) {
             PacketDistributor.sendToServer(new StrandKnotGrabPacket(grabKnotStrand, grabKnotIndex, false, range));
+            return;
+        }
+        if (grabStrand != null) {
+            PacketDistributor.sendToServer(new StrandHookGrabPacket(
+                    grabStrand, false, range, rotating, new Quaterniond(grabOrientation)));
             return;
         }
         if (grabSub != null && grabLocalPos != null) {
@@ -247,6 +289,9 @@ public final class GrabClientHandler {
         if (grabKnotStrand != null) {
             PacketDistributor.sendToServer(StrandKnotGrabPacket.stopping(grabKnotStrand));
         }
+        if (grabStrand != null) {
+            PacketDistributor.sendToServer(StrandHookGrabPacket.stopping(grabStrand));
+        }
         if (grabSub != null && grabLocalPos != null) {
             PacketDistributor.sendToServer(new GrabStopPacket(grabSub, grabLocalPos));
         }
@@ -255,6 +300,7 @@ public final class GrabClientHandler {
 
     private static void reset() {
         grabSub = null;
+        grabStrand = null;
         grabKnotStrand = null;
         grabLocalPos = null;
         rotating = false;

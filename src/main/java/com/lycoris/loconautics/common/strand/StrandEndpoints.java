@@ -32,6 +32,7 @@ public final class StrandEndpoints {
         return level.isLoaded(local);
     }
 
+    // no body found anywhere means plain world blocks, those stay in the overworld
     public static boolean drivenBy(ServerLevel level, @Nullable UUID subA, @Nullable UUID subB) {
         for (ServerLevel candidate : level.getServer().getAllLevels()) {
             SubLevelContainer container = SubLevelContainer.getContainer(candidate);

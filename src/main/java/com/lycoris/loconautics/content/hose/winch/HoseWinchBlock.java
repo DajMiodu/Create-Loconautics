@@ -80,6 +80,7 @@ public class HoseWinchBlock extends DirectionalAxisKineticBlock
             Block.box(3, 13, 2, 13, 14, 14),
             Block.box(3, 14, 3, 13, 16, 13));
 
+    // thin plate like simulated, the hose starts at the block center
     private static final VoxelShape PHYSICS_BASE = Block.box(1, 0, 1, 15, 0.25, 15);
 
     private static final Map<Direction, VoxelShape> SHAPES_ALONG = shapes(BASE_SHAPE, true);

@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.knuckle;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.copycat.CopycatBlockLogic;
 import com.lycoris.loconautics.common.copycat.CopycatMaterialHolder;
 import com.lycoris.loconautics.common.copycat.CopycatMaterialStore;
@@ -7,6 +8,7 @@ import com.lycoris.loconautics.content.steelcable.SteelCableHolder;
 import com.lycoris.loconautics.content.steelcable.SteelCableHolderBehaviour;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.lycoris.loconautics.trainphysics.coupling.TwistLink;
 import com.lycoris.loconautics.trainphysics.sublevel.SubLevelContacts;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.api.block.BlockEntitySubLevelActor;
@@ -155,6 +157,7 @@ public class KnuckleBlockEntity extends SmartBlockEntity implements BlockEntityS
         this.partnerLocalPos = partnerLocalPos;
         this.coupled = true;
         this.missingScans = 0;
+        traceTransition("couple");
         releaseCoupling();
         writeConnectedState(true);
         setChanged();
@@ -169,7 +172,18 @@ public class KnuckleBlockEntity extends SmartBlockEntity implements BlockEntityS
         missingScans = 0;
     }
 
+    private void traceTransition(String what) {
+        if (level != null && !level.isClientSide()) {
+            LoconauticsConstants.LOGGER.info("[knuckle] {} {} partner={} tick={}", what, getBlockPos(),
+                    partnerSubLevelId, level.getGameTime());
+        }
+    }
+
     public void clearConnection() {
+        traceTransition("uncouple");
+        StackTraceElement[] frames = new Throwable().getStackTrace();
+        LoconauticsConstants.LOGGER.info("[iss234k] clearConnection {} called from {} < {} < {}", getBlockPos(),
+                frames.length > 1 ? frames[1] : "?", frames.length > 2 ? frames[2] : "?", frames.length > 3 ? frames[3] : "?");
         returnContacts();
         releaseCoupling();
         coupled = false;
@@ -182,6 +196,7 @@ public class KnuckleBlockEntity extends SmartBlockEntity implements BlockEntityS
         sendData();
     }
 
+    // the cars stop colliding while coupled, so uncoupling hands the contacts back
     private void returnContacts() {
         if (partnerSubLevelId != null && level != null && !level.isClientSide()
                 && Sable.HELPER.getContaining(this) instanceof SubLevel own) {
@@ -263,6 +278,7 @@ public class KnuckleBlockEntity extends SmartBlockEntity implements BlockEntityS
             engageFrom = worldA.distance(worldB);
         }
         boolean bar308 = KnuckleRailCoupler.rigid(subLevel) && KnuckleRailCoupler.rigid(partnerSub);
+        KnuckleRailCoupler.trace308(this, subLevel, hingeA, partnerSub, hingeB, bar308);
         if (bar308) {
             KnuckleJoint.release(joint);
             joint = null;
@@ -323,6 +339,17 @@ public class KnuckleBlockEntity extends SmartBlockEntity implements BlockEntityS
 
     public Vector3d hingePlot() {
         return hingeLocal(getBlockPos(), getBlockState().getValue(KnuckleBlock.FACING));
+    }
+
+    @Nullable
+    public TwistLink twistLink(ServerSubLevel own) {
+        if (!isConnected() || level == null || partnerLocalPos == null || !isController(own.getUniqueId())
+                || !(level.getBlockEntity(partnerLocalPos) instanceof KnuckleBlockEntity partner)
+                || !partner.isConnected()) {
+            return null;
+        }
+        return new TwistLink(own.getUniqueId(), hingePlot(), partnerSubLevelId, partner.hingePlot(),
+                TwistLink.Kind.KNUCKLE, 1.0, null);
     }
 
     static Vector3d hingeLocal(BlockPos p, Direction facing) {

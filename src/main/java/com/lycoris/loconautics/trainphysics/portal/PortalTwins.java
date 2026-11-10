@@ -105,6 +105,7 @@ public final class PortalTwins {
     private static final long GRACE_TICKS = 10;
     private static final long REAP_INTERVAL = 20;
 
+    private static final long SLOW_CLONE_MS = 40;
     private static final long STANDBY_TICKS = 15;
     private static final long LINGER_TICKS = 15;
 
@@ -186,8 +187,9 @@ public final class PortalTwins {
 
     private static <T> T refused(UUID masterId, String why) {
         if (REFUSALS_LOGGED.add(masterId + why)) {
-            LoconauticsConstants.LOGGER.warn("[portal] twin refused for {}: {}", masterId, why);
+            LoconauticsConstants.LOGGER.warn("[portal] twin refused for {}: {}", PortalTrace.id(masterId), why);
         }
+        PortalTrace.log("refused master={} why={}", PortalTrace.id(masterId), why);
         return null;
     }
 
@@ -220,6 +222,7 @@ public final class PortalTwins {
         return null;
     }
 
+    // true while the standby is still young, so the clients have not had time to receive and mesh it
     public static boolean standbyPending(ServerSubLevel master, UUID carId) {
         UUID masterId = master.getUniqueId();
         if (!BY_MASTER.containsKey(masterId) || STANDBY_REFUSED.contains(masterId)) {
@@ -231,11 +234,15 @@ public final class PortalTwins {
                     new Quaterniond(master.logicalPose().orientation()), master.getLevel());
             if (made == null) {
                 STANDBY_REFUSED.add(masterId);
+                PortalTrace.log("standby refused master={}", PortalTrace.id(masterId));
                 return false;
             }
+            PortalTrace.log("standby made master={} body={} slot={},{}", PortalTrace.id(masterId),
+                    PortalTrace.id(made.body().getUniqueId()), made.slot().x(), made.slot().z());
             standby = new Follower(masterId, made.body().getUniqueId(), carId, master.getLevel().dimension(),
                     made.slot(), made.box(), tick, false);
             FOLLOWERS.put(standby.bodyId(), standby);
+            // the sync that makes it collider free runs next tick, one physics step in between would push it against its master
             PortalColliders.apply(master.getLevel(), standby.bodyId(), PortalCut.everything(standby.bodyId()));
         }
         return tick - standby.since() < STANDBY_TICKS;
@@ -245,11 +252,14 @@ public final class PortalTwins {
     public static void softenTwin(MinecraftServer server, UUID masterId) {
         Twin twin = BY_MASTER.get(masterId);
         ServerLevel level = twin == null ? null : server.getLevel(twin.twinDim());
+        PortalTrace.log("soften master={} twin={} level={}", PortalTrace.id(masterId),
+                twin == null ? "none" : PortalTrace.id(twin.twinId()), level != null);
         if (level != null) {
             PortalColliders.apply(level, twin.twinId(), PortalCut.everything(twin.twinId()));
         }
     }
 
+    // the old twin keeps drawing the far half until the landed car reaches the clients, the standby becomes the new twin
     public static Set<UUID> handedOver(MinecraftServer server, UUID masterId, PortalFrame turned) {
         Twin old = BY_MASTER.remove(masterId);
         Follower standby = standbyOf(masterId);
@@ -266,6 +276,9 @@ public final class PortalTwins {
             }
         }
         Set<UUID> kept = new HashSet<>();
+        PortalTrace.log("handedOver master={} oldTwin={} standby={}", PortalTrace.id(masterId),
+                old == null ? "none" : PortalTrace.id(old.twinId()),
+                standby == null ? "none" : PortalTrace.id(standby.bodyId()));
         if (old != null) {
             SubLevelContacts.releaseAll(old.twinId());
             FOLLOWERS.put(old.twinId(), new Follower(masterId, old.twinId(), old.carId(), old.twinDim(), old.slot(),
@@ -293,6 +306,8 @@ public final class PortalTwins {
     }
 
     private static void dropFollower(MinecraftServer server, Follower follower) {
+        PortalTrace.log("dropFollower body={} master={} lingering={} by={}", PortalTrace.id(follower.bodyId()),
+                PortalTrace.id(follower.masterId()), follower.lingering(), caller());
         FOLLOWERS.remove(follower.bodyId());
         SubLevelContacts.releaseAll(follower.bodyId());
         PortalEntry.release(follower.bodyId());
@@ -317,13 +332,55 @@ public final class PortalTwins {
         if (twin == null) {
             return;
         }
+        PortalTrace.log("drop master={} twin={} by={}", PortalTrace.id(masterId), PortalTrace.id(twin.twinId()),
+                caller());
         SubLevelContacts.releaseAll(twin.twinId());
         PortalColliders.clear(twin.twinId());
         clear(server.getLevel(twin.twinDim()), twin.twinId(), twin.slot(), twin.box());
     }
 
+    private static String caller() {
+        StackTraceElement[] frames = new Throwable().getStackTrace();
+        return frames.length > 2 ? frames[2].getMethodName() : "unknown";
+    }
+
+    private static void status(MinecraftServer server) {
+        for (Twin twin : List.copyOf(BY_MASTER.values())) {
+            ServerLevel masterLevel = server.getLevel(twin.masterDim());
+            ServerLevel twinLevel = server.getLevel(twin.twinDim());
+            ServerSubLevel master = masterLevel == null ? null : SubLevelData.resolve(masterLevel, twin.masterId());
+            ServerSubLevel body = twinLevel == null ? null : SubLevelData.resolve(twinLevel, twin.twinId());
+            PortalFrame frame = FRAMES.get(twin.masterId());
+            String error = master != null && body != null && frame != null ? PortalTrace.f(
+                    frame.toFar(master.logicalPose().position()).distance(body.logicalPose().position())) : "n/a";
+            BoundingBox3ic box = body == null ? null : body.getPlot().getBoundingBox();
+            PortalTrace.log("twin master={} car={} plate={} {} to {} body={} resolves={} poseError={} plotVolume={} "
+                            + "blockEntities={} renewedAgo={}", PortalTrace.id(twin.masterId()),
+                    PortalTrace.id(twin.carId()), !twin.masterId().equals(twin.carId()),
+                    twin.masterDim().location(), twin.twinDim().location(), PortalTrace.id(twin.twinId()),
+                    body != null, error, box == null ? -1 : box.volume(),
+                    body == null ? -1 : SubLevelBlocks.blockEntities(body).size(),
+                    tick - RENEWED.getOrDefault(twin.masterId(), tick));
+        }
+        for (Follower follower : List.copyOf(FOLLOWERS.values())) {
+            ServerLevel level = server.getLevel(follower.dim());
+            ServerSubLevel body = level == null ? null : SubLevelData.resolve(level, follower.bodyId());
+            PortalTrace.log("follower body={} master={} lingering={} dim={} resolves={} age={}",
+                    PortalTrace.id(follower.bodyId()), PortalTrace.id(follower.masterId()), follower.lingering(),
+                    follower.dim().location(), body != null, tick - follower.since());
+        }
+    }
+
+    public static String debugCounts() {
+        return "twins=" + BY_MASTER.size() + " followers=" + FOLLOWERS.size() + " mirrors=" + MIRRORS.size()
+                + " snapshots=" + SNAPSHOTS.size();
+    }
+
     public static void sweep(MinecraftServer server) {
         tick++;
+        if (PortalTrace.on() && tick % 20 == 0) {
+            status(server);
+        }
         for (Map.Entry<UUID, Long> entry : new ArrayList<>(RENEWED.entrySet())) {
             if (tick - entry.getValue() > GRACE_TICKS) {
                 drop(server, entry.getKey());
@@ -498,7 +555,16 @@ public final class PortalTwins {
                 pipeline.getLinearVelocity(master, new Vector3d()).length() + REBOUND);
         Vector3d angular = clampLength(new Vector3d(fb.angular),
                 pipeline.getAngularVelocity(master, new Vector3d()).length() + ANGULAR_REBOUND);
+        Vector3d rawLinear = new Vector3d(fb.linear);
+        Vector3d masterVelocity = pipeline.getLinearVelocity(master, new Vector3d());
         keepOnRails(twin.carId(), linear, angular);
+        SableTrain jamTrain = SableTrainRegistry.bySubLevel(twin.carId());
+        Vec3 jamAlong = jamTrain == null || jamTrain.car().carriage() == null ? null : jamTrain.car().carriage().forward();
+        LoconauticsConstants.LOGGER.info("[xjam] feedback twin={} master={} raw={} sent={} masterV={} alongV={} railed={}",
+                PortalTrace.id(twin.twinId()), PortalTrace.id(twin.masterId()), PortalTrace.f(rawLinear.length()),
+                PortalTrace.f(linear.length()), PortalTrace.f(masterVelocity.length()),
+                jamAlong == null ? "n/a" : PortalTrace.f(masterVelocity.dot(jamAlong.x, jamAlong.y, jamAlong.z)),
+                jamTrain != null && !jamTrain.isDerailed());
         pipeline.addLinearAndAngularVelocity(master, linear, angular);
         fb.linear.zero();
         fb.angular.zero();
@@ -536,11 +602,15 @@ public final class PortalTwins {
         UUID masterId = master.getUniqueId();
         BY_MASTER.put(masterId, new Twin(masterId, made.body().getUniqueId(), carId, master.getLevel().dimension(),
                 twinLevel.dimension(), made.slot(), made.box()));
+        PortalTrace.log("spawned master={} car={} twin={} in {} slot={},{} plate={}", PortalTrace.id(masterId),
+                PortalTrace.id(carId), PortalTrace.id(made.body().getUniqueId()), twinLevel.dimension().location(),
+                made.slot().x(), made.slot().z(), !masterId.equals(carId));
         return made.body();
     }
 
     private static Spawned cloneBody(ServerSubLevel master, Vector3d position, Quaterniond orientation,
                                      ServerLevel twinLevel) {
+        long started = System.nanoTime();
         ServerLevel masterLevel = master.getLevel();
         UUID masterId = master.getUniqueId();
         SableTeleportation.PlotSlot from = SableTeleportation.plotSlot(master);
@@ -553,6 +623,7 @@ public final class PortalTwins {
             return refused(masterId, "no free plot left in " + twinLevel.dimension().location());
         }
         CompoundTag tag = SubLevelSerializer.toData(master, List.of()).fullTag();
+        long afterData = System.nanoTime();
         String rebased = SableTeleportation.rebaseSections(tag, masterLevel, twinLevel);
         if (rebased != null) {
             return refused(masterId, "rebase: " + rebased);
@@ -574,9 +645,13 @@ public final class PortalTwins {
         userData.putBoolean(TWIN_TAG, true);
         tag.put("user_data", userData);
 
+        long afterRepot = System.nanoTime();
         BlockPos landing = BlockPos.containing(position.x(), position.y(), position.z());
+        boolean coldLanding = twinLevel.getChunkSource().getChunkNow(landing.getX() >> 4, landing.getZ() >> 4) == null;
         twinLevel.getChunk(landing);
+        long afterChunk = System.nanoTime();
         var clone = SubLevelSerializer.fromData(tag);
+        long afterFrom = System.nanoTime();
         if (clone == null) {
             return refused(masterId, "fromData refused the repotted tag for " + twinLevel.dimension().location());
         }
@@ -587,6 +662,15 @@ public final class PortalTwins {
             return refused(masterId, "fullyLoad refused the clone in " + twinLevel.dimension().location()
                     + " at plot " + slot.x() + ", " + slot.z());
         }
+        long afterLoad = System.nanoTime();
+        LoconauticsConstants.LOGGER.info("[twinload] clone master={} twin={} from={},{} slot={},{} shifted={} coldLanding={} "
+                        + "pose={} rotationPoint={} worldBounds={}", PortalTrace.id(masterId), PortalTrace.id(twinId),
+                from.x(), from.z(), slot.x(), slot.z(), !from.equals(slot), coldLanding,
+                PortalTrace.f(twin.logicalPose().position().x()) + "," + PortalTrace.f(twin.logicalPose().position().z()),
+                PortalTrace.f(twin.logicalPose().rotationPoint().x()) + ","
+                        + PortalTrace.f(twin.logicalPose().rotationPoint().z()),
+                PortalTrace.f(twin.boundingBox().minX()) + ".." + PortalTrace.f(twin.boundingBox().maxX()) + " z "
+                        + PortalTrace.f(twin.boundingBox().minZ()) + ".." + PortalTrace.f(twin.boundingBox().maxZ()));
         ServerSubLevelContainer container = SubLevelContainer.getContainer(twinLevel);
         if (container != null) {
             container.addForceLoadTicket(twin, HELD_BY_PORTAL, Unit.INSTANCE);
@@ -596,6 +680,15 @@ public final class PortalTwins {
         for (BlockEntity be : SubLevelBlocks.blockEntities(twin)) {
             stripContents(twinLevel, be);
         }
+        long total = (System.nanoTime() - started) / 1_000_000L;
+        String stages = "toData=" + (afterData - started) / 1_000_000L + "ms repot=" + (afterRepot - afterData) / 1_000_000L
+                + "ms getChunk=" + (afterChunk - afterRepot) / 1_000_000L + "ms fromData=" + (afterFrom - afterChunk) / 1_000_000L
+                + "ms fullyLoad=" + (afterLoad - afterFrom) / 1_000_000L + "ms";
+        if (total >= SLOW_CLONE_MS) {
+            LoconauticsConstants.LOGGER.warn("[portal] slow clone of {} into {} took {}ms ({}), slot {},{}",
+                    PortalTrace.id(masterId), twinLevel.dimension().location(), total, stages, slot.x(), slot.z());
+        }
+        PortalTrace.log("clone timing master={} total={}ms {}", PortalTrace.id(masterId), total, stages);
         return new Spawned(twin, slot, plotBox == null ? null : new BoundingBox3i(plotBox));
     }
 
@@ -753,6 +846,7 @@ public final class PortalTwins {
         }
     }
 
+    // a body sable dropped resolves null but may still hold its plot, so this asks the container, then the slot
     private static void clear(ServerLevel level, UUID bodyId, SableTeleportation.PlotSlot slot, BoundingBox3i box) {
         ServerSubLevelContainer container = level == null ? null : SubLevelContainer.getContainer(level);
         if (container == null) {

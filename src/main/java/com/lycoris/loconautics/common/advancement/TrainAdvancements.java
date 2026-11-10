@@ -5,6 +5,7 @@ import com.lycoris.loconautics.common.turntable.TurntableRegistry;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlockEntity;
 import com.lycoris.loconautics.content.bearingaxle.BearingAxleBlockEntity;
 import com.lycoris.loconautics.content.bearingaxle.BearingAxleValidity;
+import com.lycoris.loconautics.content.combustion.SmallEngineTuning;
 import com.lycoris.loconautics.content.controls.panel.PanelBlockEntity;
 import com.lycoris.loconautics.content.controls.panel.PanelPart;
 import com.lycoris.loconautics.content.controls.panel.PanelSlot;
@@ -30,11 +31,14 @@ import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -64,6 +68,15 @@ public final class TrainAdvancements {
     private static final ResourceLocation AI_TAKEOVER = LoconauticsConstants.id("ai_takeover");
     private static final ResourceLocation DONT_TOUCH = LoconauticsConstants.id("dont_touch");
     private static final ResourceLocation COCKPIT_READY = LoconauticsConstants.id("cockpit_ready");
+    private static final ResourceLocation TOO_MUCH_PRESSURE = LoconauticsConstants.id("too_much_pressure");
+    private static final ResourceLocation ANY_FUEL_WILL_DO = LoconauticsConstants.id("any_fuel_will_do");
+    private static final ResourceLocation OVER_9000 = LoconauticsConstants.id("over_9000");
+    private static final ResourceLocation LOCONAUTICS_CUSTOMS = LoconauticsConstants.id("loconautics_customs");
+    private static final String ENGINE_FUELS = "LoconauticsEngineFuels";
+    private static final String ENGINE_COLORS = "LoconauticsEngineColors";
+    private static final int ENGINE_WITNESS_RANGE = 16;
+    private static final int DIFFERENT_FUELS = 3;
+    private static final int BURST_WITNESS_RANGE = 64;
     private static final int CHECK_INTERVAL = 20;
     private static final double HEAVY_MASS = 1000.0;
     private static final double SERIOUS_TORQUE_SU = 256_000.0;
@@ -111,6 +124,38 @@ public final class TrainAdvancements {
         }
         if (button && lever && toggle && valve) {
             award(player, COCKPIT_READY);
+        }
+    }
+
+    public static void boilerBurst(ServerLevel level, BlockPos at) {
+        for (ServerPlayer player : level.players()) {
+            if (player.blockPosition().distSqr(at) < BURST_WITNESS_RANGE * BURST_WITNESS_RANGE) {
+                award(player, TOO_MUCH_PRESSURE);
+            }
+        }
+    }
+
+    public static void engineStarted(ServerLevel level, BlockPos at, int fuelOrdinal, int rowLength) {
+        for (ServerPlayer player : level.players()) {
+            if (player.blockPosition().distSqr(at) > ENGINE_WITNESS_RANGE * ENGINE_WITNESS_RANGE) {
+                continue;
+            }
+            int fuels = player.getPersistentData().getInt(ENGINE_FUELS) | (1 << fuelOrdinal);
+            player.getPersistentData().putInt(ENGINE_FUELS, fuels);
+            if (Integer.bitCount(fuels) >= DIFFERENT_FUELS) {
+                award(player, ANY_FUEL_WILL_DO);
+            }
+            if (rowLength >= SmallEngineTuning.MAX_TANDEM) {
+                award(player, OVER_9000);
+            }
+        }
+    }
+
+    public static void enginePainted(ServerPlayer player, DyeColor color) {
+        int colors = player.getPersistentData().getInt(ENGINE_COLORS) | (1 << color.getId());
+        player.getPersistentData().putInt(ENGINE_COLORS, colors);
+        if (Integer.bitCount(colors) >= DyeColor.values().length) {
+            award(player, LOCONAUTICS_CUSTOMS);
         }
     }
 
@@ -255,6 +300,7 @@ public final class TrainAdvancements {
         tickingBlockEntity = blockEntity;
     }
 
+    // the recipe never learns where it ran, only the belt, depot or machine ticking around it knows
     public static void sequencedAssemblyFinished() {
         BlockEntity at = tickingBlockEntity;
         if (at == null || !(Sable.HELPER.getContaining(at) instanceof ServerSubLevel sub)) {

@@ -67,6 +67,7 @@ public final class TrainLength {
         return cars.size() == 1 ? carLength(level, cars.get(0)) : total;
     }
 
+    // how far the body really runs past the bogey midpoint at the free end of the chain, so a lopsided car is not shifted by half its lopsidedness
     public static double endReach(ServerLevel level, List<SableTrain> cars, boolean first) {
         SableTrain car = cars.get(first ? 0 : cars.size() - 1);
         double half = carLength(level, car) / 2.0;
@@ -81,6 +82,7 @@ public final class TrainLength {
         return Math.max(reach[2] / 2.0, hinge > 0.0 ? reach[1] : reach[0]);
     }
 
+    // the knuckle hinge of a car toward its neighbour, measured along the car axis from the bogey midpoint, nan when no knuckle joins them
     public static double hingeOffset(ServerLevel level, SableTrain car, SableTrain neighbour) {
         ServerSubLevel sub = SubLevelData.resolve(level, car.car().subLevelId());
         if (sub == null || car.car().bogeys().isEmpty()) {
@@ -106,6 +108,7 @@ public final class TrainLength {
         return mid.div(bogeys.size());
     }
 
+    // a hinged pair keeps its live spacing, a knuckle pair sits with the two hinges one rest length apart, anything else gets the rest gap
     public static double centerSpacing(ServerLevel level, SableTrain prev, SableTrain car, double prevHalf, double half) {
         ServerSubLevel subA = SubLevelData.resolve(level, prev.car().subLevelId());
         ServerSubLevel subB = SubLevelData.resolve(level, car.car().subLevelId());
@@ -122,6 +125,7 @@ public final class TrainLength {
         return Math.abs(fromPrev) + KnuckleTuning.REST_LENGTH + Math.abs(fromCar);
     }
 
+    // the real distance between two car centers off their rail points, so a ghost pair and a squeezed pair read true
     private static double railMidGap(SableTrain a, SableTrain b) {
         Vector3d[] first = TrainRailAdvance.bogeyReference(null, a.car());
         Vector3d[] second = TrainRailAdvance.bogeyReference(null, b.car());
@@ -136,6 +140,7 @@ public final class TrainLength {
         return carLengths.isEmpty() ? 0.0 : total + COUPLING_GAP * (carLengths.size() - 1);
     }
 
+    // a car counts as centered on its bogeys, so the longer end sets both halves and a lopsided car never overlaps its neighbour
     public static double carLength(ServerLevel level, SableTrain train) {
         CarExtent extent = extentOf(level, train);
         if (extent == null) {
@@ -148,11 +153,13 @@ public final class TrainLength {
         return train.car().carriage() == null ? 1.0 : Math.max(1.0, train.car().carriage().bogeySpacing());
     }
 
+    // the live body when there is one, else what was measured the last time it was loaded
     public static CarExtent extentOf(ServerLevel level, SableTrain train) {
         CarExtent live = measure(level, train);
         return live != null ? live : train.extent();
     }
 
+    // plot box reach along the car axis from the bogey midpoint, null when the body is not loaded
     public static CarExtent measure(ServerLevel level, SableTrain train) {
         SableTrain.Car car = train.car();
         ServerSubLevel sub = SubLevelData.resolve(level, car.subLevelId());
@@ -186,6 +193,7 @@ public final class TrainLength {
         return new CarExtent(forward, backward, left, right, Math.max(1.0, box.maxY() + 1.0 - box.minY()));
     }
 
+    // plot box reach along the car axis from the bogey midpoint, forward then backward, then the bogey spacing
     private static double[] reaches(ServerLevel level, SableTrain train) {
         CarExtent extent = extentOf(level, train);
         if (extent == null) {
@@ -261,6 +269,7 @@ public final class TrainLength {
         return high < low ? null : new double[]{low, high};
     }
 
+    // nan when no body is loaded
     public static double toBodyMiddle(ServerLevel level, UUID anyId, Vec3 point, Vec3 axis) {
         double[] reach = reachAlong(level, anyId, axis);
         return reach == null ? Double.NaN : Math.abs(point.dot(axis.normalize()) - (reach[0] + reach[1]) * 0.5);

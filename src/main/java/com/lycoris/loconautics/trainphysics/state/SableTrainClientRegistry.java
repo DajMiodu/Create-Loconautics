@@ -112,10 +112,33 @@ public final class SableTrainClientRegistry {
 
     public static void remove(UUID subLevelId) {
         TRAINS.remove(subLevelId);
+        LEANS.remove(subLevelId);
+    }
+
+    private record Lean(Quaternionf turn, long receivedMillis) {}
+
+    private static final Map<UUID, Lean> LEANS = new ConcurrentHashMap<>();
+    private static final long LEAN_STALE_MILLIS = 2500L;
+
+    public static void putLean(UUID subLevelId, Quaternionf turn) {
+        LEANS.put(subLevelId, new Lean(turn, System.currentTimeMillis()));
+    }
+
+    public static Quaternionf lean(UUID subLevelId) {
+        Lean lean = LEANS.get(subLevelId);
+        if (lean == null) {
+            return null;
+        }
+        if (System.currentTimeMillis() - lean.receivedMillis() > LEAN_STALE_MILLIS) {
+            LEANS.remove(subLevelId);
+            return null;
+        }
+        return lean.turn();
     }
 
     public static void clear() {
         TRAINS.clear();
+        LEANS.clear();
         PARKED_STATIONS.clear();
         PARKED_NAMES.clear();
         PARKED_CARRIAGES.clear();

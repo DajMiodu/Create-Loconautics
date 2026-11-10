@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -22,13 +23,15 @@ import java.util.Set;
 public final class SchedulePathfinder {
 
     private static final double DEGREE_COST = 1.0;
+    // leaving a plate axle first beats this many degrees of extra turning
     private static final double AXLE_TRAILING_COST = 20.0;
     // a stop at the very end of a track would derail the nose wheel
     private static final double DEAD_END_STOP_GAP = 2.0;
 
+    // the nose rule keeps only landings where the nose points along the station facing, any leg sense may get there, rel is how the leg starts
     public record Routing(boolean turntables, double trainLength, boolean reversible,
                           @Nullable RouteTraffic traffic, @Nullable Boolean axleLeads, boolean noseAlong, int rel,
-                          @Nullable PlateOffers offers) {
+                          @Nullable Trace trace) {
 
         public static final Routing NONE = new Routing(false, 0.0, false, null, null, false, 0, null);
 
@@ -37,29 +40,31 @@ public final class SchedulePathfinder {
         }
 
         public Routing around(RouteTraffic traffic) {
-            return new Routing(turntables, trainLength, reversible, traffic, axleLeads, noseAlong, rel, offers);
+            return new Routing(turntables, trainLength, reversible, traffic, axleLeads, noseAlong, rel, trace);
         }
 
         public Routing reversing(boolean reversible) {
-            return new Routing(turntables, trainLength, reversible, traffic, axleLeads, noseAlong, rel, offers);
+            return new Routing(turntables, trainLength, reversible, traffic, axleLeads, noseAlong, rel, trace);
         }
 
         public Routing axleLeading(@Nullable Boolean axleLeads) {
-            return new Routing(turntables, trainLength, reversible, traffic, axleLeads, noseAlong, rel, offers);
+            return new Routing(turntables, trainLength, reversible, traffic, axleLeads, noseAlong, rel, trace);
         }
 
         public Routing arriving(boolean noseAlong, int rel) {
-            return new Routing(turntables, trainLength, reversible, traffic, axleLeads, noseAlong, rel, offers);
+            return new Routing(turntables, trainLength, reversible, traffic, axleLeads, noseAlong, rel, trace);
         }
 
-        public Routing counting(@Nullable PlateOffers offers) {
-            return new Routing(turntables, trainLength, reversible, traffic, axleLeads, noseAlong, rel, offers);
+        public Routing tracing(@Nullable Trace trace) {
+            return new Routing(turntables, trainLength, reversible, traffic, axleLeads, noseAlong, rel, trace);
         }
 
+        // a plate exit that backs out flips which end leads, an entry only reaches the plate
         static int relAfter(TurntableRegistry.Exit exit, int rel) {
             return exit.entry() || !ManeuverPlan.backsOut(exit) ? rel : -rel;
         }
 
+        // the nose points along travel with the cab end leading, against it when backing
         boolean lands(boolean travelAlongFacing, int legRel) {
             return !noseAlong || travelAlongFacing == legRel > 0;
         }
@@ -69,18 +74,33 @@ public final class SchedulePathfinder {
         }
     }
 
-    public static final class PlateOffers {
+    // temporary, which plate exits a search was offered and why it dropped each, tag maneuver
+    public static final class Trace {
+        private static final int MAX_LINES = 40;
+        private final Set<String> lines = new LinkedHashSet<>();
         private int offered;
 
-        void count() {
+        void offered(String line) {
             offered++;
+            note(line);
+        }
+
+        void note(String line) {
+            if (lines.size() < MAX_LINES) {
+                lines.add(line);
+            }
         }
 
         public int offered() {
             return offered;
         }
+
+        public Set<String> lines() {
+            return lines;
+        }
     }
 
+    // the last field is plus one when the cab end leads into the target, minus one when the leg backs in
     public record Path(int direction, double distance, double cost, List<Couple<TrackNode>> edges,
                        @Nullable TurntableRegistry.Exit hop, List<Couple<TrackNode>> edgesToHop, int landRel) {
     }
@@ -108,6 +128,7 @@ public final class SchedulePathfinder {
         if (forward == null && reverse == null) {
             return null;
         }
+        // both senses drive the same axis, so the shorter one wins rather than forward always
         boolean useForward = forward != null && (reverse == null || forward.cost <= reverse.cost);
         Result chosen = useForward ? forward : reverse;
         return pathOf(useForward ? 1 : -1, chosen);
@@ -144,6 +165,7 @@ public final class SchedulePathfinder {
                           @Nullable TurntableRegistry.Exit hop, List<Couple<TrackNode>> edgesToHop, int landRel) {
     }
 
+    // rel is how this walk stands now, plus one with the cab end leading, minus one trailing
     private record Frontier(TrackNode node, TrackNode cameFrom, double distance, double cost,
                             List<Couple<TrackNode>> edges, @Nullable TurntableRegistry.Exit hop,
                             List<Couple<TrackNode>> edgesToHop, int rel, boolean arrived)
@@ -172,6 +194,7 @@ public final class SchedulePathfinder {
 
         while (!queue.isEmpty()) {
             Frontier f = queue.poll();
+            // the target settles on pop, so the cheapest route wins
             if (f.arrived) {
                 return new Result(f.distance, f.cost, f.edges, f.hop, f.edgesToHop, f.rel);
             }
@@ -197,6 +220,12 @@ public final class SchedulePathfinder {
                 if (isTarget(f.node, next, targetA, targetB, directed)) {
                     boolean along = f.node == targetA && next == targetB;
                     boolean lands = routing.lands(along, f.rel);
+                    if (routing.trace() != null && routing.noseAlong()) {
+                        routing.trace().note("landing " + f.node.getLocation() + "->" + next.getLocation() + " travel "
+                                + (along ? "along" : "against") + " the facing, cab end " + (f.rel > 0 ? "leads" : "trails")
+                                + ", nose ends " + (along == f.rel > 0 ? "along" : "against") + " the facing, "
+                                + (lands ? "kept" : "dropped"));
+                    }
                     if (lands) {
                         queue.add(new Frontier(next, f.node, distance, cost, edges, f.hop, f.edgesToHop, f.rel, true));
                     }
@@ -223,6 +252,7 @@ public final class SchedulePathfinder {
                 && !RailSeams.aligned(node.getLocation(), next.getLocation()));
     }
 
+    // a stop point past a switch from to is the edge, position runs along it, edges end with that edge
     public record Reversal(TrackNode from, TrackNode to, double position, double cost, double past,
                            List<Couple<TrackNode>> edges) {
     }
@@ -312,13 +342,19 @@ public final class SchedulePathfinder {
         if (!routing.turntables() || !TurntableRegistry.anyRegistered()) {
             return;
         }
-        PlateOffers offers = routing.offers();
+        Trace trace = routing.trace();
         List<TurntableRegistry.Exit> exits = TurntableRegistry.exits(graph, f.node, f.cameFrom,
                 routing.trainLength(), routing.reversible());
+        if (trace != null && exits.isEmpty()) {
+            String refusal = TurntableRegistry.refusal(f.node, routing.trainLength());
+            if (refusal != null) {
+                trace.note("plate head " + f.node.getLocation() + " gives no exits, " + refusal);
+            }
+        }
         for (TurntableRegistry.Exit exit : exits) {
             int after = Routing.relAfter(exit, f.rel);
-            if (offers != null) {
-                offers.count();
+            if (trace != null) {
+                trace.offered("exit " + describe(exit) + " offered, rel " + f.rel + " to " + after);
             }
             boolean backsOut = ManeuverPlan.backsOut(exit);
             queueHop(f, queue, exit, graph.locateNode(exit.worldHead()), routing.axleCost(backsOut),
@@ -326,13 +362,17 @@ public final class SchedulePathfinder {
         }
         for (TurntableRegistry.Exit entry : TurntableRegistry.entries(graph, f.node, f.cameFrom,
                 routing.trainLength())) {
-            if (offers != null) {
-                offers.count();
+            if (trace != null) {
+                trace.offered("entry " + describe(entry) + " offered, rel " + f.rel);
             }
             queueHop(f, queue, entry, graph.locateNode(entry.movingHead()), 0.0, f.rel, routing.traffic());
         }
     }
 
+    private static String describe(TurntableRegistry.Exit exit) {
+        return (exit.entry() ? "entry" : ManeuverPlan.backsOut(exit) ? "backs out" : "spins") + " head "
+                + exit.movingHead() + " to " + exit.worldHead() + " turn " + String.format("%.0f", exit.degrees());
+    }
 
     private static void queueHop(Frontier f, PriorityQueue<Frontier> queue, TurntableRegistry.Exit exit,
                                  @Nullable TrackNode next, double extraCost, int rel, @Nullable RouteTraffic traffic) {

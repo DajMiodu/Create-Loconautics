@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "loconautics:block/boiler/barrel/pipe_connector_particle"
+    }
+  }
+}

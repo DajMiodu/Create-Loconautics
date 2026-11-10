@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.spacing;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.drive.TrainBrakes;
 import com.lycoris.loconautics.trainphysics.drive.TrainPropulsion;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 
 public final class TrainSpacing {
 
@@ -26,14 +28,17 @@ public final class TrainSpacing {
     private static final double NUDGE_STEP = 0.08;
     private static final double NUDGE_MIN_ALIGNMENT = 0.5;
     private static final double LOADED_BRAKE_MARGIN = 0.7;
+    private static final int TRACE_PERIOD_TICKS = 20;
 
     private record Held(long since, long expires, double dirX, double dirZ) {}
 
     private static final Map<UUID, Held> HELD = new HashMap<>();
     private static final Map<UUID, Long> NEXT_CHECK = new HashMap<>();
+    private static final Map<UUID, Long> LAST_TRACE = new HashMap<>();
 
     private static final Map<UUID, Footprint> FOOTPRINTS = new HashMap<>();
     private static final Map<UUID, Double> BUDGETS = new HashMap<>();
+    private static final Map<UUID, String> BLOCKERS = new HashMap<>();
     private static final Map<UUID, SableTrain> BLOCKED_BY = new HashMap<>();
     private static final Map<UUID, BlockPos> BLOCKED_AT = new HashMap<>();
     private static int cachedTick = -1;
@@ -46,8 +51,10 @@ public final class TrainSpacing {
     public static void clear() {
         HELD.clear();
         NEXT_CHECK.clear();
+        LAST_TRACE.clear();
         FOOTPRINTS.clear();
         BUDGETS.clear();
+        BLOCKERS.clear();
         BLOCKED_BY.clear();
         BLOCKED_AT.clear();
         cachedTick = -1;
@@ -58,6 +65,7 @@ public final class TrainSpacing {
     public static void forget(Set<UUID> live) {
         HELD.keySet().retainAll(live);
         NEXT_CHECK.keySet().retainAll(live);
+        LAST_TRACE.keySet().retainAll(live);
     }
 
     public static double ghostStep(SableTrain train) {
@@ -87,6 +95,8 @@ public final class TrainSpacing {
         double clamped = Math.copySign(allowed, ds);
         train.setSpeed(clamped);
         UUID blocked = blockedMember(train);
+        trace(train, now, "ghost brake", String.format("speed=%.3f allowed=%.3f budget=%.2f blocker=%s", ds, allowed,
+                cap, blocked == null ? "none" : BLOCKERS.get(blocked)));
         if (BLOCKED_AT.containsKey(blocked)) {
             TrainStatusChat.blockedByBlocks(train, BLOCKED_AT.get(blocked));
         } else if (blocked != null) {
@@ -122,11 +132,17 @@ public final class TrainSpacing {
         double motion = Math.abs(train.speed()) > 1.0e-3 ? train.speed() : target;
         if (Math.abs(target) > allowed && target * motion >= 0.0) {
             train.setTargetSpeed(Math.copySign(allowed, target));
+            trace(train, train.level().getGameTime(), "loaded brake",
+                    String.format("target=%.3f allowed=%.3f budget=%.2f blocker=%s", target, allowed, cap,
+                            BLOCKERS.get(train.id())));
         }
         double hardAllowed = Math.sqrt(2.0 * emergencyBrake() * cap);
         if (Math.abs(train.speed()) > hardAllowed) {
             double before = train.speed();
             train.setSpeed(Math.copySign(hardAllowed, before));
+            trace(train, train.level().getGameTime(), "loaded emergency",
+                    String.format("speed=%.3f hard=%.3f budget=%.2f blocker=%s", before, hardAllowed, cap,
+                            BLOCKERS.get(train.id())));
         }
     }
 
@@ -157,7 +173,9 @@ public final class TrainSpacing {
         if (blocker == null) {
             NEXT_CHECK.remove(id);
             TrainStatusChat.unblocked(train);
-            HELD.remove(id);
+            if (HELD.remove(id) != null) {
+                trace(train, now, "gate open", "no overlap left");
+            }
             return true;
         }
         NEXT_CHECK.put(id, now + GATE_RETRY_TICKS);
@@ -169,6 +187,9 @@ public final class TrainSpacing {
         HELD.put(id, new Held(old == null ? now : old.since(), now + HOLD_EXPIRY_TICKS, blocked.ax() * away,
                 blocked.az() * away));
         TrainStatusChat.blockedBy(train, blocker.train());
+        trace(train, now, "gate closed", String.format("car %s overlaps %s depth=%.2f nudge=%s",
+                shortId(blocked.train().id()), shortId(blocker.train().id()),
+                Footprint.overlapDepth(blocked, blocker), away != 0.0));
         return false;
     }
 
@@ -195,8 +216,10 @@ public final class TrainSpacing {
         double room = roomToward(train, own, sign);
         double step = Math.min(NUDGE_STEP, room);
         if (step <= 1.0e-4) {
+            trace(train, now, "nudge blocked", String.format("room=%.2f toward sign %.0f", room, sign));
             return 0.0;
         }
+        trace(train, now, "nudge", String.format("step=%.3f sign=%.0f room=%.2f", step, sign, room));
         return sign * step;
     }
 
@@ -293,13 +316,21 @@ public final class TrainSpacing {
         }
         if (scan.block() != null) {
             BLOCKED_AT.put(train.id(), scan.block());
+            BLOCKERS.put(train.id(), String.format("blocks at %s free=%.2f", scan.block().toShortString(), scan.free()));
             return Math.max(0.0, scan.free() - MIN_GAP);
         }
         if (scan.hit() == null) {
             return Double.POSITIVE_INFINITY;
         }
         Footprint hit = scan.hit();
+        double centers = own.horizontalDistance(hit.x(), hit.z());
         BLOCKED_BY.put(train.id(), hit.train());
+        BLOCKERS.put(train.id(), String.format(
+                "%s %s free=%.2f centers=%.2f endGap=%.2f ownHalf=%.2f otherHalf=%.2f extentNull=%s/%s [%s]",
+                shortId(hit.train().id()), hit.train().isGhost() ? "ghost" : "loaded", scan.free(), centers,
+                centers - own.halfLength() - hit.halfLength(), own.halfLength(), hit.halfLength(),
+                train.extent() == null, hit.train().extent() == null,
+                com.lycoris.loconautics.trainphysics.debug.GhostConsistTrace.blockerText(hit.train())));
         return Math.max(0.0, scan.free() - MIN_GAP);
     }
 
@@ -330,6 +361,7 @@ public final class TrainSpacing {
         return out;
     }
 
+    // nothing to build while every body is loaded
     private static void refresh(MinecraftServer server) {
         int tick = server.getTickCount();
         if (tick == cachedTick && server == cachedServer) {
@@ -339,6 +371,7 @@ public final class TrainSpacing {
         cachedServer = server;
         FOOTPRINTS.clear();
         BUDGETS.clear();
+        BLOCKERS.clear();
         BLOCKED_BY.clear();
         BLOCKED_AT.clear();
         ghostCount = 0;
@@ -369,5 +402,15 @@ public final class TrainSpacing {
 
     private static double loadedBrake() {
         return TrainPropulsion.brakeDecelLimit() * TrainPropulsion.MPS2_TO_BPT2 * LOADED_BRAKE_MARGIN;
+    }
+
+    // temporary, tag ghostcol, one line per train per second at most
+    private static void trace(SableTrain train, long now, String what, String detail) {
+        Long last = LAST_TRACE.get(train.id());
+        if (last != null && now - last < TRACE_PERIOD_TICKS && !what.equals("gate open")) {
+            return;
+        }
+        LAST_TRACE.put(train.id(), now);
+        LoconauticsConstants.LOGGER.info("[ghostcol] {} {} {}", shortId(train.id()), what, detail);
     }
 }

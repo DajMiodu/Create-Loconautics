@@ -71,6 +71,7 @@ public final class TrainArguments {
             String text = unique ? train.name() : train.trainId().toString();
             Component tooltip = Component.literal((train.loaded() ? "loaded" : "parked") + ", " + train.name());
             if (train.trainId().equals(looked)) {
+                // a leading quote sorts before every letter and digit, so the viewed train is the first tab
                 offer(builder, remaining, "\"" + text.replace("\"", "\\\"") + "\"",
                         Component.literal("the train you are looking at"));
             } else {

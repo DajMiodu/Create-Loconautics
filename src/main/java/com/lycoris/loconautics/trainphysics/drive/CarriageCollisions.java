@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.drive;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.advancement.TrainAdvancements;
 import com.lycoris.loconautics.common.impact.ImpactSpread;
 import com.lycoris.loconautics.common.impact.TrainImpacts;
@@ -13,6 +14,8 @@ import com.lycoris.loconautics.trainphysics.rail.RailFrame;
 import com.lycoris.loconautics.trainphysics.spawn.SubLevelMergeWatcher;
 import com.lycoris.loconautics.common.sable.SubLevelOverlap;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
+import com.lycoris.loconautics.trainphysics.debug.force.ForceSource;
+import com.lycoris.loconautics.trainphysics.debug.force.ForceTrace;
 import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
 import dev.ryanhcode.sable.companion.math.BoundingBox3dc;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
@@ -26,11 +29,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 
+import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 
 public final class CarriageCollisions {
 
@@ -42,6 +47,7 @@ public final class CarriageCollisions {
     private static final double PUSH_FRACTION = 0.5;
     private static final double MIN_RAIL_ALIGNMENT = 0.2;
     private static final double MAX_SEPARATING_SPEED = 0.05;
+    // a derailed pair has rapier contacts off, so the depth itself has to set how fast it is pushed out
     private static final double MAX_SEPARATE_SPEED = 1.0;
     private static final double SEPARATE_PER_DEPTH = 3.0;
     private static final int LINGER_TICKS = 10;
@@ -49,6 +55,7 @@ public final class CarriageCollisions {
     // a pair saved overlapping gets this long after load to separate before it can count as stuck
     private static final int LOAD_GRACE_TICKS = 100;
     private static final double STALL_PROGRESS = 0.02;
+    // a game tick of two cars closing at top speed is under 4 blocks, so rapier must never see the touch
     private static final double GUARD_NEAR = 6.0;
     private static final double GUARD_CLEAR = 9.0;
 
@@ -120,6 +127,7 @@ public final class CarriageCollisions {
         expire(hitting);
     }
 
+    // railed cars are stopped by the contact link in knucklerailcoupler, rapiers own contact kicks them 8 to 10 bs
     private static void guardRailedPairs(Iterable<List<Entry>> levels) {
         Set<SubLevelContacts.Pair> kept = new HashSet<>();
         Set<SubLevelContacts.Pair> handedOver = new HashSet<>();
@@ -216,6 +224,7 @@ public final class CarriageCollisions {
         resolve(a, b, hit, fresh);
     }
 
+    // the coupler pushes railed cars apart along their rails, a pair that stops getting shallower cannot be solved that way
     private static boolean stalled(SubLevelContacts.Pair key, Entry a, Entry b, SubLevelOverlap.Hit hit) {
         if (loose(a) || loose(b) || TrainPropulsion.isMonorail(a.train()) || TrainPropulsion.isMonorail(b.train())
                 || ExternalForceDerail.staffHolds(a.sub()) || ExternalForceDerail.staffHolds(b.sub())) {
@@ -248,6 +257,9 @@ public final class CarriageCollisions {
         Vector3d kick = new Vector3d(hit.axis()).mul(separationRoom(a, b, hit) * 0.5);
         TrainImpacts.throwOff(a.train(), a.sub(), new Vector3d(kick).negate());
         TrainImpacts.throwOff(b.train(), b.sub(), kick);
+        LoconauticsConstants.LOGGER.info("[collision] cars {} and {} stayed inside each other at depth {}, derailed both",
+                shortId(a.sub().getUniqueId()), shortId(b.sub().getUniqueId()),
+                String.format(Locale.ROOT, "%.2f", hit.depth()));
     }
 
     private static void resolve(Entry a, Entry b, SubLevelOverlap.Hit hit, boolean fresh) {
@@ -263,6 +275,9 @@ public final class CarriageCollisions {
             TrainAdvancements.crashed(a.sub(), a.train());
             TrainAdvancements.crashed(b.sub(), b.train());
             derailOnImpact(a, b, hit, Math.max(0.0, closing));
+            ForceTrace.note(fault.sub(), ForceSource.COLLISION, contactPoint(a.sub(), b.sub()),
+                    "hit " + shortId(other.sub().getUniqueId()) + " depth=" + String.format(Locale.ROOT, "%.2f",
+                            hit.depth()) + " closing=" + String.format(Locale.ROOT, "%.2f", closing));
         }
         Vector3d push = new Vector3d(hit.axis()).mul(faultIsA ? -1.0 : 1.0);
         double distance = Math.min(MAX_PUSH, hit.depth() * PUSH_FRACTION);
@@ -272,6 +287,8 @@ public final class CarriageCollisions {
             if (room > 0.0) {
                 Vector3d dv = new Vector3d(push).mul(room);
                 TrainKnockback.applyKnockbackNow(fault.train(), dv);
+                ForceTrace.deltaV(fault.sub(), ForceSource.COLLISION, dv, contactPoint(a.sub(), b.sub()),
+                        "loose car pushed clear of " + shortId(other.sub().getUniqueId()));
             }
             return;
         }
@@ -285,6 +302,8 @@ public final class CarriageCollisions {
                 : -Math.signum(fault.train().speed());
         if (sign != 0.0) {
             rewindConsist(fault, sign * distance, forward);
+            ForceTrace.note(fault.sub(), ForceSource.RAIL_REWIND, contactPoint(a.sub(), b.sub()),
+                    "backed the rake " + String.format(Locale.ROOT, "%.2f", sign * distance) + " along its rail");
         }
         SubLevelContacts.disable(fault.sub(), other.sub());
     }
@@ -316,6 +335,7 @@ public final class CarriageCollisions {
         ImpactSpread.spread(struck.train().level(), struck.train(), deltaV, struckAlreadyHit);
     }
 
+    // how much more separating speed the pair may gain, so a push never leaves a rebound on the cars
     private static double separationRoom(Entry a, Entry b, SubLevelOverlap.Hit hit) {
         double wanted = Math.max(MAX_SEPARATING_SPEED, Math.min(MAX_SEPARATE_SPEED, hit.depth() * SEPARATE_PER_DEPTH));
         return Math.max(0.0, wanted + closing(a.sub(), b.sub(), hit));
@@ -328,6 +348,7 @@ public final class CarriageCollisions {
         return velA.sub(velB).dot(hit.axis());
     }
 
+    // the share of that closing speed a is bringing, so the car standing still is never the one blamed
     private static double closingShareOfA(ServerSubLevel a, ServerSubLevel b, SubLevelOverlap.Hit hit) {
         Vector3d point = contactPoint(a, b);
         double intoB = TrackHostMotion.railVelocity(a.getLevel(), a, point, new Vector3d()).dot(hit.axis());

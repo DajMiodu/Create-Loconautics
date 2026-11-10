@@ -1,0 +1,20 @@
+{
+  "blocks": [
+    "loconautics:white_hand_brake",
+    "loconautics:orange_hand_brake",
+    "loconautics:magenta_hand_brake",
+    "loconautics:light_blue_hand_brake",
+    "loconautics:yellow_hand_brake",
+    "loconautics:lime_hand_brake",
+    "loconautics:pink_hand_brake",
+    "loconautics:gray_hand_brake",
+    "loconautics:light_gray_hand_brake",
+    "loconautics:cyan_hand_brake",
+    "loconautics:purple_hand_brake",
+    "loconautics:blue_hand_brake",
+    "loconautics:brown_hand_brake",
+    "loconautics:green_hand_brake",
+    "loconautics:red_hand_brake",
+    "loconautics:black_hand_brake"
+  ]
+}

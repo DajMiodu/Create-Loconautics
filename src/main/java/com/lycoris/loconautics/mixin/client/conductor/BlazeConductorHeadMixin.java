@@ -76,6 +76,7 @@ public abstract class BlazeConductorHeadMixin {
         if (sub == null) {
             return null;
         }
+        // the plot origin is far away, so a tiny turn swings it
         BlockPos at = self.getBlockPos();
         Vector3d origin = sub.logicalPose().transformPosition(
                 new Vector3d(at.getX() + 0.5, at.getY() + 0.5, at.getZ() + 0.5), new Vector3d());
@@ -84,6 +85,7 @@ public abstract class BlazeConductorHeadMixin {
         if (last == null) {
             return null;
         }
+        // the pose can hold still for a tick and then jump, so one step alone flips between moving and stopped
         loconautics$velocity.mul(1.0 - VELOCITY_BLEND).add(origin.sub(last, new Vector3d()).mul(VELOCITY_BLEND));
         Vector3d local = sub.logicalPose().transformNormalInverse(loconautics$velocity, new Vector3d());
         double flat = local.x * local.x + local.z * local.z;

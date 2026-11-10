@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 
 @EventBusSubscriber(modid = LoconauticsConstants.MOD_ID)
 public final class TrackHostFrameSync {
@@ -64,6 +65,7 @@ public final class TrackHostFrameSync {
         markDirty();
     }
 
+    // the body was deleted, by a player or a command, so everything kept for it goes too
     public static void onRemoved(UUID host) {
         if (TrackHostFrames.frameOf(host) == null) {
             return;
@@ -71,6 +73,7 @@ public final class TrackHostFrameSync {
         TrackHostFrames.forget(host);
         syncNeeded = true;
         markDirty();
+        LoconauticsConstants.LOGGER.info("[turntableghost] host {} was removed, its saved frame is gone", shortId(host));
     }
 
     public static void serverTick(MinecraftServer server) {

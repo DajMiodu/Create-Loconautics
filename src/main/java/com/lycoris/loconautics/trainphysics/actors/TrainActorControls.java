@@ -76,6 +76,7 @@ public final class TrainActorControls {
         CLIENT.clear();
     }
 
+    // the same tag create restricts the controls filter to, so shafts and cogwheels leave before any sub level lookup
     private static boolean controllable(BlockState state) {
         return AllItemTags.CONTRAPTION_CONTROLLED.matches(state.getBlock().asItem());
     }

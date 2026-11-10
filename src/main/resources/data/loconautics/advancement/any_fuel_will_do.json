@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:root",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:lava_bucket"
+    },
+    "title": {
+      "translate": "advancement.loconautics.any_fuel_will_do"
+    },
+    "description": {
+      "translate": "advancement.loconautics.any_fuel_will_do.desc"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

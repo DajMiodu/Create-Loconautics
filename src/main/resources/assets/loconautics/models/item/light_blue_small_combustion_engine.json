@@ -1,0 +1,7 @@
+{
+  "parent": "loconautics:block/combustion/engine_item",
+  "textures": {
+    "0": "loconautics:block/combustion/light_blue/engine",
+    "particle": "loconautics:block/combustion/light_blue/engine"
+  }
+}

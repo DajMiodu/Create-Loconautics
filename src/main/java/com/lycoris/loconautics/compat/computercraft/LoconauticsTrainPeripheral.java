@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.compat.computercraft;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.advancement.TrainAdvancements;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlockEntity;
 import com.lycoris.loconautics.content.bearingaxle.BearingAxleBlock;
@@ -75,6 +76,7 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
     private final BearingAxleBlockEntity axle;
     private final Map<String, FrequencySlot> frequencyLinks = new HashMap<>();
     private final Set<IComputerAccess> attached = new HashSet<>();
+    private UUID claimedTrain;
 
     private LoconauticsTrainPeripheral(BearingAxleBlockEntity axle) {
         this.axle = axle;
@@ -100,6 +102,7 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
         CcEvents.register(this);
     }
 
+    // a computer that is broken, unloaded or shut down never runs its own cleanup,
     @Override
     public void detach(IComputerAccess computer) {
         attached.remove(computer);
@@ -132,8 +135,15 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
         }
         frequencyLinks.clear();
         UUID id = trainIdOrNull();
+        // the train may not resolve any more once the computer is broken, so the claimed id is the fallback
+        LoconauticsConstants.LOGGER.info("[ccsteer] release resolved={} claimed={} held={}", id, claimedTrain,
+                id != null && CcControl.held(id));
         if (id != null) {
             CcControl.release(id);
+        }
+        if (claimedTrain != null) {
+            CcControl.release(claimedTrain);
+            claimedTrain = null;
         }
     }
 
@@ -210,7 +220,11 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
 
     @LuaFunction(mainThread = true)
     public double getAccelLimit() throws LuaException {
-        return train().accel();
+        SableTrain train = train();
+        LoconauticsConstants.LOGGER.info("[ccaccel] limit={} speed={} target={} hold={} braked={} derailed={} physics={} mass={}",
+                train.accel(), train.speed(), train.targetSpeed(), train.brakeHold(), train.isBraked(),
+                train.isDerailed(), train.isPhysics(), TrainConsist.totalMass(train.level(), train.car().subLevelId()));
+        return train.accel();
     }
 
     @LuaFunction(mainThread = true)
@@ -478,6 +492,39 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
     }
 
     @LuaFunction(mainThread = true)
+    public Map<String, Object> getWheelLift() throws LuaException {
+        SableTrain train = train();
+        ServerSubLevel sub = resolveSubLevel(train);
+        com.lycoris.loconautics.trainphysics.glue.CarriageRoll.Roll roll =
+                com.lycoris.loconautics.trainphysics.glue.CarriageRoll.rollOf(sub);
+        Map<String, Object> out = new HashMap<>();
+        boolean rolling = roll != null && roll.rolling;
+        out.put("rolling", rolling);
+        out.put("lock", roll == null ? "none" : roll.lock);
+        out.put("rollDegrees", rolling ? hundredths(Math.toDegrees(roll.phi)) : 0.0);
+        out.put("tipDegrees", rolling ? hundredths(Math.toDegrees(roll.tip)) : 0.0);
+        out.put("ungluesAtDegrees", rolling ? hundredths(Math.toDegrees(roll.unglue)) : 0.0);
+        out.put("liftDegrees", rolling ? hundredths(Math.abs(Math.toDegrees(roll.phi))) : 0.0);
+        out.put("holdDegrees", hundredths(Math.toDegrees(com.lycoris.loconautics.trainphysics.glue.CarriageRoll.holdAngle())));
+        out.put("predictedLiftDegrees", rolling ? hundredths(Math.toDegrees(roll.predicted)) : 0.0);
+        out.put("side", !rolling || Math.abs(roll.phi) < 1.0e-3 ? "none" : leansRight(train, sub, roll.phi) ? "right" : "left");
+        out.put("suspensionDegrees", rolling ? hundredths(Math.toDegrees(roll.suspension)) : 0.0);
+        out.put("couplerTorque", rolling ? hundredths(roll.couplerTorque) : 0.0);
+        out.put("couplerTwistDegrees", rolling ? hundredths(Math.toDegrees(roll.couplerTwist)) : 0.0);
+        out.put("liftedWheels", rolling ? roll.lifted : 0);
+        out.put("wheels", rolling ? roll.y.length : 0);
+        return out;
+    }
+
+    // the roll is signed against the rail chord, the car may face the other way along it
+    private static boolean leansRight(SableTrain train, ServerSubLevel sub, double phi) {
+        Vec3 nose = SableTrainDriver.axleNose(train);
+        Vector3d[] ref = nose == null || sub == null ? null : TrainRailAdvance.bogeyReference(sub, train.car());
+        boolean facesAgainstChord = ref != null && nose.x * ref[1].x + nose.y * ref[1].y + nose.z * ref[1].z < 0.0;
+        return (phi > 0.0) != facesAgainstChord;
+    }
+
+    @LuaFunction(mainThread = true)
     public double getPitch() throws LuaException {
         return hundredths(SubLevelData.pitchDeg(railOrientation(), axleForward()));
     }
@@ -487,6 +534,7 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
         return hundredths(SubLevelData.rollDeg(railOrientation(), axleForward()));
     }
 
+    // sables pose of the body with the setbody tilt taken back off, the tweak is multiplied on last so its inverse
     private Quaterniond railOrientation() throws LuaException {
         SableTrain train = train();
         ServerSubLevel sub = resolveSubLevel(train);
@@ -686,6 +734,7 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
         SableTrain train = train();
         if (enabled) {
             requireDrivetrain();
+            claimedTrain = train.id();
             CcControl.claimClean(train.id()).setTargetSpeed(train.targetSpeed());
             TrainAdvancements.aiTakeover(train);
             return;
@@ -775,6 +824,7 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
     @LuaFunction(mainThread = true)
     public void steer(int dir) throws LuaException {
         if (dir < -1 || dir > 1) throw new LuaException("steer dir must be -1, 0, or 1");
+        LoconauticsConstants.LOGGER.info("[ccsteer] steer {} on {}", dir, trainIdOrNull());
         held(train()).setSteer(dir);
     }
 
@@ -907,6 +957,7 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
         requireDrivetrain();
         GlobalStation station = findStation(stationName);
         TrackGraph graph = noseGraph(train);
+        // routed not scanned, a scan only walks one side of a junction
         SchedulePath path = SchedulePlanner.planTo(graph, nosePoint(train),
                 SchedulePlanner.locationOf(graph, station), station, true);
         if (path == null) {
@@ -946,6 +997,7 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
                     + " on this train's track graph, the nearest rail is " + Math.round(target.miss())
                     + " blocks away");
         }
+        // the same routing a schedule waypoint card plans with, undirected because a coordinate has no side
         SchedulePath path = SchedulePlanner.planTo(graph, nosePoint(train), target.location(), null, false);
         if (path == null) {
             throw new LuaException("no route from here to the track nearest " + trim(x) + ", " + trim(y) + ", "
@@ -1222,6 +1274,7 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
                 ConsistAccess.fluidsIn(train.level(), train.car().subLevelId(), carriageIndex));
     }
 
+    // every route below is walked from the nose point, so the graph has to be the nose carriages and not this
     private TrackGraph noseGraph(SableTrain train) throws LuaException {
         var carriage = TrainStations.noseRail(train);
         if (carriage == null)
@@ -1422,7 +1475,8 @@ public class LoconauticsTrainPeripheral implements IPeripheral, CcEvents.Target 
         return rt;
     }
 
-    private static CcControl control(SableTrain train) {
+    private CcControl control(SableTrain train) {
+        claimedTrain = train.id();
         return CcControl.claim(train.id());
     }
 

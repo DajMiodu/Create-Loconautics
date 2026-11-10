@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:root",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "loconautics:lime_small_combustion_engine"
+    },
+    "title": {
+      "translate": "advancement.loconautics.loconautics_customs"
+    },
+    "description": {
+      "translate": "advancement.loconautics.loconautics_customs.desc"
+    },
+    "frame": "challenge"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

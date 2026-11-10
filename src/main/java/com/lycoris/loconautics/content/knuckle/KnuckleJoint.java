@@ -1,5 +1,8 @@
 package com.lycoris.loconautics.content.knuckle;
 
+import com.lycoris.loconautics.LoconauticsConstants;
+import com.lycoris.loconautics.trainphysics.SableTrain;
+import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
 import dev.ryanhcode.sable.api.physics.PhysicsPipeline;
 import dev.ryanhcode.sable.api.physics.constraint.ConstraintJointAxis;
 import dev.ryanhcode.sable.api.physics.constraint.GenericConstraintConfiguration;
@@ -26,6 +29,7 @@ public final class KnuckleJoint {
         private final GenericConstraintHandle handle;
         private final UUID subA;
         private final UUID subB;
+        private long traced;
 
         private Live(GenericConstraintHandle handle, UUID subA, UUID subB) {
             this.handle = handle;
@@ -35,6 +39,7 @@ public final class KnuckleJoint {
     }
 
     private static final double WAKE_ERROR = 0.002;
+    private static final long TRACE_TICKS = 20L;
 
     private static final Set<Live> ALL = ConcurrentHashMap.newKeySet();
 
@@ -82,7 +87,18 @@ public final class KnuckleJoint {
         double effectiveMass = massA.getMass() * massB.getMass() / (massA.getMass() + massB.getMass());
         current.handle.setMotor(ConstraintJointAxis.LINEAR_X, length, KnuckleTuning.springStiffness,
                 2.0 * Math.sqrt(KnuckleTuning.springStiffness), true, effectiveMass * accel);
+        long now = subA.getLevel().getGameTime();
+        if (KnuckleTuning.trace && now - current.traced >= TRACE_TICKS) {
+            current.traced = now;
+            LoconauticsConstants.LOGGER.info("[knuckle] joint gap=" + KnuckleTuning.fmt(gap) + " length="
+                    + KnuckleTuning.fmt(length));
+        }
         return current;
+    }
+
+    public static boolean derailed(ServerSubLevel sub) {
+        SableTrain train = SableTrainRegistry.bySubLevel(sub.getUniqueId());
+        return train != null && train.isDerailed();
     }
 
     private static Live create(PhysicsPipeline pipeline, ServerSubLevel subA, Vector3dc hingeA, ServerSubLevel subB, Vector3dc hingeB) {

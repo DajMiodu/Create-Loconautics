@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.station;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
 import com.lycoris.loconautics.trainphysics.drive.SableTrainDriver;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ public final class ConsistNose {
     private static final Map<UUID, Nose> CACHE = new HashMap<>();
     private static final Map<UUID, Nose> TAILS = new HashMap<>();
     private static final Map<UUID, Memory> MEMORY = new HashMap<>();
+    private static final Map<UUID, String> LOGGED = new HashMap<>();
     private static final Map<String, Integer> RELATIONS = new HashMap<>();
     private static int cacheTick = Integer.MIN_VALUE;
 
@@ -39,6 +42,7 @@ public final class ConsistNose {
         CACHE.clear();
         TAILS.clear();
         MEMORY.clear();
+        LOGGED.clear();
         RELATIONS.clear();
     }
 
@@ -129,6 +133,7 @@ public final class ConsistNose {
         });
     }
 
+    // the end that trails, a train backing in lands on this one
     public static Nose tail(SableTrain train) {
         UUID id = idOf(train);
         if (id == null) {
@@ -149,6 +154,7 @@ public final class ConsistNose {
         RELATIONS.clear();
         if (cacheTick % PRUNE_TICKS == 0) {
             MEMORY.keySet().removeIf(carId -> SableTrainRegistry.bySubLevel(carId) == null);
+            LOGGED.keySet().removeIf(carId -> SableTrainRegistry.bySubLevel(carId) == null);
         }
     }
 
@@ -160,6 +166,7 @@ public final class ConsistNose {
         return of(train).rail();
     }
 
+    // positive when heading along the nose points travel sense, negative against, zero unknown
     public static int senseOf(SableTrain train) {
         ServerLevel level = train.level();
         UUID id = idOf(train);
@@ -171,6 +178,7 @@ public final class ConsistNose {
         return (int) heading.refSign() * relation(level, heading.ref(), of(train).car()) * onNose;
     }
 
+    // a nose sense times this is the same direction in the speed sign of this car, and back again
     public static int frameFlip(SableTrain train) {
         return train == null || train.car() == null ? 1 : frameFlip(train, of(train));
     }
@@ -191,6 +199,7 @@ public final class ConsistNose {
         return chord.x * tangent.x + chord.z * tangent.z < 0.0 ? -1 : 1;
     }
 
+    // chords of two cars agree or oppose, read one coupling at a time so a curve cannot fool it
     private static int relation(ServerLevel level, SableTrain from, SableTrain to) {
         UUID fromId = idOf(from);
         UUID toId = idOf(to);
@@ -260,6 +269,9 @@ public final class ConsistNose {
         Vec3 ahead = tail ? heading.dir().scale(-1.0) : heading.dir();
         Nose chained = frontOfChain(level, id, cars, heading, ahead);
         if (chained != null) {
+            if (!tail) {
+                trace(id, chained, heading, "chain");
+            }
             return chained;
         }
         SableTrain bestCar = null;
@@ -284,7 +296,27 @@ public final class ConsistNose {
             return null;
         }
         Nose projected = new Nose(bestCar, bestBogey.rail(), outerPoint(bestBogey.rail(), ahead));
+        if (!tail) {
+            trace(id, projected, heading, "projection");
+        }
         return projected;
+    }
+
+    // nose2c prints only when the picked end or the heading source changes, so it stays small
+    private static void trace(UUID id, Nose nose, Heading heading, String how) {
+        String line = how + " " + heading.source() + " nose car " + shortId(nose.car().car().subLevelId())
+                + " ref car " + shortId(heading.ref().car().subLevelId())
+                + " dir " + String.format(Locale.ROOT, "%.2f,%.2f,%.2f",
+                        heading.dir().x, heading.dir().y, heading.dir().z);
+        String key = how + heading.source() + nose.car().car().subLevelId() + nose.point().node1.getLocation()
+                + signKey(heading.dir());
+        if (!key.equals(LOGGED.put(id, key))) {
+            LoconauticsConstants.LOGGER.info("[nose2c] consist {} {}", shortId(id), line);
+        }
+    }
+
+    private static String signKey(Vec3 dir) {
+        return (dir.x < 0 ? "-" : "+") + (dir.z < 0 ? "-" : "+");
     }
 
     public static String shortId(UUID id) {
@@ -316,6 +348,7 @@ public final class ConsistNose {
         return cab(cars, driver);
     }
 
+    // a seated driver reads the cab only while standing, a landing crawl keeps the end it came in on
     private static boolean stopping(List<SableTrain> cars) {
         for (SableTrain car : cars) {
             if (car.stationState() == SableTrain.StationState.STOPPING) {
@@ -536,7 +569,30 @@ public final class ConsistNose {
             return new Nose(train, null, null);
         }
         Nose picked = new Nose(train, rail, outerPoint(rail, SableTrainDriver.axleNose(train)));
+        traceGhostNose(train, bogeys, picked);
         return picked;
+    }
+
+    private static void traceGhostNose(SableTrain train, List<SableTrain.Bogey> bogeys, Nose picked) {
+        if (!train.isGhost() || train.level() == null || picked.rail() == null || picked.point() == null
+                || !com.lycoris.loconautics.foundation.debug.TurntableTrace.due("ghostnose" + train.id(),
+                train.level().getGameTime(), 10)) {
+            return;
+        }
+        StringBuilder ends = new StringBuilder();
+        for (int i = 0; i < bogeys.size(); i++) {
+            RailCarriage r = bogeys.get(i).rail();
+            Vec3 a = r == null ? null : r.leadingPos();
+            Vec3 b = r == null ? null : r.trailingPos();
+            ends.append(" bogey").append(i).append(" lead z ").append(a == null ? "none" : String.format("%.2f", a.z))
+                    .append(" trail z ").append(b == null ? "none" : String.format("%.2f", b.z));
+        }
+        Vec3 at = picked.point() == picked.rail().leading() ? picked.rail().leadingPos() : picked.rail().trailingPos();
+        com.lycoris.loconautics.foundation.debug.TurntableTrace.log("ghostnose " + shortId(train.id())
+                + " speed " + String.format("%.3f", train.speed()) + " picked "
+                + (picked.point() == picked.rail().leading() ? "leading" : "trailing") + " of bogey "
+                + bogeys.indexOf(bogeys.stream().filter(b -> b.rail() == picked.rail()).findFirst().orElse(null))
+                + " at z " + (at == null ? "none" : String.format("%.2f", at.z)) + ends);
     }
 
     private ConsistNose() {

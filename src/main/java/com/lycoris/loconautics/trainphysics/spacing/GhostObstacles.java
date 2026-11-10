@@ -77,9 +77,15 @@ public final class GhostObstacles {
                 scanGraph(level, chunk, graph, found);
             }
         }
+        int before = store.size(pos.toLong());
         store.replace(pos.toLong(), found.remove(pos.toLong()));
         for (Long2ObjectMap.Entry<LongSet> entry : found.long2ObjectEntrySet()) {
             store.add(entry.getLongKey(), entry.getValue());
+        }
+        int after = store.size(pos.toLong());
+        if (before != 0 || after != 0) {
+            LoconauticsConstants.LOGGER.info("[ghostblock] chunk {} {} cells {} to {} neighborsTouched={}", pos.x, pos.z,
+                    before, after, found.size());
         }
     }
 

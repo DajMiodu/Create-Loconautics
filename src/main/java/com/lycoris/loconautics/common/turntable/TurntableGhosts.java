@@ -40,6 +40,7 @@ public final class TurntableGhosts {
         TrackHostFrames.onForget(TurntableGhosts::drop);
     }
 
+    // a bearing that can hand its state over when its chunk goes away
     public interface Source {
 
         @Nullable
@@ -83,6 +84,9 @@ public final class TurntableGhosts {
         }
         TrackHostFrameSync.requestSync();
         markDirty();
+        LoconauticsConstants.LOGGER.info("[turntableghost] plate {} ghosted at {} degrees, powered {}, schedule {}",
+                shortId(ghost.plateSubLevelId()), String.format("%.2f", ghost.motion().targetAngleDegrees()),
+                ghost.turntablePowered(), ghost.turntableScheduleDriven());
     }
 
     @Nullable
@@ -94,9 +98,12 @@ public final class TurntableGhosts {
         TurntableRegistry.dropGhost(ghost);
         TrackHostFrameSync.requestSync();
         markDirty();
+        LoconauticsConstants.LOGGER.info("[turntableghost] plate {} loaded again at {} degrees", shortId(plate),
+                String.format("%.2f", ghost.motion().targetAngleDegrees()));
         return ghost;
     }
 
+    // the plate body is gone for good, so the ghost standing in for it goes too
     public static void drop(UUID plate) {
         GhostTurntable ghost = GHOSTS.remove(plate);
         if (ghost == null) {
@@ -109,6 +116,8 @@ public final class TurntableGhosts {
         TurntableRegistry.forgetPlate(plate);
         FAILED.remove(plate);
         markDirty();
+        LoconauticsConstants.LOGGER.info("[turntableghost] plate {} ghost dropped, its body or bearing is gone",
+                shortId(plate));
     }
 
     public static void serverTick(MinecraftServer server) {
@@ -152,6 +161,8 @@ public final class TurntableGhosts {
             if (ghost.turntableScheduleDriven()) {
                 TurntableRegistry.register(ghost);
             }
+            LoconauticsConstants.LOGGER.info("[turntableghost] plate {} restored as a ghost at {} degrees",
+                    shortId(ghost.plateSubLevelId()), String.format("%.2f", ghost.motion().targetAngleDegrees()));
         }
         store.loaded().clear();
     }

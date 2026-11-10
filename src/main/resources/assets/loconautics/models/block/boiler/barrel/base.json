@@ -1,0 +1,65 @@
+{
+    "ambientocclusion": false,
+    "render_type": "minecraft:cutout",
+    "textures": {
+        "particle": "#barrel"
+    },
+    "elements": [
+        {
+            "from": [1.3725, -8, 0],
+            "to": [14.6275, 24, 16],
+            "faces": {
+                "north": {"uv": [5, 15.5, 11, 16], "texture": "#stack"},
+                "south": {"uv": [5, 15.5, 11, 16], "texture": "#stack"},
+                "up": {"uv": [1, 16, 14, 0], "texture": "#barrel"},
+                "down": {"uv": [1, 0, 14, 16], "texture": "#barrel"}
+            }
+        },
+        {
+            "from": [1.3725, -8, 0],
+            "to": [14.6275, 24, 16],
+            "rotation": {"angle": 45, "axis": "z", "origin": [8, 8, 8]},
+            "faces": {
+                "north": {"uv": [5, 15.5, 11, 16], "texture": "#stack"},
+                "south": {"uv": [5, 15.5, 11, 16], "texture": "#stack"},
+                "up": {"uv": [1, 16, 14, 0], "texture": "#barrel"},
+                "down": {"uv": [1, 0, 14, 16], "texture": "#barrel"}
+            }
+        },
+        {
+            "from": [1.3725, -8, 0],
+            "to": [14.6275, 24, 16],
+            "rotation": {"angle": -45, "axis": "z", "origin": [8, 8, 8]},
+            "faces": {
+                "north": {"uv": [5, 15.5, 11, 16], "rotation": 180, "texture": "#stack"},
+                "south": {"uv": [5, 15.5, 11, 16], "rotation": 180, "texture": "#stack"},
+                "up": {"uv": [1, 0, 14, 16], "rotation": 180, "texture": "#barrel"},
+                "down": {"uv": [1, 16, 14, 0], "rotation": 180, "texture": "#barrel"}
+            }
+        },
+        {
+            "from": [-8, 1.3725, 0],
+            "to": [24, 14.6275, 16],
+            "faces": {
+                "north": {"uv": [5, 15.5, 11, 16], "rotation": 90, "texture": "#stack"},
+                "south": {"uv": [5, 15.5, 11, 16], "rotation": 270, "texture": "#stack"},
+                "west": {"uv": [1, 16, 14, 0], "rotation": 270, "texture": "#barrel"},
+                "east": {"uv": [1, 0, 14, 16], "rotation": 270, "texture": "#barrel"}
+            }
+        },
+        {
+            "from": [-8, -8, -0.1],
+            "to": [24, 24, -0.1],
+            "faces": {
+                "north": {"uv": [0, 0, 16, 16], "texture": "#face_neg"}
+            }
+        },
+        {
+            "from": [-8, -8, 16.1],
+            "to": [24, 24, 16.1],
+            "faces": {
+                "south": {"uv": [0, 0, 16, 16], "texture": "#face_pos"}
+            }
+        }
+    ]
+}

@@ -23,6 +23,7 @@ public abstract class BlazeVisualConductorHatMixin extends AbstractBlockEntityVi
     @Unique
     private boolean loconautics$lastHat;
 
+    // frame through or animate never runs. the distance guard measures the plot position against the world
     @ModifyExpressionValue(
             method = "beginFrame",
             at = @At(value = "INVOKE", target = "isVisible(Lorg/joml/FrustumIntersection;)Z")

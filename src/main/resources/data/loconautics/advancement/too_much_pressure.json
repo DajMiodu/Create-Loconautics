@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:root",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "loconautics:firebox"
+    },
+    "title": {
+      "translate": "advancement.loconautics.too_much_pressure"
+    },
+    "description": {
+      "translate": "advancement.loconautics.too_much_pressure.desc"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

@@ -1,0 +1,28 @@
+{
+    "parent": "block/block",
+    "render_type": "minecraft:cutout",
+    "textures": {
+        "0": "loconautics:block/brakes/pull/brass/sheet",
+        "particle": "loconautics:block/brakes/pull/brass/sheet"
+    },
+    "elements": [
+        {
+            "from": [7, 0, 15],
+            "to": [9, 1, 15],
+            "rotation": {"angle": 0, "axis": "y", "origin": [6.5, 0, 12]},
+            "faces": {
+                "north": {"uv": [2, 4.5, 3, 5], "texture": "#0"},
+                "south": {"uv": [2, 4.5, 3, 5], "texture": "#0"}
+            }
+        },
+        {
+            "from": [6.5, 1, 15],
+            "to": [9.5, 5, 15],
+            "rotation": {"angle": 0, "axis": "y", "origin": [6.5, 1, 12]},
+            "faces": {
+                "north": {"uv": [2, 2, 3.5, 4], "texture": "#0"},
+                "south": {"uv": [2, 2, 3.5, 4], "texture": "#0"}
+            }
+        }
+    ]
+}

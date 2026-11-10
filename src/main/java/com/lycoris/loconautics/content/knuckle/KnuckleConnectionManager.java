@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.knuckle;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.sable.SableTeleportation;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.trainphysics.SableTrain;
@@ -90,9 +91,11 @@ public final class KnuckleConnectionManager {
             for (List<KnuckleBlockEntity> list : knuckles.values()) {
                 for (KnuckleBlockEntity be : list) {
                     UUID partner = be.getPartnerSubLevelId();
+                    // a teleport removes the body and loads it again under the same id, that partner is alive
                     boolean alive = partner != null && container.getSubLevel(partner) instanceof ServerSubLevel live
                             && !live.isRemoved();
                     if (partner != null && removed.contains(partner) && !alive) {
+                        LoconauticsConstants.LOGGER.info("[iss234k] uncouple {} reason=partner was removed", be.getBlockPos());
                         be.clearConnection();
                         be.clearPartner();
                     }
@@ -163,6 +166,7 @@ public final class KnuckleConnectionManager {
                 return true;
             }
             be.releaseHold();
+            LoconauticsConstants.LOGGER.info("[maneuver] decouple lock released {}", be.getBlockPos());
             return false;
         }
 
@@ -228,6 +232,7 @@ public final class KnuckleConnectionManager {
             UUID partnerId = be.getPartnerSubLevelId();
             BlockPos partnerPos = be.getPartnerLocalPos();
             if (partnerId == null || partnerPos == null) {
+                LoconauticsConstants.LOGGER.info("[iss234k] uncouple {} reason=no partner recorded", be.getBlockPos());
                 be.clearConnection();
                 return;
             }
@@ -236,6 +241,8 @@ public final class KnuckleConnectionManager {
                 return;
             }
             if (!(loaded instanceof ServerSubLevel partnerSub) || partnerSub.isRemoved()) {
+                LoconauticsConstants.LOGGER.info("[iss234k] uncouple {} reason=partner removed or not a server sub level",
+                        be.getBlockPos());
                 be.clearConnection();
                 be.clearPartner();
                 return;
@@ -245,6 +252,12 @@ public final class KnuckleConnectionManager {
                     || !sub.getUniqueId().equals(partnerBe.getPartnerSubLevelId())
                     || !be.getBlockPos().equals(partnerBe.getPartnerLocalPos())) {
                 if (be.partnerMissedTooLong()) {
+                    LoconauticsConstants.LOGGER.info("[iss234k] uncouple {} reason=partner block entity missing partnerPos={} "
+                            + "partnerBe={} partnerBack={} mePosOnPartner={} level={}", be.getBlockPos(), partnerPos,
+                            partnerSub.getLevel().getBlockEntity(partnerPos),
+                            partnerSub.getLevel().getBlockEntity(partnerPos) instanceof KnuckleBlockEntity back
+                                    ? back.getPartnerLocalPos() + "/" + back.getPartnerSubLevelId() : "n/a",
+                            be.getBlockPos(), partnerSub.getLevel().dimension().location());
                     be.clearConnection();
                     be.clearPartner();
                 }
@@ -254,6 +267,9 @@ public final class KnuckleConnectionManager {
             SubLevelContacts.disableCoupled(sub, partnerSub);
             double gap = hingeGap(sub, be, partnerSub, partnerBe);
             if (be.isRedstoneLocked() || partnerBe.isRedstoneLocked() || tornApart(be, sub, partnerSub, gap)) {
+                LoconauticsConstants.LOGGER.info("[iss234k] uncouple {} reason=torn or locked gap={} redstone={}/{} "
+                                + "derailed={}/{}", be.getBlockPos(), gap, be.isRedstoneLocked(),
+                        partnerBe.isRedstoneLocked(), KnuckleJoint.derailed(sub), KnuckleJoint.derailed(partnerSub));
                 disconnect(level, be.getBlockPos());
                 return;
             }
@@ -297,6 +313,7 @@ public final class KnuckleConnectionManager {
         return toB.fma(-toB.dot(a.facing()), a.facing(), new Vector3d()).length() <= KnuckleTuning.MAX_OFFSET;
     }
 
+    // a redstone release that never parted resumes from the frame the clip was left on
     private static boolean canResume(ServerSubLevel sub, KnuckleBlockEntity be, KnuckleBlockEntity partnerBe) {
         return partnerBe.isReleasing()
                 && sub.getUniqueId().equals(partnerBe.getPartnerSubLevelId())

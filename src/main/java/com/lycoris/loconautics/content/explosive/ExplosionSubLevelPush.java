@@ -1,5 +1,7 @@
 package com.lycoris.loconautics.content.explosive;
 
+import com.lycoris.loconautics.trainphysics.debug.force.ForceSource;
+import com.lycoris.loconautics.trainphysics.debug.force.ForceTrace;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import dev.ryanhcode.sable.api.physics.handle.RigidBodyHandle;
 import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
@@ -71,6 +73,8 @@ public final class ExplosionSubLevelPush {
 
             container.physicsSystem().getPipeline().wakeUp(sub);
             handle.addLinearAndAngularVelocity(dv, new Vector3d());
+            ForceTrace.deltaV(sub, ForceSource.EXPLOSION, dv, new Vector3d(sub.logicalPose().position()),
+                    "blast wave");
         }
     }
 }

@@ -2,7 +2,7 @@ package com.lycoris.loconautics.content.controls.panelswitch;
 
 import com.lycoris.loconautics.content.controls.panel.PanelGlass;
 import com.lycoris.loconautics.content.controls.panel.PanelFrequencyMenu;
-import com.lycoris.loconautics.content.controls.ControlsBlocks;
+import com.lycoris.loconautics.content.boiler.BoilerBlocks;
 import com.lycoris.loconautics.content.controls.panel.PanelBlockEntity;
 import com.lycoris.loconautics.content.controls.panel.PanelPart;
 import com.lycoris.loconautics.content.controls.panel.PanelPartNbt;
@@ -83,7 +83,7 @@ public record SwitchPart(int power, @Nullable BlockPos link, int body, int knobC
 
     @Override
     public ItemStack asStack() {
-        ItemStack stack = new ItemStack(ControlsBlocks.GAUGE_SWITCH_ITEM.get());
+        ItemStack stack = new ItemStack(BoilerBlocks.GAUGE_SWITCH_ITEM.get());
         if (link != null) stack.set(LoconauticsRegistries.SWITCH_TARGET.get(), link);
         return stack;
     }
@@ -94,6 +94,11 @@ public record SwitchPart(int power, @Nullable BlockPos link, int body, int knobC
         if (link == null || level == null) return;
 
         driveLink(panel, slot, level, link, new SwitchPart(power, null, body, knobColor, style, options), power);
+    }
+
+    @Override
+    public int engineSignal(int signal) {
+        return MAX_SIGNAL - signal;
     }
 
     @Override

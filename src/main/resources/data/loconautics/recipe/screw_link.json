@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AAA",
+    "ABA"
+  ],
+  "key": {
+    "A": {
+      "item": "create:copycat_panel"
+    },
+    "B": {
+      "item": "loconautics:industrial_iron_sheet"
+    }
+  },
+  "result": {
+    "id": "loconautics:screw_link",
+    "count": 1
+  }
+}

@@ -1,0 +1,9 @@
+{
+    "loader": "loconautics:copycat_bed",
+    "low": 2,
+    "high": 4,
+    "inset": 2,
+    "textures": {
+        "particle": "loconautics:block/boiler/firebox/controller"
+    }
+}

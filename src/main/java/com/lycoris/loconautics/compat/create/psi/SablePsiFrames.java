@@ -44,6 +44,7 @@ public final class SablePsiFrames {
         return new Vec3(dir.x, dir.y, dir.z);
     }
 
+    // client only, drawn poses so both halves stay glued while the bodies move between server updates
     @Nullable
     public static Float liveReach(PortableStorageInterfaceBlockEntity be, BlockPos partnerPos) {
         Level level = be.getLevel();

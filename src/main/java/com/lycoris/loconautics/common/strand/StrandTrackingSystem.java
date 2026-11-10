@@ -26,6 +26,7 @@ public final class StrandTrackingSystem<R extends AttachedRopePhysicsObject> imp
         this.ropes = ropes;
     }
 
+    // sable only asks who needs the data, the pose refresh rides along because it has to happen before the compare
     @Override
     public Iterable<UUID> neededPlayers() {
         RopeManager<R> manager = ropes.apply(level);
@@ -33,8 +34,14 @@ public final class StrandTrackingSystem<R extends AttachedRopePhysicsObject> imp
         if (manager != null) {
             for (R rope : manager.all()) {
                 StrandKnotGrab grab = rope.knotGrab();
+                if (grab.traceTicks > 0 && --grab.traceTicks % 10 == 0) {
+                    com.lycoris.loconautics.LoconauticsConstants.LOGGER.info(
+                            "[knotgrab] after release id={} active={} midY={} engaged={}", rope.getUUID(),
+                            rope.isActive(), rope.getPoints().get(rope.getPoints().size() / 2).y, grab.engaged());
+                }
                 if (rope.isActive()) {
                     rope.updatePose();
+                    RopePullTrace.ends(rope, level);
                     moving |= grab.engaged() || rope.needsSync();
                 }
             }

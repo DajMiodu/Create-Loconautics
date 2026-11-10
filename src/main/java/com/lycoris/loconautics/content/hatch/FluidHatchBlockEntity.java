@@ -3,6 +3,7 @@ package com.lycoris.loconautics.content.hatch;
 import com.lycoris.loconautics.common.dock.DockPolling;
 import com.lycoris.loconautics.common.dock.IDockable;
 import com.lycoris.loconautics.config.LoconauticsConfig;
+import com.lycoris.loconautics.content.boiler.BoilerWaterSource;
 import com.lycoris.loconautics.content.hose.nozzle.HoseNozzleBlockEntity;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -23,7 +24,7 @@ import org.joml.Quaterniond;
 
 import java.util.List;
 
-public class FluidHatchBlockEntity extends SmartBlockEntity implements IDockable {
+public class FluidHatchBlockEntity extends SmartBlockEntity implements IDockable, BoilerWaterSource {
 
     private boolean docked;
 
@@ -136,6 +137,26 @@ public class FluidHatchBlockEntity extends SmartBlockEntity implements IDockable
     @org.jetbrains.annotations.Nullable
     public IFluidHandler getDockedFluidHandler() {
         return socket.getDockedFluidHandler();
+    }
+
+    @Override
+    public int getWaterAmount() {
+        return socket.getWaterAmount();
+    }
+
+    @Override
+    public int getWaterCapacity() {
+        return socket.getWaterCapacity();
+    }
+
+    @Override
+    public int drawWater(int millibuckets) {
+        return socket.drawWater(millibuckets);
+    }
+
+    @Override
+    public void returnWater(int millibuckets) {
+        socket.returnWater(millibuckets);
     }
 
     @Override

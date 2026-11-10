@@ -56,6 +56,11 @@ public final class BogeyRenderFrame {
             local.set(new Quaternionf(body).conjugate()
                     .mul(BogeyRailPoints.worldFrame(walked, new Quaternionf())));
             dropTwist(local);
+            scaleTurn(local);
+            Quaternionf lean = SableTrainClientRegistry.lean(sub.getUniqueId());
+            if (lean != null) {
+                local.premul(new Quaternionf(lean).conjugate()).normalize();
+            }
             Vector3f faces = local.transform(new Vector3f(0.0f, 0.0f, 1.0f), new Vector3f());
             if ((axisX ? faces.x : faces.z) < 0.0f) {
                 RAILED_BACKWARDS.add(be);
@@ -80,5 +85,15 @@ public final class BogeyRenderFrame {
             return;
         }
         localFrame.mul(twist.normalize().invert()).normalize();
+    }
+
+    private static void scaleTurn(Quaternionf localFrame) {
+        float gain = BogeyTurnTweak.gain();
+        if (gain == 0.0f) {
+            return;
+        }
+        Vector3f f = localFrame.transform(new Vector3f(0.0f, 0.0f, 1.0f), new Vector3f());
+        float yaw = (float) Math.atan2(f.x, f.z);
+        localFrame.rotateY(yaw * gain).normalize();
     }
 }

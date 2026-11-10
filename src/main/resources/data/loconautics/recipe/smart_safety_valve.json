@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    "CDC",
+    "EFE"
+  ],
+  "key": {
+    "A": {
+      "item": "loconautics:locomotive_valve"
+    },
+    "B": {
+      "item": "loconautics:industrial_pipe"
+    },
+    "C": {
+      "item": "create:railway_casing"
+    },
+    "D": {
+      "item": "create:precision_mechanism"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "F": {
+      "item": "create:brass_ingot"
+    }
+  },
+  "result": {
+    "id": "loconautics:smart_safety_valve",
+    "count": 1
+  }
+}

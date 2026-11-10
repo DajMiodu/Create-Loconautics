@@ -18,6 +18,7 @@ public abstract class HarvesterControlsDisableMixin {
         if (context == null || context.contraption != null || context.world == null) {
             return;
         }
+        // no contraption means sables stationary path, where localpos is the harvester itself
         if (TrainActorControls.isDisabled(context.world, context.localPos, context.state)) {
             ci.cancel();
         }

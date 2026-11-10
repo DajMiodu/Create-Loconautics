@@ -4,6 +4,7 @@ import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.dock.DockPolling;
 import com.lycoris.loconautics.common.dock.IDockable;
 import com.lycoris.loconautics.config.LoconauticsConfig;
+import com.lycoris.loconautics.content.boiler.BoilerWaterSource;
 import com.lycoris.loconautics.content.hose.nozzle.HoseNozzleBlockEntity;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.sublevel.SubLevel;
@@ -38,6 +39,12 @@ public final class HullsteelSocketBridge {
 
     private static boolean installed;
 
+    @Nullable
+    public static BoilerWaterSource waterSource(BlockEntity be) {
+        return installed && be.getBlockState().is(
+                com.lycoris.loconautics.content.boiler.BoilerTags.HATCHES) ? dockOf(be) : null;
+    }
+
     public static void install() {
         try {
             Class<?> api = Class.forName("com.lycoris.hullsteel.api.HullsteelSocketApi");
@@ -57,7 +64,7 @@ public final class HullsteelSocketBridge {
                     });
             api.getMethod("install", iface).invoke(null, impl);
             installed = true;
-            LoconauticsConstants.LOGGER.info("Hullsteel sockets wired to the Loconautics nozzle plumbing");
+            LoconauticsConstants.LOGGER.info("Hullsteel sockets wired to the Loconautics nozzle and boiler plumbing");
         } catch (ReflectiveOperationException e) {
             LoconauticsConstants.LOGGER.warn("Hullsteel is present but its socket api did not match, sockets stay decorative", e);
         }
@@ -112,7 +119,7 @@ public final class HullsteelSocketBridge {
     private HullsteelSocketBridge() {
     }
 
-    private static final class Dock implements IDockable {
+    private static final class Dock implements IDockable, BoilerWaterSource {
 
         private final BlockEntity socket;
         private final FluidTank tank;
@@ -181,6 +188,26 @@ public final class HullsteelSocketBridge {
         @Nullable
         public IFluidHandler getDockedFluidHandler() {
             return water.getDockedFluidHandler();
+        }
+
+        @Override
+        public int getWaterAmount() {
+            return water.getWaterAmount();
+        }
+
+        @Override
+        public int getWaterCapacity() {
+            return water.getWaterCapacity();
+        }
+
+        @Override
+        public int drawWater(int millibuckets) {
+            return water.drawWater(millibuckets);
+        }
+
+        @Override
+        public void returnWater(int millibuckets) {
+            water.returnWater(millibuckets);
         }
     }
 }

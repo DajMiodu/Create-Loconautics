@@ -35,6 +35,7 @@ public abstract class RollerMovementBehaviourMixin {
     private void loconautics$directPaveBlockedRoadbed(MovementContext context, BlockPos pos, CallbackInfo ci) {
         if (context == null || context.world == null || context.world.isClientSide || context.blockEntityData == null) return;
 
+        // ghost wheel pads are physics props, never ground. creates own pave path would fill them in too
         if (context.world instanceof ServerLevel server && GhostWheelBodies.isWheelBodyAt(server, pos)) {
             ci.cancel();
             return;
@@ -43,6 +44,7 @@ public abstract class RollerMovementBehaviourMixin {
         if (context.blockEntityData.getInt("ScrollValue") != TUNNEL_PAVE_MODE || context.contraption == null) return;
         if (!context.world.isLoaded(pos)) return;
 
+        // a contraption already inside a sub level has sables own guarded path, this only covers plain world ones
         if (isInsideSubLevel(context.world, context.contraption.anchor)) return;
 
         BlockState paveWith = getStateToPaveWith(context);

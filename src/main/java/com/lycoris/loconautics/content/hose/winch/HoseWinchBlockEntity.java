@@ -1,6 +1,7 @@
 package com.lycoris.loconautics.content.hose.winch;
 
 import com.lycoris.loconautics.trainphysics.portal.PortalTwins;
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.strand.RopeGeometry;
 import com.lycoris.loconautics.common.strand.RemovedSubLevels;
 import com.lycoris.loconautics.common.strand.StrandEndpoints;
@@ -58,6 +59,7 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
     private static final int FREE_SPIN_APPLY_TICKS = 1;
     private static final float FREE_SPIN_APPLY_STEP = 0.5f;
     private static final float FREE_SPIN_LERP = 0.2f;
+    private static final int FLOW_LOG_TICKS = 20;
 
     private HoseHolderBehaviour holder;
 
@@ -294,10 +296,12 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
         @Override
         public int fill(FluidStack resource, FluidAction action) {
             if (!pressureReaches || resource.isEmpty()) {
+                logFillRefused("pressure", resource);
                 return 0;
             }
             HoseStrand strand = getAttachedStrand();
             if (strand == null) {
+                logFillRefused("no strand", resource);
                 return 0;
             }
             HoseNozzleBlockEntity nozzle = resolveNozzle(strand);
@@ -308,6 +312,9 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
             int moved = nozzle != null
                     ? nozzle.receive(resource, sprayStrength, action)
                     : sink == null ? 0 : sink.fill(resource, action);
+            if (moved <= 0) {
+                logFillRefused(nozzle != null ? "nozzle took 0, spray=" + sprayStrength : "no sink", resource);
+            }
             if (moved > 0 && action.execute()) {
                 noteFlow(resource);
             }
@@ -341,11 +348,24 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
         }
     }
 
+    private void logFillRefused(String why, FluidStack resource) {
+        if (level != null && !level.isClientSide && level.getGameTime() % FLOW_LOG_TICKS == 0) {
+        }
+    }
+
     private static final double UNDOCK_STRETCH = 1.03;
     private static final double FREE_SPIN_UNDOCK_PAYOUT = 0.5;
 
     private void tryTensionUndock(HoseStrand strand) {
         HoseNozzleBlockEntity nozzle = resolveNozzle(strand);
+        if (nozzle != null && nozzle.isDocked() && level.getGameTime() % 5 == 0) {
+            HoseRopeManager dbg = HoseRopeManager.get(level);
+            HoseRope dbgRope = dbg == null ? null : dbg.get(strand.id);
+            com.lycoris.loconautics.LoconauticsConstants.LOGGER.info(
+                    "[undockdbg] winch tension canUndock={} stretch={} freeSpin={} payout={} ext={}",
+                    nozzle.canUndock(), dbgRope == null ? "norope" : dbgRope.getStretchRatio(), isFreeSpin(),
+                    smoothedPayout, dbgRope == null ? "norope" : dbgRope.getCurrentExtension());
+        }
         if (nozzle == null || !nozzle.canUndock()) {
             return;
         }
@@ -480,6 +500,7 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
         // pose first, reel changes the point count and the physics pose is still the old one
         if (rope.isActive()) {
             rope.updatePose();
+            com.lycoris.loconautics.common.strand.RopePullTrace.ends(rope, (ServerLevel) level);
         }
         boolean externalDrive = isFreeSpin() && appliedRpm == 0.0f && getSpeed() != 0.0f;
         boolean freeSpinning = isFreeSpin() && !externalDrive;
@@ -495,7 +516,11 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
         if (reelSpeed < 0.0 && rope.getStretchRatio() > TAUT_STRETCH && sharesBody(winchSubLevelId(), strand.nozzleSubLevelId)) {
             reelSpeed = 0.0;
         }
+        int pointsBefore = rope.getPoints().size();
         rope.reel(reelSpeed, winchWorld());
+        if (!freeSpinning && getSpeed() != 0.0f) {
+            logReel(rope, strand, reelSpeed, pointsBefore);
+        }
 
         if (!rope.isActive() && rope.areAttachmentsLoaded((net.minecraft.server.level.ServerLevel) level)
                 && system.getTicketManager().wouldBeLoaded(level, rope)) {
@@ -517,6 +542,24 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
             return false;
         }
         return winchSub.equals(nozzleSub) || TrainConsist.connectedSubLevels(serverLevel, winchSub).contains(nozzleSub);
+    }
+
+    @Nullable private Vec3 lastNozzleLog;
+
+    private void logReel(HoseRope rope, HoseStrand strand, double reelSpeed, int pointsBefore) {
+        var pts = rope.getPoints();
+        double maxSegment = 0.0;
+        for (int i = 0; i < pts.size() - 1; i++) {
+            maxSegment = Math.max(maxSegment, pts.get(i).distance(pts.get(i + 1)));
+        }
+        double firstSegment = pts.size() > 1 ? pts.get(0).distance(pts.get(1)) : 0.0;
+        Vec3 nozzle = resolveNozzlePoint(strand);
+        double nozzleStep = nozzle == null || lastNozzleLog == null ? 0.0 : nozzle.distanceTo(lastNozzleLog);
+        lastNozzleLog = nozzle;
+        LoconauticsConstants.LOGGER.info("[winchreel] t={} speed={} reel={} pts={}->{} goal={} desired={} cur={} stretch={} first={} maxSeg={} nozzleStep={} joint={} active={}",
+                level.getGameTime(), getSpeed(), reelSpeed, pointsBefore, pts.size(), rope.getExtension(),
+                rope.getDesiredExtension(), rope.getCurrentExtension(), rope.getStretchRatio(), firstSegment,
+                maxSegment, nozzleStep, rope.hasJoint(), rope.isActive());
     }
 
     private Vector3d projectOut(double x, double y, double z) {

@@ -3,6 +3,7 @@ package com.lycoris.loconautics.content.schedule.destination;
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.content.schedule.SableScheduleRuntime;
 import com.lycoris.loconautics.content.schedule.SchedulePath;
+import com.lycoris.loconautics.foundation.LogFormat;
 import net.minecraft.network.chat.Component;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
@@ -59,6 +60,8 @@ public class CoupleInstruction extends ScheduleInstruction {
 		Vector3d from = at == null ? null : CREEP_START.computeIfAbsent(train.id(), id -> at);
 		if (from != null && from.distance(at) > limit()) {
 			CREEP_START.remove(train.id());
+			LoconauticsConstants.LOGGER.info("[maneuver] {} couple gave up after {} blocks",
+				LogFormat.shortId(train.id()), limit());
 			runtime.announcer().line(Component.literal("Could not couple within " + limit() + " blocks"));
 			runtime.endManeuver();
 			return finishInstant(runtime);
@@ -79,6 +82,7 @@ public class CoupleInstruction extends ScheduleInstruction {
 		}
 		runtime.clearFormer();
 		runtime.endManeuver();
+		LoconauticsConstants.LOGGER.info("[maneuver] couple done, former cleared");
 	}
 
 	private static boolean coupled(ServerLevel level, SableTrain train, Set<UUID> former) {

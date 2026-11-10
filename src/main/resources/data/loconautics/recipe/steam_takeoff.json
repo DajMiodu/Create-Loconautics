@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CSG",
+    "APA",
+    "GSC"
+  ],
+  "key": {
+    "C": {
+      "item": "create:cogwheel"
+    },
+    "S": {
+      "item": "create:shaft"
+    },
+    "G": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "A": {
+      "item": "create:andesite_casing"
+    },
+    "P": {
+      "item": "create:propeller"
+    }
+  },
+  "result": {
+    "id": "loconautics:steam_takeoff",
+    "count": 1
+  }
+}

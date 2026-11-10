@@ -15,6 +15,9 @@ public final class LoconauticsSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> SWITCH_TOGGLE = SOUND_EVENTS.register(
             "switch_toggle", () -> SoundEvent.createVariableRangeEvent(LoconauticsConstants.id("switch_toggle")));
 
+    public static final DeferredHolder<SoundEvent, SoundEvent> SMALL_ENGINE_LOOP = SOUND_EVENTS.register(
+            "small_engine_loop", () -> SoundEvent.createVariableRangeEvent(LoconauticsConstants.id("small_engine_loop")));
+
     private LoconauticsSounds() {
     }
 

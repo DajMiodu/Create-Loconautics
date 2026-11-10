@@ -14,6 +14,7 @@ final class GhostConsist {
     private GhostConsist() {
     }
 
+    // sorted by body id so every car picks the same leader
     static List<SableTrain> ghosts(SableTrain train, boolean railedOnly) {
         List<SableTrain> out = new ArrayList<>();
         out.add(train);

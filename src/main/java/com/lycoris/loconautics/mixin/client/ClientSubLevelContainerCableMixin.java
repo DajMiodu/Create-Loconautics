@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// the cable has to advance on the same tick pointer as the sub level poses, simulated mixes in here for the same reason
 @Mixin(value = ClientSubLevelContainer.class, remap = false)
 public abstract class ClientSubLevelContainerCableMixin {
 

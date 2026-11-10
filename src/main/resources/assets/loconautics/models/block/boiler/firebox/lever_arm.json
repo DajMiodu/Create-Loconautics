@@ -1,0 +1,20 @@
+{
+    "parent": "block/block",
+    "render_type": "minecraft:cutout",
+    "texture_size": [256, 256],
+    "textures": {
+        "1": "loconautics:block/boiler/firebox/controller",
+        "particle": "loconautics:block/boiler/firebox/controller"
+    },
+    "elements": [
+        {
+            "from": [7.5, 11.5, -1.025],
+            "to": [14.5, 13.5, -1.025],
+            "rotation": {"angle": 0, "axis": "y", "origin": [8.25, 7.5, 6.4875]},
+            "faces": {
+                "north": {"uv": [1.5625, 5, 2, 5.125], "texture": "#1"},
+                "south": {"uv": [2, 5, 1.5625, 5.125], "texture": "#1"}
+            }
+        }
+    ]
+}

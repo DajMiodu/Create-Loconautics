@@ -1,7 +1,12 @@
 package com.lycoris.loconautics.content.controls.panelvalve;
 
 import com.lycoris.loconautics.content.controls.panel.PanelFrequencyMenu;
-import com.lycoris.loconautics.content.controls.ControlsBlocks;
+import com.lycoris.loconautics.content.boiler.BoilerBlocks;
+import com.lycoris.loconautics.content.boiler.safetyvalve.SafetyValveBlockEntity;
+import com.lycoris.loconautics.content.boiler.safetyvalve.SmartSafetyValveBlockEntity;
+import com.lycoris.loconautics.content.boiler.steamtakeoff.SteamTakeoffBlockEntity;
+import com.lycoris.loconautics.content.combustion.SmallEngineBlockEntity;
+import com.lycoris.loconautics.content.combustion.SmallEngineTuning;
 import com.lycoris.loconautics.content.controls.panel.PanelBlockEntity;
 import com.lycoris.loconautics.content.controls.panel.PanelDriveBus;
 import com.lycoris.loconautics.content.controls.panel.PanelPart;
@@ -70,7 +75,7 @@ public record ValvePart(float degrees, @Nullable BlockPos safetyValve, int wheel
 
     @Override
     public ItemStack asStack() {
-        ItemStack stack = new ItemStack(ControlsBlocks.VALVE_ITEM.get());
+        ItemStack stack = new ItemStack(BoilerBlocks.VALVE_ITEM.get());
         if (safetyValve != null) {
             stack.set(LoconauticsRegistries.VALVE_TARGET.get(), safetyValve);
         }
@@ -81,7 +86,22 @@ public record ValvePart(float degrees, @Nullable BlockPos safetyValve, int wheel
     public void serverTick(PanelBlockEntity panel, PanelSlot slot) {
         Level level = panel.getLevel();
         if (safetyValve == null || level == null) return;
-        if (level.isLoaded(safetyValve)) {
+        SmallEngineBlockEntity engine = SmallEngineBlockEntity.resolve(level, safetyValve);
+        if (engine != null) {
+            int step = Math.round(fraction() * SmallEngineTuning.SLOWEST_SIGNAL);
+            float snapped = step * FULL_TURN / SmallEngineTuning.SLOWEST_SIGNAL;
+            if (Math.abs(snapped - degrees) > 0.5f) {
+                panel.replacePart(slot, new ValvePart(snapped, safetyValve, wheelColor));
+                return;
+            }
+            engine.driveFromPanel(SmallEngineTuning.SLOWEST_SIGNAL - step);
+        } else if (level.getBlockEntity(safetyValve) instanceof SmartSafetyValveBlockEntity smart) {
+            smart.driveFromValve(PanelDriveBus.report(level, safetyValve, fraction()));
+        } else if (level.getBlockEntity(safetyValve) instanceof SafetyValveBlockEntity valve) {
+            valve.setOpening(PanelDriveBus.report(level, safetyValve, fraction()));
+        } else if (level.getBlockEntity(safetyValve) instanceof SteamTakeoffBlockEntity takeoff) {
+            takeoff.setRegulator(PanelDriveBus.report(level, safetyValve, fraction()));
+        } else if (level.isLoaded(safetyValve)) {
             PanelDriveBus.release(level, safetyValve);
             panel.replacePart(slot, new ValvePart(degrees, null, wheelColor));
         }
@@ -92,6 +112,8 @@ public record ValvePart(float degrees, @Nullable BlockPos safetyValve, int wheel
         Level level = panel.getLevel();
         if (safetyValve == null || level == null) return;
         PanelDriveBus.release(level, safetyValve);
+        if (level.getBlockEntity(safetyValve) instanceof SafetyValveBlockEntity valve) valve.setOpening(0f);
+        if (level.getBlockEntity(safetyValve) instanceof SteamTakeoffBlockEntity takeoff) takeoff.setRegulator(1f);
     }
 
     @Override

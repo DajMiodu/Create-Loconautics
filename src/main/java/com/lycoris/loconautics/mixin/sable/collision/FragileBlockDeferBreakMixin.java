@@ -32,6 +32,7 @@ public abstract class FragileBlockDeferBreakMixin {
                 }
             }
         }));
+        // remove collision so physics doesnt fight a block that is about to be gone
         cir.setReturnValue(new CollisionResult(JOMLConversion.ZERO, true));
     }
 }

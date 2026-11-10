@@ -1,14 +1,15 @@
 # Loconautics Datapacks
 
-Loconautics reads several folders from datapacks. You can change how hoses and the block picker behave without editing the mod, and other mods can add their own blocks to them.
+Loconautics reads several folders from datapacks. You can change how boilers, hoses and the block picker behave without editing the mod, and other mods can add their own blocks to them.
 
 ## Pages
 
 | Page | What it controls |
 | --- | --- |
 | [Variant Families](Datapacks-Variant-Families) | The scroll menu that switches a held block between colors or styles |
+| [Boiler Blocks](Datapacks-Boiler-Blocks) | How much heat, steam power and water a block adds to a boiler |
 | [Hose Spray](Datapacks-Hose-Spray) | What each fluid does when sprayed from the hose nozzle, and its color |
-| [Tags](Datapacks-Tags) | Which blocks count as a bogey, and the bogey mass |
+| [Tags](Datapacks-Tags) | Which blocks count as firebox, boiler body, smokestack, hatch or bogey, and the bogey mass |
 | [Troubleshooting](Datapacks-Troubleshooting) | Log lines and common mistakes |
 
 ## Basics

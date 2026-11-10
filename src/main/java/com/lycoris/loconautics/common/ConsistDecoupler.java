@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.common;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.common.sable.SubLevelData;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
@@ -23,9 +24,16 @@ public final class ConsistDecoupler {
     public static boolean split(ServerLevel level, UUID trainId, int afterCar) {
         Cut cut = cutOf(level, trainId, afterCar);
         if (cut == null) {
+            SableTrain loco = SableTrainRegistry.get(trainId);
+            LoconauticsConstants.LOGGER.info("[maneuver] split train {} after car {} found no cut, chain {} nose {}",
+                    trainId, afterCar, loco == null ? "no loco" : TrainConsist.orderedChain(level, loco.car().subLevelId()).size(),
+                    loco == null || SableTrainDriver.axleNose(loco) == null ? "none" : "ok");
             return false;
         }
-        return ConnectorDetachers.decoupleBetween(level, cut.keptEnd, cut.firstOut);
+        boolean split = ConnectorDetachers.decoupleBetween(level, cut.keptEnd, cut.firstOut);
+        LoconauticsConstants.LOGGER.info("[maneuver] split train {} after car {} between {} and {} result={}",
+                trainId, afterCar, cut.keptEnd, cut.firstOut, split);
+        return split;
     }
 
     public static Set<UUID> carsBeyond(ServerLevel level, UUID trainId, int afterCar) {
@@ -57,6 +65,7 @@ public final class ConsistDecoupler {
         if (at < 0) {
             return null;
         }
+        // the loco is car 1, so a value of 1 cuts right behind it
         int step = sideBehind(level, chain, at, nose);
         int keptIndex = at + step * (afterCar - 1);
         int outIndex = keptIndex + step;

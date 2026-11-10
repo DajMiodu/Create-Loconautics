@@ -1,0 +1,54 @@
+{
+  "replace": false,
+  "values": [
+    "loconautics:smokestack",
+    {
+      "id": "railways:smokestack_caboosestyle",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_coalburner",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_coalburner_extension",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_diesel",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_long",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_long_extension",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_oilburner",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_oilburner_extension",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_streamlined",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_streamlined_extension",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_woodburner",
+      "required": false
+    },
+    {
+      "id": "railways:smokestack_woodburner_extension",
+      "required": false
+    }
+  ]
+}

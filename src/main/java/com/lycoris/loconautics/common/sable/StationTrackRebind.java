@@ -45,6 +45,7 @@ public final class StationTrackRebind {
     private StationTrackRebind() {
     }
 
+    // later tracks of an assembly are already out of the graph
     public static void capture(ServerLevel level, BlockPos oldTrack, BlockPos newTrack) {
         MOVED.put(oldTrack.immutable(), newTrack.immutable());
         BlockState state = level.getBlockState(oldTrack);
@@ -82,6 +83,7 @@ public final class StationTrackRebind {
         MOVED.clear();
     }
 
+    // a station whose target track moved stayed outside the moved set
     private static void rebind(Pending pending) {
         TrackTargetingBehaviour<?> target = BlockEntityBehaviour.get(pending.level(), pending.station(), TrackTargetingBehaviour.TYPE);
         if (target == null) {

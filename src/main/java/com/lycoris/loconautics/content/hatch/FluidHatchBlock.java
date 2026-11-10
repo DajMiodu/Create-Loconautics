@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.hatch;
 
+import com.lycoris.loconautics.content.boiler.BoilerTags;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
@@ -74,6 +75,10 @@ public class FluidHatchBlock extends Block implements IBE<FluidHatchBlockEntity>
         builder.add(FACING, OPEN, LID_HINGE, RAISED);
     }
 
+    private static boolean onBarrel(BlockGetter level, BlockPos pos, Direction face) {
+        return level.getBlockState(pos.relative(face)).is(BoilerTags.BOILER_BODY);
+    }
+
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
         Level level = context.getLevel();
@@ -88,7 +93,7 @@ public class FluidHatchBlock extends Block implements IBE<FluidHatchBlockEntity>
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction face = context.getClickedFace().getOpposite();
         BlockState state = defaultBlockState().setValue(FACING, face)
-                .setValue(RAISED, false);
+                .setValue(RAISED, onBarrel(context.getLevel(), context.getClickedPos(), face));
         if (face.getAxis().isVertical()) {
             state = state.setValue(LID_HINGE, context.getHorizontalDirection().get2DDataValue());
         }

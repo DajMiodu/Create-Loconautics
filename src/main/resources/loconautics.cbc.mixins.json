@@ -1,0 +1,11 @@
+{
+  "required": false,
+  "package": "com.lycoris.loconautics.mixin.compat.cbc",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AbstractCannonProjectileDerailMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

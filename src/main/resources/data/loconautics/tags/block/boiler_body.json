@@ -1,0 +1,654 @@
+{
+  "replace": false,
+  "values": [
+    "loconautics:boiler_body",
+    {
+      "id": "hullsteel:boiler/boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/black_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/black_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/blue_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/blue_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/brown_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/brown_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/cyan_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/cyan_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/gray_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/gray_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/green_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/green_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/light_blue_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/light_blue_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/light_gray_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/light_gray_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/lime_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/lime_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/magenta_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/magenta_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/orange_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/orange_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/pink_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/pink_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/purple_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/purple_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/red_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/red_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/white_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/white_big_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/yellow_boiler",
+      "required": false
+    },
+    {
+      "id": "hullsteel:boiler/yellow_big_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:black_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:black_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:black_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:black_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:blue_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:blue_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:blue_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:blue_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:brown_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:brown_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:brown_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:brown_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:chartreuse_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:chartreuse_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:chartreuse_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:chartreuse_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:cyan_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:cyan_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:cyan_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:cyan_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:diorite_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:diorite_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:diorite_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:diorite_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:dripstone_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:dripstone_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:dripstone_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:dripstone_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:granite_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:granite_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:granite_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:granite_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:gray_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:gray_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:gray_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:gray_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:green_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:green_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:green_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:green_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:light_blue_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:light_blue_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:light_blue_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:light_blue_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:light_gray_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:light_gray_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:light_gray_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:light_gray_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:lime_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:lime_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:lime_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:lime_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:limestone_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:limestone_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:limestone_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:limestone_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:magenta_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:magenta_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:magenta_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:magenta_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:maroon_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:maroon_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:maroon_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:maroon_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:ochrum_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:ochrum_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:ochrum_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:ochrum_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:olive_green_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:olive_green_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:olive_green_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:olive_green_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:orange_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:orange_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:orange_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:orange_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:pine_green_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:pine_green_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:pine_green_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:pine_green_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:pink_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:pink_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:pink_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:pink_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:purple_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:purple_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:purple_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:purple_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:red_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:red_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:red_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:red_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:royal_blue_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:royal_blue_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:royal_blue_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:royal_blue_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:scorchia_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:scorchia_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:scorchia_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:scorchia_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:sea_green_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:sea_green_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:sea_green_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:sea_green_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:tuff_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:tuff_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:tuff_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:tuff_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:turquoise_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:turquoise_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:turquoise_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:turquoise_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:vermilion_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:vermilion_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:vermilion_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:vermilion_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:white_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:white_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:white_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:white_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:yellow_brass_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:yellow_copper_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:yellow_iron_wrapped_locometal_boiler",
+      "required": false
+    },
+    {
+      "id": "railways:yellow_locometal_boiler",
+      "required": false
+    }
+  ]
+}

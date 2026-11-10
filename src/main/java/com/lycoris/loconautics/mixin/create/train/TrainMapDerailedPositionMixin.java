@@ -23,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
+// the track, so the map has to read the sub levels own pose instead
 @Mixin(value = TrainMapSync.class, remap = false)
 public abstract class TrainMapDerailedPositionMixin {
 
@@ -62,6 +63,7 @@ public abstract class TrainMapDerailedPositionMixin {
         }
     }
 
+    // a rail on a sub level reports its point in plot coordinates, the map wants the world
     @Unique
     private static void loconautics$liftHosted(Train shadow, TrainMapSyncEntry entry, int index) {
         if (shadow.graph == null || index >= shadow.carriages.size() || entry.dimensions.get(index) == null) {

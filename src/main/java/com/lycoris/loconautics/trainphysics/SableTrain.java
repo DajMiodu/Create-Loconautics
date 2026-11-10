@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.compat.computercraft.CcEvents;
 import com.lycoris.loconautics.common.train.TrainStatusChat;
 import com.lycoris.loconautics.trainphysics.rail.RailCarriage;
@@ -56,11 +57,14 @@ public final class SableTrain {
     private boolean derailed;
     private String derailReason = "";
     private Residency residency = Residency.EMBODIED;
+    // only readable while the body is live, so it is grabbed at unload and persisted, without it a ghost cannot find its body again
     private GlobalSavedSubLevelPointer bodyPointer;
     private net.minecraft.world.level.ChunkPos bodyChunk;
     private Vector3d lastKnownPos;
+    // the coupled sub levels as of the last embodied tick, the coupler block entities sit inside the body and a ghost cannot ask them
     private final java.util.Set<UUID> consistCache = new java.util.LinkedHashSet<>();
     private boolean scheduleDriven;
+    // measured off the body while it is loaded, a ghost has no body to measure
     private CarExtent extent;
     private double ghostCruise;
     private double axleSign = 1.0;
@@ -68,6 +72,7 @@ public final class SableTrain {
     private Vector3d pendingKnockback;
     // bogeys that ran off the rail end while the car is still otherwise railed driving state only, deliberately not persisted, rederived each tick
     private final java.util.Set<BlockPos> offTrackBogeys = new java.util.HashSet<>();
+    // creates bogey block has no front, only an axis, so a player set front lives here keyed by bogey local position
     private final java.util.Map<BlockPos, net.minecraft.core.Direction> bogeyFront = new java.util.HashMap<>();
     private final java.util.Map<BlockPos, Long> offTrackSince = new java.util.HashMap<>();
     private double wheelDrive;
@@ -75,6 +80,7 @@ public final class SableTrain {
     private int mapColorIndex;
     // empty means creates default, stored by id so a changed mod set cannot shift it like an index would
     private String iconType = "";
+    // the name lives on the sub level, this is the last one read off it so a ghost or a body mid crossing keeps it
     private String name = "";
     private boolean braked;
     private boolean brakeHard;
@@ -538,6 +544,13 @@ public final class SableTrain {
     }
 
     public void setScheduleHold(boolean hold) {
+        if (hold != this.scheduleHold) {
+            String caller = StackWalker.getInstance().walk(frames -> frames.skip(1).findFirst()
+                    .map(frame -> frame.getClassName().substring(frame.getClassName().lastIndexOf('.') + 1) + "."
+                            + frame.getMethodName() + ":" + frame.getLineNumber()).orElse("?"));
+            LoconauticsConstants.LOGGER.info("[maneuver] hold {} -> {} on {} speed {} by {}", this.scheduleHold, hold,
+                    id().toString().substring(0, 8), String.format("%.3f", speed()), caller);
+        }
         this.scheduleHold = hold;
     }
 
@@ -615,6 +628,7 @@ public final class SableTrain {
         this.currentStation = station;
     }
 
+    // current station is not saved, a train parked before a restart only has the station it is standing at
     public GlobalStation stoppedAt() {
         return currentStation != null ? currentStation : atStation;
     }
@@ -668,6 +682,7 @@ public final class SableTrain {
 
     public void setResidency(Residency residency) {
         if (this.residency != residency) {
+            // a ghost never ticks the pulse down, so it braked only the lead on load
             brakePulse = 0;
         }
         this.residency = residency;

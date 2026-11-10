@@ -208,6 +208,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
         if (!locked) applyDriveInput();
     }
 
+    // only the current driver can release, unlike toggleuser which would connect a stranger
     public void releaseUser(UUID user) {
         if (level == null || !user.equals(currentUser)) return;
         disconnectUser(level);
@@ -705,7 +706,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
             currentUser = tag.getBoolean("HasUser") ? java.util.UUID.randomUUID() : null;
             steerInput = tag.getInt("Steer");
         } else {
-            currentUser = null;
+            currentUser = null; // never restore stale user uuid on server
         }
 
         if (tag.contains("Frequency")) {

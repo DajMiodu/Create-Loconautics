@@ -18,7 +18,7 @@ A list of block ids. Each id becomes one menu entry, named after the block.
 }
 ```
 
-This is all most families need. Loconautics uses it for dashboards, analog controllers, the hand brake and Create postboxes.
+This is all most families need. Loconautics uses it for dashboards, analog controllers, hand brakes and Create postboxes.
 
 ## Full form
 

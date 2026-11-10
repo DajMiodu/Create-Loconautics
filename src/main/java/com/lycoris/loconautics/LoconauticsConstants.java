@@ -15,6 +15,8 @@ public final class LoconauticsConstants {
 
     public static final int NETWORK_VERSION = 80;
 
+    public static final String CARRIAGE_NAME_INFIX = " Carriage ";
+
     public static final int MANEUVER_DEAD_END_RETRY_TICKS = 100;
 
     public static final int MANEUVER_DEFAULT_PERCENT = 10;
@@ -28,6 +30,8 @@ public final class LoconauticsConstants {
     public static final int MANEUVER_REVERSAL_MAX_TRIES = 128;
 
     public static final double MANEUVER_BERTH_GAP = 6.0;
+
+    public static final int INDUSTRIAL_TANK_MAX_WIDTH = 5;
 
     public static final double RAIL_HEAD_HEIGHT = 5.0 / 16.0;
 

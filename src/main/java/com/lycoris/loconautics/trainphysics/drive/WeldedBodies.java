@@ -30,6 +30,7 @@ import java.util.UUID;
 public final class WeldedBodies {
 
     private static final double MAX_CARRY_JUMP = 64.0;
+    private static final double CARRY_LOG_JUMP = 0.25;
     private static final double STRAIGHTEN_SECONDS = 0.4;
     private static final double STRAIGHTEN_SHARE = 0.5;
 
@@ -157,6 +158,7 @@ public final class WeldedBodies {
         return new Latch(local, localQ, null, null);
     }
 
+    // a locked connector pair holds one exact relative pose, so the latch is that pose, not wherever the cars happen to sit
     private static Latch connectorLatch(ServerSubLevel car, ServerSubLevel partner) {
         for (DockingConnectorBlockEntity own : SubLevelBlocks.findAll(car, DockingConnectorBlockEntity.class)) {
             if (!partner.getUniqueId().equals(own.otherConnectorSubLevelId)) {
@@ -189,11 +191,17 @@ public final class WeldedBodies {
             if (!local.isFinite() || !relative.isFinite()) {
                 continue;
             }
+            Vector3d current = leaderPose.transformPositionInverse(followerPose.position(), new Vector3d());
+            LoconauticsConstants.LOGGER.info("[dockseat] follower {} seated on the connector pose, {} blocks and {} deg from where it was",
+                    partner.getUniqueId(), String.format("%.2f", local.distance(current)),
+                    String.format("%.2f", Math.toDegrees(new Quaterniond(leaderPose.orientation()).conjugate()
+                            .mul(followerPose.orientation()).difference(relative, new Quaterniond()).angle())));
             return new Latch(local, relative, null, null);
         }
         return null;
     }
 
+    // the follower turns about its own midspan so its bogeys stay on the rail, the pivots take up the curve
     private static Latch latch(ServerSubLevel car, ServerSubLevel partner, Car carriage) {
         Vector3d local = car.logicalPose().transformPositionInverse(
                 partner.logicalPose().position(), new Vector3d());
@@ -238,6 +246,7 @@ public final class WeldedBodies {
         return new Latch(local, localQ, targetLocal, targetLocalQ);
     }
 
+    // a sticker joint is only made once the pair has finished easing straight, or it would fight the ease
     public static boolean pairSettled(UUID a, UUID b) {
         return SETTLED.contains(Set.of(a, b));
     }
@@ -278,6 +287,21 @@ public final class WeldedBodies {
                         entry.getKey(), car.getUniqueId(), target, orientation);
                 continue;
             }
+            double jump = target.distance(partner.logicalPose().position());
+            if (jump > CARRY_LOG_JUMP && SableTrainRegistry.bySubLevel(entry.getKey()) != null) {
+                Vector3d jumpLocal = car.logicalPose().transformPositionInverse(
+                        new Vector3d(target).sub(partner.logicalPose().position()).add(car.logicalPose().position()),
+                        new Vector3d());
+                Quaterniond yawGap = new Quaterniond(partner.logicalPose().orientation()).conjugate().mul(orientation);
+                LoconauticsConstants.LOGGER.info(
+                        "[dock] carry of train body {} by {} jumped {} blocks, car speed {}, jump in car frame ({}, {}, {}), "
+                                + "orientation error {} deg, latch yaw {} deg, partner own speed {}",
+                        entry.getKey(), car.getUniqueId(), jump, carVelocity.length(),
+                        String.format("%.2f", jumpLocal.x), String.format("%.2f", jumpLocal.y),
+                        String.format("%.2f", jumpLocal.z), String.format("%.2f", Math.toDegrees(yawGap.angle())),
+                        String.format("%.2f", Math.toDegrees(latch.localOrientation().angle())),
+                        String.format("%.2f", linearSpeed(pipeline, partner)));
+            }
             Pose3d pose = partner.logicalPose();
             pose.position().set(target);
             pose.orientation().set(orientation);
@@ -288,6 +312,7 @@ public final class WeldedBodies {
             Vector3d linear = new Vector3d(carSpin).cross(lever).add(carVelocity);
             Vector3d spin = carSpin;
             if (partnerTrain != null && latch.lastTarget != null && dt > 1.0e-6) {
+                // a glued car reads about zero spin, so a train follower gets the velocity its own carry targets imply
                 linear = new Vector3d(target).sub(latch.lastTarget).div(dt);
                 spin = angularVelocity(latch.lastOrientation, orientation, dt);
             }
@@ -298,6 +323,10 @@ public final class WeldedBodies {
                 GhostWheelBodies.holdPivots(partner, partnerTrain);
             }
         }
+    }
+
+    private static double linearSpeed(PhysicsPipeline pipeline, ServerSubLevel body) {
+        return pipeline.getLinearVelocity(body, new Vector3d()).length();
     }
 
     public static Vector3d angularVelocity(Quaterniond from, Quaterniond to, double dt) {

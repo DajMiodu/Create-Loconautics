@@ -411,10 +411,14 @@ public final class CreateTrainShadow {
         }
         if (station == null) {
             PARKED.remove(train.id());
+            LoconauticsConstants.LOGGER.debug("[crn] {} left {}, {}", shadow.name.getString(), was == null ? "?" : was.name,
+                    CrnTrainEvents.describe(train.id()));
             return;
         }
         PARKED.put(train.id(), station);
         CrnTrainEvents.arrived(shadow, station);
+        LoconauticsConstants.LOGGER.debug("[crn] {} reached {}, {}", shadow.name.getString(), station.name,
+                CrnTrainEvents.describe(train.id()));
     }
 
     private static void mirrorSignals(Train shadow, List<SableTrain> cars) {

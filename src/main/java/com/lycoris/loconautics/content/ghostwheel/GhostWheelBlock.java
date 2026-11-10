@@ -1,6 +1,7 @@
 package com.lycoris.loconautics.content.ghostwheel;
 
 import com.lycoris.loconautics.LoconauticsConstants;
+import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.mojang.serialization.MapCodec;
 import dev.ryanhcode.sable.api.block.BlockSubLevelCollisionShape;
 import dev.ryanhcode.sable.api.block.BlockWithSubLevelCollisionCallback;
@@ -72,7 +73,7 @@ public class GhostWheelBlock extends Block implements BlockWithSubLevelCollision
 
     @Override
     protected RenderShape getRenderShape(BlockState state) {
-        return RenderShape.INVISIBLE;
+        return LoconauticsConfig.DEBUG ? RenderShape.MODEL : RenderShape.INVISIBLE;
     }
 
     @Override
@@ -95,6 +96,7 @@ public class GhostWheelBlock extends Block implements BlockWithSubLevelCollision
             floor = Math.max(0.0, Math.min(0.9999, floor));
         }
         boolean hanging = state.getValue(UPSIDE_DOWN);
+        // no collider and sable deletes the body, so the pad is a sliver over the track top with a gap so it doesnt drag
         double yLo = hanging ? (monorail ? floor : 0.0) : floor;
         double yHi = hanging && !monorail ? 1.0 - floor : 1.0;
         // pls work

@@ -73,6 +73,7 @@ public final class RailwaysSwitches {
             }
         }
 
+        // our bogeys move alone, so one can sit on the closed leg while the other holds the open one, and railways blocks the way back
         static boolean onClosedLeg(TravellingPoint point) {
             if (IS_DISABLED == null || point.edge == null) {
                 return false;

@@ -3,6 +3,7 @@ package com.lycoris.loconautics.trainphysics.drive;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlockEntity;
 import com.lycoris.loconautics.content.bearingaxle.BearingAxleBlock;
 import com.lycoris.loconautics.content.bearingaxle.BearingAxleBlockEntity;
+import com.lycoris.loconautics.foundation.debug.SteerTrace;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.SableTrain.Car;
 import com.lycoris.loconautics.common.sable.SubLevelData;
@@ -41,11 +42,17 @@ final class TrainSteering {
         int input = steerAxle == null ? 0 : steerAxle.getSteerInput();
         Direction front = axleFront(steerAxle, sub);
 
+        for (SableTrain.Bogey bogey : car.bogeys()) {
+            SteerTrace.owner(bogey.rail(), car.subLevelId());
+        }
+        tagJunctions(train, car.subLevelId() + " mode=" + describeMode(train, input, front));
+
         if (front == null || input == 0) {
             SableTrain ahead = leaderAhead(train);
             SableTrain leader = drivenLeader(train);
             boolean isLeader = leader != null && car.subLevelId().equals(leader.car().subLevelId());
             if (ahead != null && followAhead(train, ahead)) {
+                SteerTrace.mode(car.subLevelId(), (isLeader ? "driver" : "car") + " follows " + ahead.car().subLevelId().toString().substring(0, 8));
                 if (isLeader) {
                     train.setSteerIntent(null);
                 }
@@ -53,15 +60,45 @@ final class TrainSteering {
                 return;
             }
             if (ahead == null && leader != null && !car.subLevelId().equals(leader.car().subLevelId())) {
+                SteerTrace.mode(car.subLevelId(), "front car takes driver intent " + leader.steerIntent());
                 clearFollow(car);
                 applySteerTarget(car, leader.steerIntent());
                 return;
             }
         }
 
+        SteerTrace.mode(car.subLevelId(), "own input " + input + " ahead=" + (front == null || input == 0 ? leaderAhead(train) != null : "n/a"));
         train.setSteerIntent(target(front, input));
         clearFollow(car);
         applySteerTarget(car, train.steerIntent());
+    }
+
+    private static final java.util.Map<UUID, String> ISSUE274_MODE = new java.util.HashMap<>();
+
+    private static String describeMode(SableTrain train, int input, Direction front) {
+        SableTrain leader = drivenLeader(train);
+        SableTrain ahead = leaderAhead(train);
+        boolean isLeader = leader != null && train.car().subLevelId().equals(leader.car().subLevelId());
+        return (front == null || input == 0 ? "noinput" : "input" + input) + (isLeader ? " leader" : " other")
+                + (ahead == null ? " ahead=none" : " ahead=" + ahead.car().subLevelId().toString().substring(0, 8))
+                + (leader == null ? " driver=none" : " driver=" + leader.car().subLevelId().toString().substring(0, 8)
+                        + " driverIntent=" + leader.steerIntent())
+                + " ownPath=" + (leader != null && isLeader && leader.leadingBogeyRail() != null
+                        && leader.leadingBogeyRail().remainingPath() != null);
+    }
+
+    private static void tagJunctions(SableTrain train, String mode) {
+        Car car = train.car();
+        String tag = car.subLevelId().toString().substring(0, 8) + " " + mode.substring(mode.indexOf("mode="));
+        if (!tag.equals(ISSUE274_MODE.put(car.subLevelId(), tag))) {
+            com.lycoris.loconautics.LoconauticsConstants.LOGGER.info("[issue274] car {}", tag);
+        }
+        for (SableTrain.Bogey bogey : car.bogeys()) {
+            bogey.rail().setJunctionTag(tag);
+        }
+        if (car.carriage() != null) {
+            car.carriage().setJunctionTag(tag);
+        }
     }
 
     static void clearFollow(Car car) {
@@ -114,6 +151,7 @@ final class TrainSteering {
         TravellingPoint target = null;
         double best = Double.MAX_VALUE;
         if (train.isTrackless() || ahead.isTrackless()) {
+            SteerTrace.mode(train.car().subLevelId(), "follow refused, trackless " + train.isTrackless() + " ahead " + ahead.isTrackless());
             return false;
         }
         for (SableTrain.Bogey bogey : train.car().bogeys()) {
@@ -142,6 +180,7 @@ final class TrainSteering {
             }
         }
         if (chaser == null || target == null) {
+            SteerTrace.mode(train.car().subLevelId(), "follow refused, no point on the same graph");
             return false;
         }
         chaser.followPoint(target);
@@ -174,10 +213,12 @@ final class TrainSteering {
         if (idx < 0 || leaderIdx < 0) {
             return null;
         }
+        // every car uses the drivers direction, a cars own speed sign flickers and made neighbors follow each other
         int dir = frontDirection(leader, chain, leaderIdx);
         if (dir != 0) {
             return neighbor(chain, idx + dir);
         }
+        // orderedchain can come back ordered from the far end, so at a stand step toward the loco, never guess
         if (idx == leaderIdx) {
             return null;
         }

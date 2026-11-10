@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.common.strand;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.grab.GrabTarget;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -18,6 +19,7 @@ public final class StrandKnotGrab {
     private static final double GRAVITY = 9.8;
     private static final double DAMPING = 0.92;
     private static final double CONTACT_GRIP = 0.7;
+    public static final int TRACE_TICKS = 100;
     private static final double REACH_SLACK = 4.0;
     private static final double TAUT = 0.999;
     private static final int ITERATIONS = 12;
@@ -65,26 +67,32 @@ public final class StrandKnotGrab {
         Request req = request;
         Player player = req == null ? null : level.getPlayerByUUID(req.player());
         if (req == null || player == null || !player.isAlive() || player.isSpectator()) {
-            return finish();
+            return finish(req == null ? "stop requested" : "player gone");
         }
         if (!engaged && !begin(points, req.index())) {
             request = null;
             return false;
         }
         if (rest.length != points.size() - 1) {
-            return finish();
+            return finish("point count changed");
         }
         Vector3d knot = points.get(index);
         double reach = player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + REACH_SLACK;
         if (player.getEyePosition().distanceToSqr(knot.x, knot.y, knot.z) > reach * reach) {
-            return finish();
+            return finish("out of reach");
         }
         step(level, points, goal(player, req.range(), pinStart, pinEnd), pinStart, pinEnd, dt, radius);
         return false;
     }
 
-    private boolean finish() {
+    public int traceTicks;
+
+    private boolean finish(String reason) {
         boolean was = engaged;
+        if (was) {
+            traceTicks = TRACE_TICKS;
+            LoconauticsConstants.LOGGER.info("[knotgrab] released reason={} points={}", reason, previous.size());
+        }
         request = null;
         engaged = false;
         previous.clear();
@@ -105,6 +113,7 @@ public final class StrandKnotGrab {
             }
         }
         engaged = true;
+        LoconauticsConstants.LOGGER.info("[knotgrab] engaged index={} points={}", knotIndex, points.size());
         return true;
     }
 

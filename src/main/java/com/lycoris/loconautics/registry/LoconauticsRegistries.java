@@ -17,6 +17,8 @@ import com.lycoris.loconautics.content.knuckle.KnuckleBlockEntity;
 import com.lycoris.loconautics.content.casingpicker.BogeyChoice;
 import com.lycoris.loconautics.content.casingpicker.BogeyItem;
 import com.lycoris.loconautics.content.relocator.CreativeTrainRelocatorItem;
+import com.lycoris.loconautics.content.screwlink.ScrewLinkBlock;
+import com.lycoris.loconautics.content.screwlink.ScrewLinkBlockEntity;
 import com.lycoris.loconautics.content.turntablebearing.TurntableBearingBlock;
 import com.lycoris.loconautics.content.turntablebearing.TurntableBearingBlockEntity;
 import com.lycoris.loconautics.content.turntablebearing.TurntablePlateBlock;
@@ -91,6 +93,26 @@ public final class LoconauticsRegistries {
                         }
                     });
 
+    public static final DeferredHolder<net.minecraft.core.particles.ParticleType<?>,
+            net.minecraft.core.particles.ParticleType<
+                    com.lycoris.loconautics.foundation.smoke.SmokeOptions>>
+            SMOKE = PARTICLE_TYPES.register("smoke",
+                    () -> new net.minecraft.core.particles.ParticleType<
+                            com.lycoris.loconautics.foundation.smoke.SmokeOptions>(false) {
+                        @Override
+                        public com.mojang.serialization.MapCodec<
+                                com.lycoris.loconautics.foundation.smoke.SmokeOptions> codec() {
+                            return com.lycoris.loconautics.foundation.smoke.SmokeOptions.codec(this);
+                        }
+
+                        @Override
+                        public net.minecraft.network.codec.StreamCodec<
+                                ? super net.minecraft.network.RegistryFriendlyByteBuf,
+                                com.lycoris.loconautics.foundation.smoke.SmokeOptions> streamCodec() {
+                            return com.lycoris.loconautics.foundation.smoke.SmokeOptions.streamCodec(this);
+                        }
+                    });
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<BogeyChoice>>
             BOGEY_CHOICE = DATA_COMPONENTS.register("bogey_choice", () ->
                     DataComponentType.<BogeyChoice>builder()
@@ -159,6 +181,10 @@ public final class LoconauticsRegistries {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AnalogControllerBlockEntity>>
             ANALOG_CONTROLLER_BE =
             com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlocks.CONTROLLER_BE;
+
+    public static final DeferredHolder<BlockEntityType<?>,
+            BlockEntityType<com.lycoris.loconautics.content.brakes.pull.PullBrakeBlockEntity>>
+            PULL_BRAKE_BE = com.lycoris.loconautics.content.brakes.pull.PullBrakeBlocks.PULL_BRAKE_BE;
 
     public static final DeferredHolder<MenuType<?>, MenuType<AnalogControllerMenu>>
             ANALOG_CONTROLLER_MENU = MENUS.register("analog_controller", () ->
@@ -248,6 +274,26 @@ public final class LoconauticsRegistries {
                     .of(LoconauticsRegistries::createKnuckleBE, KNUCKLE.get())
                     .build(null));
 
+    public static final DeferredHolder<Block, ScrewLinkBlock> SCREW_LINK =
+            BLOCKS.register("screw_link", () -> new ScrewLinkBlock(
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .strength(3.5f)
+                            .sound(SoundType.NETHERITE_BLOCK)
+                            .requiresCorrectToolForDrops()
+                            .noOcclusion()
+            ));
+
+    public static final DeferredHolder<Item, BlockItem> SCREW_LINK_ITEM =
+            ITEMS.register("screw_link", () ->
+                    new BlockItem(SCREW_LINK.get(), new Item.Properties().stacksTo(64)));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ScrewLinkBlockEntity>>
+            SCREW_LINK_BE = BLOCK_ENTITIES.register("screw_link", () ->
+            BlockEntityType.Builder
+                    .of(LoconauticsRegistries::createScrewLinkBE, SCREW_LINK.get())
+                    .build(null));
+
     public static final DeferredHolder<Block, CopycatHeadstockBlock> COPYCAT_HEADSTOCK =
             BLOCKS.register("copycat_headstock", () -> new CopycatHeadstockBlock(
                     BlockBehaviour.Properties.of()
@@ -319,8 +365,14 @@ public final class LoconauticsRegistries {
     public static final DeferredHolder<Item, SteelCableItem> STEEL_CABLE =
             ITEMS.register("steel_cable", () -> new SteelCableItem(new Item.Properties().stacksTo(16)));
 
+    public static final DeferredHolder<Item, Item> BOILER_TUBES =
+            ITEMS.register("boiler_tubes", () -> new Item(new Item.Properties()));
+
     public static final DeferredHolder<Item, Item> INDUSTRIAL_IRON_ROD =
             ITEMS.register("industrial_iron_rod", () -> new Item(new Item.Properties()));
+
+    public static final DeferredHolder<Item, Item> VALVE_GEAR =
+            ITEMS.register("valve_gear", () -> new Item(new Item.Properties()));
 
     public static final DeferredHolder<Item, Item> INDUSTRIAL_IRON_SHEET =
             ITEMS.register("industrial_iron_sheet", () -> new Item(new Item.Properties().stacksTo(64)));
@@ -333,6 +385,27 @@ public final class LoconauticsRegistries {
 
     public static final DeferredHolder<Item, Item> CREATIVE_TRAIN_RELOCATOR =
             ITEMS.register("creative_train_relocator", () -> new CreativeTrainRelocatorItem(new Item.Properties().stacksTo(1)));
+
+    public static final DeferredHolder<Block, com.lycoris.loconautics.content.smokestack.SmokestackBlock> SMOKESTACK =
+            BLOCKS.register("smokestack", () -> new com.lycoris.loconautics.content.smokestack.SmokestackBlock(
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .strength(3.5f)
+                            .sound(SoundType.NETHERITE_BLOCK)
+                            .noOcclusion()
+                            .requiresCorrectToolForDrops()
+            ));
+
+    public static final DeferredHolder<Item, BlockItem> SMOKESTACK_ITEM =
+            ITEMS.register("smokestack", () ->
+                    new BlockItem(SMOKESTACK.get(), new Item.Properties().stacksTo(64)));
+
+    public static final DeferredHolder<BlockEntityType<?>,
+            BlockEntityType<com.lycoris.loconautics.content.smokestack.SmokestackBlockEntity>>
+            SMOKESTACK_BE = BLOCK_ENTITIES.register("smokestack", () ->
+            BlockEntityType.Builder
+                    .of(com.lycoris.loconautics.content.smokestack.SmokestackBlockEntity::new, SMOKESTACK.get())
+                    .build(null));
 
     public static final DeferredHolder<Block, com.lycoris.loconautics.content.hose.winch.HoseWinchBlock> HOSE_WINCH =
             BLOCKS.register("hose_winch", () -> new com.lycoris.loconautics.content.hose.winch.HoseWinchBlock(
@@ -458,11 +531,11 @@ public final class LoconauticsRegistries {
                         output.accept(BEARING_AXLE_ITEM.get());
                         output.accept(TRANSMISSION_ITEM.get());
 
-                        output.accept(com.lycoris.loconautics.content.controls.ControlsBlocks.LOCOMOTIVE_GAUGE_ITEM.get());
-                        output.accept(com.lycoris.loconautics.content.controls.ControlsBlocks.VALVE_ITEM.get());
-                        output.accept(com.lycoris.loconautics.content.controls.ControlsBlocks.GAUGE_BUTTON_ITEM.get());
-                        output.accept(com.lycoris.loconautics.content.controls.ControlsBlocks.GAUGE_LEVER_ITEM.get());
-                        output.accept(com.lycoris.loconautics.content.controls.ControlsBlocks.GAUGE_SWITCH_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.boiler.BoilerBlocks.LOCOMOTIVE_GAUGE_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.boiler.BoilerBlocks.VALVE_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.boiler.BoilerBlocks.GAUGE_BUTTON_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.boiler.BoilerBlocks.GAUGE_LEVER_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.boiler.BoilerBlocks.GAUGE_SWITCH_ITEM.get());
 
                         com.lycoris.loconautics.content.dashboard.DashboardBlocks.DASHBOARD_ITEMS
                                 .forEach((color, item) -> output.accept(new net.minecraft.world.item.ItemStack(item.get()),
@@ -480,6 +553,12 @@ public final class LoconauticsRegistries {
                         output.accept(com.simibubi.create.AllItems.SCHEDULE.asStack());
 
                         output.accept(HANDBRAKE_ITEM.get());
+                        com.lycoris.loconautics.content.brakes.pull.PullBrakeBlocks.BRAKE_ITEMS
+                                .forEach((color, item) -> output.accept(new net.minecraft.world.item.ItemStack(item.get()),
+                                        color == com.lycoris.loconautics.content.brakes.pull.PullBrakeBlocks
+                                                .TAB_COLOR
+                                                ? net.minecraft.world.item.CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS
+                                                : net.minecraft.world.item.CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
                         output.accept(TURNTABLE_BEARING_ITEM.get());
 
                         output.accept(dev.simulated_team.simulated.index.SimBlocks.ROPE_CONNECTOR);
@@ -491,6 +570,7 @@ public final class LoconauticsRegistries {
                                         color == com.lycoris.loconautics.content.buffer.BufferBlocks.TAB_COLOR
                                                 ? net.minecraft.world.item.CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS
                                                 : net.minecraft.world.item.CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
+                        output.accept(SCREW_LINK_ITEM.get());
 
                         output.accept(HOSE_WINCH_ITEM.get());
                         output.accept(HOSE_NOZZLE_ITEM.get());
@@ -507,8 +587,30 @@ public final class LoconauticsRegistries {
                         output.accept(INDUSTRIAL_IRON_SHEET.get());
                         output.accept(INDUSTRIAL_IRON_ROD.get());
                         output.accept(com.lycoris.loconautics.content.industrial.IndustrialBlocks.PIPE_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.industrial.IndustrialBlocks.SMART_PIPE_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.industrial.IndustrialBlocks.PUMP_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.industrial.IndustrialBlocks.VALVE_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.industrial.IndustrialBlocks.TANK_ITEM.get());
 
                         output.accept(CREATIVE_TRAIN_RELOCATOR.get());
+
+                        output.accept(com.lycoris.loconautics.content.boiler.BoilerBlocks.FIREBOX_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.boiler.BoilerBlocks.BOILER_BODY_ITEM.get());
+                        output.accept(SMOKESTACK_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.boiler.BoilerBlocks.STEAM_TAKEOFF_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.boiler.BoilerBlocks.SMART_SAFETY_VALVE_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.boiler.BoilerBlocks.FIREBOX_STOCKER_ITEM.get());
+                        output.accept(BOILER_TUBES.get());
+                        output.accept(VALVE_GEAR.get());
+                        com.lycoris.loconautics.content.combustion.SmallEngineBlocks.ENGINE_ITEMS
+                                .forEach((color, item) -> output.accept(new net.minecraft.world.item.ItemStack(item.get()),
+                                        color == com.lycoris.loconautics.content.combustion.SmallEngineBlocks.TAB_COLOR
+                                                ? net.minecraft.world.item.CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS
+                                                : net.minecraft.world.item.CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
+
+                        output.accept(com.lycoris.loconautics.content.cerisene.CeriseneBlocks.RAW_CERISENE.get());
+                        output.accept(com.lycoris.loconautics.content.cerisene.CeriseneBlocks.CERISENE_BLOCK_ITEM.get());
+                        output.accept(com.lycoris.loconautics.content.cerisene.CeriseneBlocks.CERISENE_BUCKET.get());
                     })
                     .build());
 
@@ -534,6 +636,10 @@ public final class LoconauticsRegistries {
 
     static TurntablePlateBlockEntity createTurntablePlateBE(BlockPos pos, BlockState state) {
         return new TurntablePlateBlockEntity(TURNTABLE_PLATE_BE.get(), pos, state);
+    }
+
+    static ScrewLinkBlockEntity createScrewLinkBE(BlockPos pos, BlockState state) {
+        return new ScrewLinkBlockEntity(SCREW_LINK_BE.get(), pos, state);
     }
 
     static KnuckleBlockEntity createKnuckleBE(BlockPos pos, BlockState state) {

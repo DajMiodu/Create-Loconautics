@@ -3,6 +3,7 @@ package com.lycoris.loconautics.content.hose.flow;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.content.hose.link.HoseConnectorBlockEntity;
 import com.lycoris.loconautics.content.hose.link.HoseLinks;
+import com.lycoris.loconautics.content.industrial.IndustrialBlocks;
 import com.simibubi.create.content.fluids.FluidPropagator;
 import com.simibubi.create.content.fluids.FluidTransportBehaviour;
 import com.simibubi.create.content.fluids.PipeConnection;
@@ -26,6 +27,7 @@ public final class HosePressure {
 
     private static final int MAX_LINK_DEPTH = 4;
 
+    // push is a pump shoving fluid toward the endpoint, pull is a pump sucking fluid out of it
     public record Pressure(float push, float pull) {
 
         public static final Pressure NONE = new Pressure(0.0f, 0.0f);
@@ -50,6 +52,7 @@ public final class HosePressure {
         return rpmFraction(rpm) * LoconauticsConfig.HOSE_MAX_LENGTH.get();
     }
 
+    // the rope pays out a bit past maxlen before it stops, so a full unroll must still count as maxlen
     public static boolean reaches(float rpm, double hoseLength) {
         return reach(rpm) + REACH_TOLERANCE >= Math.min(hoseLength, LoconauticsConfig.HOSE_MAX_LENGTH.get());
     }
@@ -80,10 +83,11 @@ public final class HosePressure {
         return be instanceof PumpBlockEntity ? raw : raw.scaled(distanceFactor(level, neighbor));
     }
 
+    // create adds the same pressure to every pipe in range, so the distance falloff is ours
     private static float distanceFactor(Level level, BlockPos firstPipe) {
         Queue<Step> queue = new ArrayDeque<>();
         Set<BlockPos> visited = new HashSet<>();
-        int limit = FluidPropagator.getPumpRange();
+        int limit = (int) (FluidPropagator.getPumpRange() * IndustrialBlocks.RANGE_FACTOR);
         queue.add(new Step(firstPipe, 1));
         visited.add(firstPipe);
         while (!queue.isEmpty()) {
@@ -99,7 +103,7 @@ public final class HosePressure {
                 }
                 if (level.getBlockEntity(next) instanceof PumpBlockEntity pump) {
                     if (drives(pump, d.getOpposite())) {
-                        int range = FluidPropagator.getPumpRange();
+                        int range = IndustrialBlocks.pumpRange(pump.getBlockState(), FluidPropagator.getPumpRange());
                         return Mth.clamp(1.0f - (float) step.pipes() / range, 0.0f, 1.0f);
                     }
                     continue;

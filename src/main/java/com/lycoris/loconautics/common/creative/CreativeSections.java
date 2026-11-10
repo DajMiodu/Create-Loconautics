@@ -1,5 +1,7 @@
 package com.lycoris.loconautics.common.creative;
 
+import com.lycoris.loconautics.content.boiler.BoilerBlocks;
+import com.lycoris.loconautics.content.combustion.SmallEngineBlocks;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -13,6 +15,8 @@ public final class CreativeSections {
 
     private static final List<CreativeSection> ALL = new ArrayList<>();
 
+    public static final CreativeSection BOILERWORKS = add("boilerworks", () -> BoilerBlocks.FIREBOX_ITEM.get());
+    public static final CreativeSection DIESELWORKS = add("dieselworks", () -> SmallEngineBlocks.ENGINE_ITEMS.get(SmallEngineBlocks.TAB_COLOR).get());
 
     private CreativeSections() {
     }

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=south": {
+      "model": "loconautics:block/boiler/firebox/stocker"
+    },
+    "facing=west": {
+      "model": "loconautics:block/boiler/firebox/stocker",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "loconautics:block/boiler/firebox/stocker",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "loconautics:block/boiler/firebox/stocker",
+      "y": 270
+    }
+  }
+}

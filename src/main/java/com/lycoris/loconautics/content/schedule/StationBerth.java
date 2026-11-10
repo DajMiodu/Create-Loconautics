@@ -9,6 +9,7 @@ import com.simibubi.create.content.trains.graph.TrackGraph;
 import com.simibubi.create.content.trains.graph.TrackGraphLocation;
 import com.simibubi.create.content.trains.graph.TrackNode;
 import net.createmod.catnip.data.Couple;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -32,6 +33,7 @@ final class StationBerth {
             return null;
         }
         TrackGraphLocation near = null;
+        TravellingPoint nearPoint = null;
         double toNear = Double.MAX_VALUE;
         for (ConsistNose.Nose end : List.of(ConsistNose.of(parked), ConsistNose.tail(parked))) {
             TrackGraphLocation loc = locationOf(end.point());
@@ -42,6 +44,7 @@ final class StationBerth {
             if (measured.known() && measured.distance() < toNear) {
                 toNear = measured.distance();
                 near = loc;
+                nearPoint = end.point();
             }
         }
         if (near == null) {
@@ -50,8 +53,10 @@ final class StationBerth {
         double gap = LoconauticsConstants.MANEUVER_BERTH_GAP;
         double need = gap + ownLength + LoconauticsConstants.MANEUVER_REVERSAL_MARGIN;
         double back = Math.min(gap, toNear);
+        // the loco itself already stands on the clear track behind its nose
         double reach = toNear + ownLength;
         if (RouteDistance.onTargetEdge(lead, near)) {
+            trace(graph, parked, nearPoint, toNear, back, reach, "none on the lead edge");
             return new Berth(parked, onLeadEdge(graph, lead, near, back), reach, need, true);
         }
         int index = indexOf(route, near);
@@ -60,8 +65,29 @@ final class StationBerth {
         }
         double behind = clearBehind(graph, route, near, index);
         double free = Math.min(reach, behind);
+        trace(graph, parked, nearPoint, toNear, back, reach, junctionText(graph, route, index) + " " + behind + " behind");
         TrackGraphLocation stop = retreat(graph, route, near, index, back);
         return new Berth(parked, stop, free, need, RouteDistance.onTargetEdge(lead, stop));
+    }
+
+    // temporary, where the parked end sits and which switch limited the free length
+    private static void trace(TrackGraph graph, SableTrain parked, TravellingPoint end, double toNear, double back,
+                              double reach, String junction) {
+        Vec3 world = end == null ? null : end.getPosition(graph);
+        LoconauticsConstants.LOGGER.info("[maneuver] berth measure: train {} near wheel {} is {} from the lead end, "
+                        + "stop is {} short of it, reach {}, last switch {}", ConsistNose.shortId(parked.id()),
+                world == null ? "unknown" : String.format("(%.1f,%.1f,%.1f)", world.x, world.y, world.z),
+                String.format("%.2f", toNear), String.format("%.2f", back), String.format("%.2f", reach), junction);
+    }
+
+    private static String junctionText(TrackGraph graph, List<Couple<TrackNode>> route, int index) {
+        for (int i = index; i >= 0; i--) {
+            TrackNode node = route.get(i).getFirst();
+            if (graph.getConnectionsFrom(node).size() > 2) {
+                return node.getLocation().getLocation().toString();
+            }
+        }
+        return "none on the route";
     }
 
     @Nullable
@@ -106,11 +132,13 @@ final class StationBerth {
         return edge == null ? 0.0 : edge.getLength();
     }
 
+    // along the hop in route order, from the hop start
     private static double positionIn(TrackGraph graph, Couple<TrackNode> hop, TrackGraphLocation loc) {
         boolean sameSense = hop.getFirst().getLocation().equals(loc.edge.getFirst());
         return sameSense ? loc.position : lengthOf(graph, hop) - loc.position;
     }
 
+    // distance from the parked end back to the last switch on the route
     private static double clearBehind(TrackGraph graph, List<Couple<TrackNode>> route, TrackGraphLocation near,
                                       int index) {
         double walked = positionIn(graph, route.get(index), near);

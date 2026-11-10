@@ -1,5 +1,8 @@
 package com.lycoris.loconautics.content.controls.panelvalve;
 
+import com.lycoris.loconautics.content.boiler.safetyvalve.SafetyValveBlock;
+import com.lycoris.loconautics.content.combustion.SmallEngineBlock;
+import com.lycoris.loconautics.content.boiler.steamtakeoff.SteamTakeoffBlock;
 import com.lycoris.loconautics.content.controls.panel.PanelBlockItem;
 import com.lycoris.loconautics.content.controls.panel.PanelPart;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
@@ -56,6 +59,18 @@ public class ValveBlockItem extends PanelBlockItem {
             if (!level.isClientSide) {
                 context.getItemInHand().remove(LoconauticsRegistries.VALVE_TARGET.get());
                 shifter.displayClientMessage(Component.translatable("gui.loconautics.valve.cleared"), true);
+            }
+            return InteractionResult.SUCCESS;
+        }
+
+        if (state.getBlock() instanceof SafetyValveBlock || state.getBlock() instanceof SteamTakeoffBlock
+                || state.getBlock() instanceof SmallEngineBlock) {
+            if (!level.isClientSide) {
+                context.getItemInHand().set(LoconauticsRegistries.VALVE_TARGET.get(), pos);
+                Player player = context.getPlayer();
+                if (player != null) {
+                    player.displayClientMessage(Component.translatable("gui.loconautics.valve.bound"), true);
+                }
             }
             return InteractionResult.SUCCESS;
         }

@@ -1,8 +1,10 @@
 package com.lycoris.loconautics.common.train;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.content.schedule.SableScheduleRuntime;
 import com.lycoris.loconautics.common.turntable.TurntableRegistry;
 import com.lycoris.loconautics.compat.computercraft.CcEvents;
+import com.lycoris.loconautics.foundation.LogFormat;
 import com.lycoris.loconautics.foundation.LoconauticsLang;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
@@ -88,6 +90,8 @@ public class TrainStatusChat {
             runtime.announcer().line(LoconauticsLang.translate("train.status.maneuver_dead_end", destinationName)
                     .component().withStyle(st -> st.withColor(BAD)));
         }
+        LoconauticsConstants.LOGGER.info("[maneuver] {} dead end to \"{}\"", LogFormat.shortId(train.id()),
+                destinationName);
     }
     public static Vector3d bodyPosition(SableTrain train) {
         ServerSubLevelContainer container = SubLevelContainer.getContainer(train.level());
@@ -265,6 +269,10 @@ public class TrainStatusChat {
         }
         display(train, "end_of_track", false);
         state(train).track = true;
+    }
+
+    public static void tooLopsided(SableTrain train) {
+        display(train, "too_lopsided", false);
     }
 
     public static void crash(SableTrain train) {

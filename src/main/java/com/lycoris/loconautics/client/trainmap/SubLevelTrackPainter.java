@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.client.trainmap;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.sable.TrackHostFramesClient;
 import com.lycoris.loconautics.trainphysics.rail.RailSeams;
 import com.simibubi.create.CreateClient;
@@ -48,6 +49,7 @@ public final class SubLevelTrackPainter {
     private SubLevelTrackPainter() {
     }
 
+    // true when a body that carries track moved, turned, loaded or unloaded since the last paint
     public static boolean needsRedraw() {
         if (TRACKED.isEmpty() && TrackHostFramesClient.frames().isEmpty()) {
             return false;
@@ -108,6 +110,8 @@ public final class SubLevelTrackPainter {
         }
         lastSignature = signature();
         draw(map, pixels);
+        LoconauticsConstants.LOGGER.info("[turntableghost] map paint {} pixels, {} tracked cells, {} ghost plates",
+                pixels.size(), TRACKED.size(), TrackHostFramesClient.frames().size());
     }
 
     private static void noteCell(LongOpenHashSet cells, TrackNodeLocation location) {
@@ -219,6 +223,7 @@ public final class SubLevelTrackPainter {
         return Mth.clamp(32 + Mth.floor((y - minY) / 4.0), 0, 255);
     }
 
+    // creates main color for the theme at another hue
     private static int shifted(CClient.TrainMapTheme theme) {
         int main = 0xFF_7C57D4;
         if (theme == CClient.TrainMapTheme.GREY) {

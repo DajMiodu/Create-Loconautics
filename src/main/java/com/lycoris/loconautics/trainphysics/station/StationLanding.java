@@ -4,6 +4,7 @@ import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.common.sable.SubLevelData;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
+import com.lycoris.loconautics.trainphysics.debug.GhostConsistTrace;
 import com.lycoris.loconautics.trainphysics.drive.SableTrainDriver;
 import com.lycoris.loconautics.trainphysics.drive.TrainBrakes;
 import com.lycoris.loconautics.trainphysics.drive.TrainPropulsion;
@@ -115,6 +116,7 @@ public final class StationLanding {
         snapConsist(train, ConsistNose.of(train), signedGap, keepReach);
     }
 
+    // the gap is signed along the rail of the end that lands, which is the trailing one when backing in
     public static void snapConsist(SableTrain train, ConsistNose.Nose end, double signedGap, double keepReach) {
         if (Math.abs(signedGap) <= keepReach) {
             signedGap = 0.0;
@@ -172,6 +174,7 @@ public final class StationLanding {
     }
 
     public static void applySnap(SableTrain train, double signedGap) {
+        GhostConsistTrace.noteSnap(train, signedGap);
         advanceInSteps(train.car(), signedGap);
         killMotion(train);
         train.setSpeed(0.0);

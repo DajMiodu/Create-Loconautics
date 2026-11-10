@@ -12,6 +12,7 @@ import com.lycoris.loconautics.network.packets.attachment.GrabUndockPacket;
 import com.lycoris.loconautics.network.packets.attachment.HoseAttachPacket;
 import com.lycoris.loconautics.network.packets.attachment.HoseSprayColorSyncPacket;
 import com.lycoris.loconautics.network.packets.attachment.SteelCableBreakPacket;
+import com.lycoris.loconautics.network.packets.attachment.StrandHookGrabPacket;
 import com.lycoris.loconautics.network.packets.attachment.StrandPointsPacket;
 import com.lycoris.loconautics.network.packets.schedule.ConductorHatPacket;
 import com.lycoris.loconautics.network.packets.schedule.MapColorRequestPacket;
@@ -95,6 +96,9 @@ public final class LoconauticsNetwork {
         r.playToServer(com.lycoris.loconautics.network.packets.controls.LeverSetPacket.TYPE,
                 com.lycoris.loconautics.network.packets.controls.LeverSetPacket.STREAM_CODEC,
                 com.lycoris.loconautics.network.packets.controls.LeverSetPacket::handle);
+        r.playToServer(com.lycoris.loconautics.network.packets.pullbrake.PullBrakeSetPacket.TYPE,
+                com.lycoris.loconautics.network.packets.pullbrake.PullBrakeSetPacket.STREAM_CODEC,
+                com.lycoris.loconautics.network.packets.pullbrake.PullBrakeSetPacket::handle);
         r.playToServer(AnalogControllerInputPacket.TYPE, AnalogControllerInputPacket.STREAM_CODEC,
                 AnalogControllerInputPacket::handle);
         r.playToServer(AnalogControllerScrollPacket.TYPE, AnalogControllerScrollPacket.STREAM_CODEC,
@@ -126,10 +130,16 @@ public final class LoconauticsNetwork {
                 StationSetTrainColorPacket::handle);
         r.playToClient(SableTrainSyncPacket.TYPE, SableTrainSyncPacket.STREAM_CODEC,
                 SableTrainSyncPacket::handle);
+        r.playToClient(com.lycoris.loconautics.network.packets.train.SuspensionLeanPacket.TYPE,
+                com.lycoris.loconautics.network.packets.train.SuspensionLeanPacket.STREAM_CODEC,
+                com.lycoris.loconautics.network.packets.train.SuspensionLeanPacket::handle);
         r.playToClient(StationParkedSyncPacket.TYPE, StationParkedSyncPacket.STREAM_CODEC,
                 StationParkedSyncPacket::handle);
         r.playToClient(PortalCutPacket.TYPE, PortalCutPacket.STREAM_CODEC, PortalCutPacket::handle);
         r.playToClient(TrainHornPacket.TYPE, TrainHornPacket.STREAM_CODEC, TrainHornPacket::handle);
+        r.playToClient(com.lycoris.loconautics.network.packets.debug.DebugLinePacket.TYPE,
+                com.lycoris.loconautics.network.packets.debug.DebugLinePacket.STREAM_CODEC,
+                com.lycoris.loconautics.network.packets.debug.DebugLinePacket::handle);
 
         r.playToServer(HoseAttachPacket.TYPE, HoseAttachPacket.STREAM_CODEC, HoseAttachPacket::handle);
         r.playToServer(com.lycoris.loconautics.network.packets.attachment.HoseLinkPacket.TYPE,
@@ -146,6 +156,8 @@ public final class LoconauticsNetwork {
         r.playToClient(com.lycoris.loconautics.network.packets.attachment.HoseFlowPacket.TYPE,
                 com.lycoris.loconautics.network.packets.attachment.HoseFlowPacket.STREAM_CODEC,
                 com.lycoris.loconautics.network.packets.attachment.HoseFlowPacket::handle);
+        r.playToServer(StrandHookGrabPacket.TYPE, StrandHookGrabPacket.STREAM_CODEC,
+                StrandHookGrabPacket::handle);
         r.playToServer(com.lycoris.loconautics.network.packets.attachment.StrandKnotGrabPacket.TYPE,
                 com.lycoris.loconautics.network.packets.attachment.StrandKnotGrabPacket.STREAM_CODEC,
                 com.lycoris.loconautics.network.packets.attachment.StrandKnotGrabPacket::handle);

@@ -11,13 +11,17 @@ public final class IndustrialClientSetup {
     private IndustrialClientSetup() {}
 
     public static void register() {
-        for (Block block : new Block[]{IndustrialBlocks.GLASS_PIPE.get()}) {
+        for (Block block : new Block[]{IndustrialBlocks.VALVE.get(), IndustrialBlocks.SMART_PIPE.get(),
+                IndustrialBlocks.GLASS_PIPE.get()}) {
             ItemBlockRenderTypes.setRenderLayer(block, RenderType.cutoutMipped());
         }
 
-        for (Block block : new Block[]{IndustrialBlocks.PIPE.get(), IndustrialBlocks.GLASS_PIPE.get()}) {
+        for (Block block : new Block[]{IndustrialBlocks.PIPE.get(), IndustrialBlocks.PUMP.get(),
+                IndustrialBlocks.SMART_PIPE.get(), IndustrialBlocks.VALVE.get(), IndustrialBlocks.GLASS_PIPE.get()}) {
             swap(block, IndustrialPipeAttachmentModel::withAO);
         }
+
+        swap(IndustrialBlocks.TANK.get(), IndustrialTankModel::new);
     }
 
     private static void swap(Block block,

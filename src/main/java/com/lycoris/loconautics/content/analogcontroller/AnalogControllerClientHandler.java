@@ -62,6 +62,7 @@ public class AnalogControllerClientHandler {
         packetCooldown = 0;
     }
 
+    // no packets here, the server already dropped the driver when the world went away
     public static void clear() {
         mountedPos = null;
         currentlyPressed.clear();

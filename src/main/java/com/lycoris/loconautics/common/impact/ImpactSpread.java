@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.common.impact;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.common.sable.SubLevelData;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
@@ -30,6 +31,9 @@ public final class ImpactSpread {
             return;
         }
         UUID startId = struck.car().subLevelId();
+        LoconauticsConstants.LOGGER.info("[issue283] spread from {} dv={} neighbours={} skipStruck={}", startId,
+                String.format(java.util.Locale.ROOT, "%.2f", deltaV.length()), TrainConsist.neighbours(level, startId),
+                skipStruck);
         Set<UUID> visited = new HashSet<>();
         Deque<Hop> queue = new ArrayDeque<>();
         queue.add(new Hop(startId, 1.0));
@@ -57,9 +61,13 @@ public final class ImpactSpread {
         SableTrain car = SableTrainRegistry.bySubLevel(id);
         ServerSubLevel sub = SubLevelData.resolve(level, id);
         if (car == null || sub == null || car.isGhost() || car.car() == null) {
+            LoconauticsConstants.LOGGER.info("[issue283] car {} skipped train={} sub={} ghost={}", id, car != null,
+                    sub != null, car != null && car.isGhost());
             return;
         }
         double change = deltaV.length();
+        LoconauticsConstants.LOGGER.info("[issue283] car {} takes {} b/s derails={}", id,
+                String.format(java.util.Locale.ROOT, "%.2f", change), TrainImpacts.derails(change));
         if (TrainImpacts.derails(change)) {
             TrainImpacts.throwOff(car, sub, deltaV);
         } else if (car.isDerailed() || car.isPhysics()) {

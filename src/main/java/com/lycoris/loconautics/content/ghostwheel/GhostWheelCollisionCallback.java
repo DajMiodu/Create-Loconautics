@@ -47,6 +47,7 @@ public final class GhostWheelCollisionCallback implements BlockSubLevelCollision
         if (isOwnCar(level, blockPos, otherBlockPos)) {
             return new CollisionResult(new Vector3d(), true);
         }
+        // the rail glue owns a railed car, so its plate ignores every world block, track and ground alike
         if (subLevelIdAt(level, otherBlockPos) == null) {
             java.util.UUID padSub = subLevelIdAt(level, blockPos);
             if (padSub != null && com.lycoris.loconautics.trainphysics.wheels.GhostWheelBodies.isRailedPlate(padSub)) {

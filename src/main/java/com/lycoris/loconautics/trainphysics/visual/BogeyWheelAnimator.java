@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.visual;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.state.SableTrainClientRegistry;
 import com.lycoris.loconautics.trainphysics.wheels.WheelSlip;
 import com.simibubi.create.content.trains.bogey.AbstractBogeyBlock;
@@ -112,10 +113,15 @@ public final class BogeyWheelAnimator {
             }
             double rolled = marker.speed();
             double fraction = movedFraction(sub, be, rolled);
+            double raw = rolled;
             rolled *= fraction;
             double turn = driven != null ? driven : rolled;
             if (driven != null && marker.slippingBogeys().contains(local)) {
                 turn *= WheelSlip.bite(sub.getLevel().getGameTime(), local);
+            }
+            if (Math.abs(raw) < 0.05 && sub.getLevel().getGameTime() % 10 == 0) {
+                LoconauticsConstants.LOGGER.info("[wheelslow] bogey={} speed={} fraction={} rolled={} driven={} turn={}",
+                        local, raw, fraction, rolled, driven, turn);
             }
             if (driven == null && !marker.slippingBogeys().isEmpty()) {
                 be.animate(0.0f);
@@ -169,6 +175,7 @@ public final class BogeyWheelAnimator {
 
         Vector3d a = axis == Direction.Axis.X ? new Vector3d(1, 0, 0) : new Vector3d(0, 0, 1);
         sub.logicalPose().transformNormal(a, a);
+        // the model faces the chord forward, which is minus the axis when the bogey was last railed backwards
         double along = vel.dot(a) * (BogeyRenderFrame.facesBackwards(be) ? -1.0 : 1.0);
 
         double velPerTick;

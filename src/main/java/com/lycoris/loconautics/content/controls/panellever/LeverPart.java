@@ -1,7 +1,7 @@
 package com.lycoris.loconautics.content.controls.panellever;
 
 import com.lycoris.loconautics.content.controls.panel.PanelFrequencyMenu;
-import com.lycoris.loconautics.content.controls.ControlsBlocks;
+import com.lycoris.loconautics.content.boiler.BoilerBlocks;
 import com.lycoris.loconautics.content.controls.panel.PanelBlockEntity;
 import com.lycoris.loconautics.content.controls.panel.PanelPart;
 import com.lycoris.loconautics.content.controls.panel.PanelPartNbt;
@@ -76,7 +76,7 @@ public record LeverPart(int power, @Nullable BlockPos link, int body, int knobCo
 
     @Override
     public ItemStack asStack() {
-        ItemStack stack = new ItemStack(ControlsBlocks.GAUGE_LEVER_ITEM.get());
+        ItemStack stack = new ItemStack(BoilerBlocks.GAUGE_LEVER_ITEM.get());
         if (link != null) stack.set(LoconauticsRegistries.LEVER_TARGET.get(), link);
         return stack;
     }

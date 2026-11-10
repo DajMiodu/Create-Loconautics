@@ -1,0 +1,12 @@
+{
+  "multipart": [
+    { "apply": { "model": "loconautics:block/boiler/firebox/shell" } },
+    { "apply": { "model": "loconautics:block/boiler/firebox/core" } },
+    { "apply": { "model": "loconautics:block/boiler/firebox/fuel" } },
+
+    { "when": { "extension": "false", "facing": "north" }, "apply": { "model": "loconautics:block/boiler/firebox/door" } },
+    { "when": { "extension": "false", "facing": "east"  }, "apply": { "model": "loconautics:block/boiler/firebox/door", "y": 90 } },
+    { "when": { "extension": "false", "facing": "south" }, "apply": { "model": "loconautics:block/boiler/firebox/door", "y": 180 } },
+    { "when": { "extension": "false", "facing": "west"  }, "apply": { "model": "loconautics:block/boiler/firebox/door", "y": 270 } }
+  ]
+}

@@ -59,6 +59,7 @@ final class ConsistTurns {
         return memory;
     }
 
+    // several drivers at once, so every car must pick the same one
     @Nullable
     static SableTrain governing(SableTrain train) {
         List<SableTrain> drivers = new ArrayList<>();

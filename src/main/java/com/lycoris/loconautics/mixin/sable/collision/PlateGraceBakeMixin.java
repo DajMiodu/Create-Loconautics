@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(targets = "dev.ryanhcode.sable.physics.impl.rapier.collider.RapierVoxelColliderBakery", remap = false)
 public abstract class PlateGraceBakeMixin {
 
+    // every state gets the grace wrapper, it only acts when the contact belongs to a turntable plate
     @WrapOperation(method = "buildPhysicsDataForBlock", at = @At(value = "INVOKE",
             target = "Ldev/ryanhcode/sable/api/block/BlockWithSubLevelCollisionCallback;sable$getCallback(Lnet/minecraft/world/level/block/state/BlockState;)Ldev/ryanhcode/sable/api/physics/callback/BlockSubLevelCollisionCallback;"))
     private BlockSubLevelCollisionCallback loconautics$wrapPlateGrace(BlockState state,

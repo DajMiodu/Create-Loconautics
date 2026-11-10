@@ -2,6 +2,8 @@ package com.lycoris.loconautics.trainphysics.drive;
 
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.SableTrain.Car;
+import com.lycoris.loconautics.common.sable.SubLevelData;
+import com.lycoris.loconautics.foundation.debug.DebugLines;
 import com.lycoris.loconautics.trainphysics.rail.RailCarriage;
 import com.lycoris.loconautics.trainphysics.rail.SableRailHop;
 import com.lycoris.loconautics.trainphysics.rail.TurnLog;
@@ -16,14 +18,18 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 
 public final class TrainRailAdvance {
 
     private static final java.util.Map<UUID, TurnLog> TURN_LOGS = new java.util.HashMap<>();
     private static final java.util.Map<UUID, Integer> TURN_LEAD = new java.util.HashMap<>();
 
+    // creates train.tick maxstress, kept per car because advancerail runs per substep and the game tick check reads the worst of them
     private static final java.util.Map<UUID, Stress> MAX_STRESS = new java.util.HashMap<>();
 
     record Stress(double amount, BlockPos bogey) {}
@@ -127,6 +133,7 @@ public final class TrainRailAdvance {
             car.carriage().setPortal(leadBogey.rail().portal());
             car.carriage().recenterOn(leadBogey.rail().leading(), leadBogey.rail().graph());
         } else {
+            // the span reseats on its own edge at a seam, so it gets its own sign, never the lead bogeys
             double spanSign = travelSign(car.carriage(), bodyFwd);
             car.carriage().unstick();
             car.carriage().setTravelIntent(ds * spanSign);
@@ -136,6 +143,7 @@ public final class TrainRailAdvance {
 
         boolean docked = DockGroups.grouped(car);
         for (int i = leadIdx + toTail; i >= 0 && i < n; i += toTail) {
+            // a rigid group is measured against the lead bogey, neighbour gaps would let the rail polygon shorten the body on a curve
             SableTrain.Bogey ahead = docked ? bogeys.get(leadIdx) : bogeys.get(i - toTail);
             SableTrain.Bogey bogey = bogeys.get(i);
             bogey.rail().unstick();
@@ -187,6 +195,7 @@ public final class TrainRailAdvance {
         }
     }
 
+    // a rail seated by a per bogey rerail is never advanced while a bogey is loose, so its sign would stay the default
     public static void seedTravelSign(RailCarriage rail, Vec3 bodyFwd) {
         travelSign(rail, bodyFwd);
     }
@@ -306,6 +315,7 @@ public final class TrainRailAdvance {
         if (car.bogeys().isEmpty()) {
             return car.carriage().edgesValid();
         }
+        // the span is rebound too but never votes, only a bogey can lose the rail
         if (car.carriage() != null) {
             car.carriage().edgesValid();
         }
@@ -340,6 +350,7 @@ public final class TrainRailAdvance {
         return car.bogeys().isEmpty() && car.carriage().reachedEnd() && car.carriage().anyPointFar();
     }
 
+    // a point parked at a portal plane looks exactly like a railhead, and it must never be hopped or coasted off
     public static boolean anyPendingPortal(Car car) {
         if (car.carriage().pendingPortal() != null) {
             return true;
@@ -352,6 +363,7 @@ public final class TrainRailAdvance {
         return false;
     }
 
+    // the car span has no wheels, so it never gets a vote on running out of track, only a bogey can
     public static boolean anyReachedEnd(Car car) {
         if (car.bogeys().isEmpty()) {
             return car.carriage().reachedEnd();
@@ -405,6 +417,60 @@ public final class TrainRailAdvance {
         return train.speed() < 0.0 ? tan.scale(-1.0) : tan;
     }
 
+    private static final int HOP_REPORT_TTL = 200;
+    private static final int HOP_CAN = 0x00FF33;
+    private static final int HOP_CANNOT = 0xFF3030;
+    private static final int HOP_HEADING = 0x00CCFF;
+
+    public static List<String> hopReport(SableTrain train) {
+        List<String> out = new ArrayList<>();
+        Car car = train.car();
+        ServerLevel level = train.level();
+        ServerSubLevel sub = level == null ? null : SubLevelData.resolve(level, car.subLevelId());
+        if (sub == null) {
+            out.add("the car's sub level is not loaded, nothing to probe");
+            return out;
+        }
+        Vec3 up = SableTrainDriver.bodyUpWorld(sub);
+        if (car.bogeys().isEmpty()) {
+            Vector3d c = car.carriage().center();
+            reportFollower(out, level, sub, car, train, "span", car.carriage(),
+                    c == null ? null : new Vec3(c.x, c.y, c.z), up);
+            return out;
+        }
+        for (int i = 0; i < car.bogeys().size(); i++) {
+            SableTrain.Bogey b = car.bogeys().get(i);
+            reportFollower(out, level, sub, car, train, "b" + i, b.rail(), wheelProbe(sub, b), up);
+        }
+        return out;
+    }
+
+    private static String xyz(Vec3 v) {
+        return v == null ? "null" : String.format("(%.2f, %.2f, %.2f)", v.x, v.y, v.z);
+    }
+
+    private static void reportFollower(List<String> out, ServerLevel level, ServerSubLevel sub, Car car,
+                                       SableTrain train, String name, RailCarriage rail, Vec3 probe, Vec3 up) {
+        if (probe == null) {
+            out.add(name + " has no rail position");
+            return;
+        }
+        Vec3 outward = outwardOf(rail, sub, car, train);
+        SableRailHop.Probe found = rail.railAheadProbe(level, sub, probe, outward, up, true);
+        DebugLines.arrow(level, "hopwhere_dir_" + name, probe, probe.add(outward.scale(2.0)),
+                HOP_HEADING, DebugLines.DEFAULT_WIDTH, HOP_REPORT_TTL);
+        if (found != null && found.hit() != null) {
+            DebugLines.column(level, "hopwhere_" + name, found.hit().railPoint(), HOP_CAN, HOP_REPORT_TTL);
+            out.add(String.format("%s CAN hop %.2f ahead onto %s at %s", name, found.step(),
+                    found.hit().sub() == null ? "the world" : shortId(found.hit().sub()),
+                    xyz(found.hit().railPoint())));
+            return;
+        }
+        DebugLines.column(level, "hopwhere_" + name, probe, HOP_CANNOT, HOP_REPORT_TTL);
+        out.add(String.format("%s CANNOT hop from %s, %s", name, xyz(probe),
+                found == null ? "the probe had no heading" : found.detail()));
+    }
+
     private static boolean weldFollower(ServerSubLevel bodySub, RailCarriage rail, String name, Vec3 probe,
                                         Vec3 sweep, Vec3 up) {
         ServerLevel level = bodySub.getLevel();
@@ -418,6 +484,7 @@ public final class TrainRailAdvance {
         return true;
     }
 
+    // rail the car could still roll onto without hopping anywhere, which the hop scan never reports
     static boolean ownGraphRailAhead(Car car, ServerSubLevel sub, SableTrain train) {
         ServerLevel level = sub.getLevel();
         if (car.bogeys().isEmpty()) {

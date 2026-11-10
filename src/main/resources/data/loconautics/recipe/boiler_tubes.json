@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "AAA",
+    " A "
+  ],
+  "key": {
+    "A": {
+      "item": "loconautics:industrial_pipe"
+    }
+  },
+  "result": {
+    "id": "loconautics:boiler_tubes",
+    "count": 1
+  }
+}

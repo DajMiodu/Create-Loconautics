@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.drive;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.content.bearingaxle.BearingAxleBlockEntity;
 import com.lycoris.loconautics.content.bearingaxle.BearingAxleValidity;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 
 public final class ConsistPower {
 
@@ -44,6 +46,11 @@ public final class ConsistPower {
 
         public boolean anyPowered() {
             return forwardCount > 0 || reverseCount > 0;
+        }
+
+        // the same test manualdrive gets as engineturning, an axle with rpm after gearing and stress
+        public boolean engineTurning() {
+            return axles.stream().anyMatch(axle -> axle.strength() > 0.0);
         }
 
         public int groupSize(int group) {
@@ -67,10 +74,12 @@ public final class ConsistPower {
 
     private static final Map<UUID, Result> BY_SUB_LEVEL = new HashMap<>();
     private static final Map<UUID, Double> MASS_CACHE = new HashMap<>();
+    private static final Map<Long, Boolean> OVERSTRESSED_SEEN = new HashMap<>();
     private static final Map<UUID, Double> TARGETS = new HashMap<>();
     private static final Set<UUID> MANUAL = new HashSet<>();
     private static final Map<UUID, Double> PEAK_TOP = new HashMap<>();
     private static final Map<UUID, Double> DRIVER_BOOST = new HashMap<>();
+    private static final Map<UUID, String> LAST_PULL = new HashMap<>();
 
     private ConsistPower() {
     }
@@ -128,6 +137,7 @@ public final class ConsistPower {
         MANUAL.clear();
         PEAK_TOP.clear();
         DRIVER_BOOST.clear();
+        LAST_PULL.clear();
         BearingAxleValidity.clearCache();
     }
 
@@ -274,6 +284,7 @@ public final class ConsistPower {
             target = pull.target();
             boost = ManualDrive.accelerationScale(pull.pushers());
             MANUAL.addAll(members);
+            tracePull(members, drivers.size(), pull, boost);
         }
         result = result.withDrive(target, gearedTop);
 
@@ -298,6 +309,16 @@ public final class ConsistPower {
                 member.setSlipFactor(slip);
             }
         }
+    }
+
+    private static void tracePull(List<UUID> members, int drivers, ManualDrive.Pull pull, double boost) {
+        UUID key = members.stream().min(UUID::compareTo).orElse(null);
+        String line = drivers + " drivers, ahead " + pull.ahead() + " back " + pull.back() + " boost " + boost;
+        if (drivers < 2 || key == null || line.equals(LAST_PULL.put(key, line))) {
+            return;
+        }
+        LoconauticsConstants.LOGGER.info("[multidrive] consist {} {} target {}", shortId(key), line,
+                String.format("%.3f", pull.target()));
     }
 
     private static AxleGearing.Gearing[] gearing(List<BearingAxleBlockEntity> entities, List<Axle> axles,
@@ -362,6 +383,12 @@ public final class ConsistPower {
             return null;
         }
         int frontSign = alignment < 0.0 ? -1 : 1;
+        if (axle.isOverStressed() != OVERSTRESSED_SEEN.getOrDefault(axle.getBlockPos().asLong(), false)) {
+            OVERSTRESSED_SEEN.put(axle.getBlockPos().asLong(), axle.isOverStressed());
+            LoconauticsConstants.LOGGER.info("[slipdbg] axle {} overstressed {} speed {} stress {} capacity {}",
+                    axle.getBlockPos().toShortString(), axle.isOverStressed(), axle.getSpeed(),
+                    axle.networkStress(), axle.networkCapacity());
+        }
         double rpm = axle.isOverStressed() ? 0.0 : axle.getSpeed();
         double strength = Math.abs(rpm);
         int facing = frontSign * flip;

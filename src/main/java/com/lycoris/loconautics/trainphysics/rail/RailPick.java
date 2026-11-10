@@ -39,6 +39,7 @@ public record RailPick(BlockPos pos, boolean againstCurve, @Nullable BezierTrack
         return other != null && pos.equals(other.pos) && Objects.equals(bezier, other.bezier);
     }
 
+    // a curve has no block under its middle, so it is picked by segment
     @Nullable
     public TrackGraphLocation graphLocation(Level level, ITrackBlock track, BlockState state, Vec3 look) {
         if (bezier != null) {

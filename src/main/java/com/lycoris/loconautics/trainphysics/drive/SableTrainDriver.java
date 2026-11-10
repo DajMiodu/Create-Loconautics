@@ -2,6 +2,9 @@ package com.lycoris.loconautics.trainphysics.drive;
 
 import com.lycoris.loconautics.common.impact.TrainKnockback;
 import com.lycoris.loconautics.common.train.TrainStatusChat;
+import com.lycoris.loconautics.trainphysics.debug.GhostConsistTrace;
+import com.lycoris.loconautics.trainphysics.debug.force.ForceSource;
+import com.lycoris.loconautics.trainphysics.debug.force.ForceTrace;
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlockEntity;
@@ -10,8 +13,11 @@ import com.lycoris.loconautics.content.schedule.SableScheduleRuntime;
 import com.lycoris.loconautics.content.schedule.ScheduleReadiness;
 import com.lycoris.loconautics.network.packets.train.SableTrainSyncPacket;
 import com.lycoris.loconautics.trainphysics.PoseTweak;
+import com.lycoris.loconautics.trainphysics.glue.CarriageRoll;
 import com.lycoris.loconautics.trainphysics.glue.RailGlue;
 import com.lycoris.loconautics.trainphysics.glue.RailSnap;
+import com.lycoris.loconautics.trainphysics.glue.RollFrame;
+import com.lycoris.loconautics.trainphysics.glue.WheelSupports;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.SableTrain.Car;
 import com.lycoris.loconautics.trainphysics.sublevel.SubLevelContacts;
@@ -37,6 +43,7 @@ import dev.ryanhcode.sable.platform.SableEventPlatform;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.system.SubLevelPhysicsSystem;
 import net.minecraft.core.BlockPos;
+import com.lycoris.loconautics.trainphysics.spawn.RerailBalance;
 import com.lycoris.loconautics.trainphysics.spawn.SubLevelMergeWatcher;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -70,13 +77,16 @@ public final class SableTrainDriver {
     static final double MAX_SUBSTEP_SLIDE = 2.0;
 
     static final java.util.Set<UUID> DEAD_END = new java.util.HashSet<>();
+    // block scan is pricey and a buffered car stays ended anyway, so every few substeps is enough
     static final java.util.Map<UUID, Integer> HOP_SCAN = new java.util.HashMap<>();
     static final int HOP_SCAN_STEPS = 5;
-    // a scan onto a sub level rail create has not meshed yet misses once and hits on retry, and the derail check reads deadend in between, so one miss must not condemn the car
+    // a scan that lands on a sub level rail create has not meshed yet misses once and hits on the retry, and the
+    // derail check reads deadend on the game tick in between, so one miss must not be enough to condemn the car
     static final java.util.Map<UUID, Integer> DEAD_END_MISS = new java.util.HashMap<>();
     static final int DEAD_END_MISSES = 2;
 
     public static void onPhysicsTick(SubLevelPhysicsSystem system, double timeStep) {
+        com.lycoris.loconautics.trainphysics.coupling.CouplerTwist.collect(system.getLevel());
         forEachCar(system, (pipeline, container, sub, train, car) -> {
             if (train.isDerailed() || train.isPhysics()) {
                 RailGlue.releaseConstraint(sub.getUniqueId());
@@ -109,10 +119,12 @@ public final class SableTrainDriver {
                 ExternalForceDerail.sample(sub, group, train, timeStep);
                 driveConstraintGlued(pipeline, sub, group, timeStep, train);
             } else {
+                ExternalForceDerail.tracePinned(sub, train);
                 advancePinned(sub, group, train, timeStep);
                 pinCar(pipeline, sub, group, false, train);
             }
         });
+        com.lycoris.loconautics.trainphysics.coupling.CouplerTwist.solve(system, timeStep);
         com.lycoris.loconautics.content.knuckle.KnuckleRailCoupler.solve(system, timeStep);
     }
 
@@ -195,12 +207,14 @@ public final class SableTrainDriver {
         slide = Math.max(-MAX_SUBSTEP_SLIDE, Math.min(MAX_SUBSTEP_SLIDE, slide));
         TrainRailAdvance.advanceRail(car, slide, TrainRailAdvance.loneFacing(sub, car));
         TrainRailAdvance.animateBogeyWheels(car, sub, slide);
+        GhostConsistTrace.noteSubstep(train, sub, "pinned", dt, slide);
     }
 
     public static boolean useForceGlue(Car car) {
         return car.localLead() != null && car.localTrail() != null;
     }
 
+    // a body that just came back is welded nowhere and squared to nothing, the constraint only nudges so it gets teleported instead
     public static boolean useForceGlue(SableTrain train, Car car) {
         return !train.isPoseSettling() && useForceGlue(car);
     }
@@ -255,6 +269,7 @@ public final class SableTrainDriver {
         }
         Vector3dc localAnchor = RailSnap.glueAnchorLocal(bodySub, car);
 
+        // how far the car rolled along the rail, never how far it moved through the world. on a rail that belongs
         ServerSubLevel slideTrackSub = TrainRailAdvance.leadingActiveSub(car);
         readBackSpeed(train, bodySub, slideTrackSub, railPoint, tangent, dt);
         double slide = train.speed() * 20.0 * dt;
@@ -262,6 +277,7 @@ public final class SableTrainDriver {
         TrainRailAdvance.advanceRail(car, slide, TrainRailAdvance.loneFacing(bodySub, car));
         TrainRailAdvance.animateBogeyWheels(car, bodySub, slide);
         RailSnap.noteSlide(bodySub.getUniqueId(), slide);
+        GhostConsistTrace.noteSubstep(train, bodySub, "glued", dt, slide);
 
         updateDeadEnd(bodySub, car, train);
 
@@ -282,23 +298,75 @@ public final class SableTrainDriver {
         q = RailGlue.limitGlueRotation(bodySub.getUniqueId(), q);
 
         ServerSubLevel trackSub = TrainRailAdvance.leadingActiveSub(car);
-        if (!RailGlue.glueBody(pipeline, bodySub, localAnchor, railPoint, tangent, q,
+        UUID bodyId = bodySub.getUniqueId();
+        String lock = CarriageRoll.lockReason(bodySub, car, DockGroups.hasFollowers(bodyId), train);
+        RollFrame rollFrame = null;
+        PoseTweak.Applied seated = null;
+        CarriageRoll.Ready ready = null;
+        if (lock == null) {
+            rollFrame = RollFrame.of(bodySub, car, ref);
+            seated = rollFrame == null ? null : rollFrame.seated(bodySub, train, false);
+            ready = CarriageRoll.rollReady(bodySub, car, rollFrame, seated);
+            lock = ready.reason();
+        }
+        if (lock == null) {
+            RollOutcome outcome = glueRolling(pipeline, bodySub, car, train, rollFrame, ready.prepared(), seated, q,
+                    trackSub, dt);
+            if (outcome == RollOutcome.DERAILED) {
+                CarriageRoll.noteLock(bodyId, "released");
+                return;
+            }
+            if (outcome == RollOutcome.RELEASED) {
+                lock = "released";
+            }
+        } else if (!RailGlue.glueBody(pipeline, bodySub, localAnchor, railPoint, tangent, q,
                 RailGlue.GlueMode.RIGID, trackSub)) {
             train.setDerailed(true);
+            CarriageRoll.noteLock(bodyId, "released");
             return;
         }
+        CarriageRoll.noteLock(bodyId, lock);
 
         if (train.isPowered() || train.servoBrake()) {
             applyTangentialDrive(pipeline, bodySub, trackSub, railPoint, tangent, dt, train);
         }
 
         double resistance = train.isBraked() ? train.brakeScale() : TrainBrakes.rollingScale(train, bodySub);
-        TrainBrakes.applyResistance(bodySub, trackSub, railPoint, tangent, dt, resistance);
-        TrainBrakes.relieveSlopeGravity(bodySub, tangent, dt);
+        TrainBrakes.applyResistance(bodySub, trackSub, railPoint, tangent, dt, resistance,
+                train.isBraked() ? ForceSource.BRAKE : ForceSource.ROLLING);
+        TrainBrakes.relieveSlopeGravity(bodySub, railPoint, tangent, dt);
+    }
+
+    private enum RollOutcome { ROLLING, RELEASED, DERAILED }
+
+    private static RollOutcome glueRolling(PhysicsPipeline pipeline, ServerSubLevel bodySub, Car car, SableTrain train,
+                                           RollFrame frame, WheelSupports.Prepared prepared,
+                                           PoseTweak.Applied seated, Quaterniond limited, ServerSubLevel trackSub,
+                                           double dt) {
+        CarriageRoll.Roll roll = CarriageRoll.of(bodySub.getUniqueId());
+        double phi = CarriageRoll.twist(seated.orientation(), bodySub.logicalPose().orientation(), frame.forward0);
+        int side = CarriageRoll.updateSide(roll, phi);
+        int pivot = side != 0 && Math.abs(phi) > CarriageRoll.PHI_EPS ? side : 0;
+        Vector3d pivotLocal = frame.pointLocal(pivot);
+        Vector3d pivotRail = RollFrame.seatedPoint(bodySub, seated, pivotLocal);
+        if (!RailGlue.glueBody(pipeline, bodySub, pivotLocal, pivotRail, frame.tangent, frame.up, limited,
+                ExternalForceDerail.holdDownForStaff(bodySub) ? RailGlue.GlueMode.ROLLING_HELD : RailGlue.GlueMode.ROLLING,
+                trackSub)) {
+            train.setDerailed(true);
+            return RollOutcome.DERAILED;
+        }
+        if (RailGlue.glueModeOf(bodySub).equals("none")) {
+            return RollOutcome.RELEASED;
+        }
+        WheelSupports.drive(pipeline, bodySub, car, train, frame, prepared, seated, dt);
+        CarriageRoll.markRolling(bodySub.getUniqueId());
+        return RollOutcome.ROLLING;
     }
 
     static final double SPEED_GAIN_LIMIT = 12.0;
 
+    static final java.util.Map<UUID, Long> ISSUE297_LAST = new java.util.HashMap<>();
+    static final java.util.Map<UUID, Long> ISSUE295_LAST = new java.util.HashMap<>();
 
 
     static void readBackSpeed(SableTrain train, ServerSubLevel bodySub, ServerSubLevel trackSub,
@@ -311,6 +379,19 @@ public final class SableTrainDriver {
         double measured = TrackHostMotion.relativeAlongTrack(
                 bodySub.getLevel(), trackSub, railPoint, vel, tangent) / 20.0;
         double previous = train.speed();
+        if (Math.abs(measured) * 20.0 > 3.0 && Math.abs(previous) * 20.0 < 0.5) {
+            long now = bodySub.getLevel().getGameTime();
+            Long last = ISSUE297_LAST.get(bodySub.getUniqueId());
+            if (last == null || now - last >= 20L) {
+                ISSUE297_LAST.put(bodySub.getUniqueId(), now);
+                LoconauticsConstants.LOGGER.info(
+                        "[issue297] car={} readback {} b/s along rail while train speed {} b/s, vel={} mode={} settling={} offTrack={} derailed={} staffHeld={} mass={}",
+                        shortId(train.id()), f(measured * 20.0), f(previous * 20.0), vel,
+                        RailGlue.glueModeOf(bodySub), train.isPoseSettling(), train.hasOffTrackBogey(), train.isDerailed(),
+                        ExternalForceDerail.staffHolds(bodySub), bodySub.getMassTracker() == null ? "none"
+                                : f(bodySub.getMassTracker().getMass()));
+            }
+        }
         double from = measured * previous < 0.0 ? 0.0 : previous;
         double away = Math.abs(measured) - Math.abs(from);
         double gain = SPEED_GAIN_LIMIT * dt / 20.0
@@ -321,6 +402,15 @@ public final class SableTrainDriver {
         }
         double allowed = Math.signum(measured) * (Math.abs(from) + gain);
         train.setSpeed(allowed);
+        long jumpNow = bodySub.getLevel().getGameTime();
+        Long jumpLast = ISSUE295_LAST.get(bodySub.getUniqueId());
+        if (jumpLast == null || jumpNow - jumpLast >= 10L) {
+            ISSUE295_LAST.put(bodySub.getUniqueId(), jumpNow);
+            LoconauticsConstants.LOGGER.info(
+                    "[issue295] car={} speed gain capped, measured {} b/s allowed {} b/s previous {} b/s tangent={} vel={} offTrackBogeys={} derailed={} mode={}",
+                    shortId(train.id()), f(measured * 20.0), f(allowed * 20.0), f(previous * 20.0), tangent, vel,
+                    train.hasOffTrackBogey(), train.isDerailed(), RailGlue.glueModeOf(bodySub));
+        }
         MassData md = bodySub.getMassTracker();
         double mass = (md != null && !md.isInvalid()) ? md.getMass() : 1.0;
         Vector3d worldImpulse = new Vector3d(tangent).mul(mass * (allowed - measured) * 20.0);
@@ -329,6 +419,9 @@ public final class SableTrainDriver {
         ForceTotal forces = new ForceTotal();
         forces.applyLinearImpulse(localImpulse);
         handle.applyForcesAndReset(forces);
+        ForceTrace.impulse(bodySub, ForceSource.READBACK_CAP, worldImpulse, railPoint,
+                "body read back " + f(measured * 20.0) + " b/s, allowed " + f(allowed * 20.0)
+                        + ", gain limit " + f(SPEED_GAIN_LIMIT));
     }
 
     static Vec3 bodyUpWorld(ServerSubLevel sub) {
@@ -382,12 +475,14 @@ public final class SableTrainDriver {
             return;
         }
 
+        // braking cuts the axle, which reads as unpowered, so a commanded brake has to open this gate too
         if (train.isPowered() || train.servoBrake()) {
             applyTangentialDrive(pipeline, bodySub, pivotTrackSub, railPoint, tangent, dt, train);
         }
         TrainBrakes.applyResistance(bodySub, pivotTrackSub, railPoint, tangent, dt,
-                train.isBraked() ? train.brakeScale() : TrainBrakes.rollingScale(train, bodySub));
-        TrainBrakes.relieveSlopeGravity(bodySub, tangent, dt);
+                train.isBraked() ? train.brakeScale() : TrainBrakes.rollingScale(train, bodySub),
+                train.isBraked() ? ForceSource.BRAKE : ForceSource.ROLLING);
+        TrainBrakes.relieveSlopeGravity(bodySub, railPoint, tangent, dt);
 
         readBackSpeed(train, bodySub, pivotTrackSub, railPoint, tangent, dt);
     }
@@ -411,6 +506,7 @@ public final class SableTrainDriver {
         }
         MassData md = sub.getMassTracker();
         double carMass = (md != null && !md.isInvalid()) ? md.getMass() : 1.0;
+        double consistMass = ConsistPower.consistMass(train, carMass);
 
         Vector3d vel = handle.getLinearVelocity(new Vector3d());
         Vector3d relVel = new Vector3d(vel).sub(
@@ -421,7 +517,9 @@ public final class SableTrainDriver {
 
         boolean braking = TrainPropulsion.isBraking(vTarget, vCurrent);
         Vector3d offRail = new Vector3d(relVel).sub(new Vector3d(tangent).mul(relVel.dot(tangent)));
-        boolean falling = offRail.y < -1.0e-3 && !train.hasOffTrackBogey();
+        boolean falling = CarriageRoll.isRolling(sub.getUniqueId())
+                ? CarriageRoll.wheelsLifted(sub.getUniqueId())
+                : offRail.y < -1.0e-3 && !train.hasOffTrackBogey();
         if (!braking && falling) {
             return;
         }
@@ -437,9 +535,14 @@ public final class SableTrainDriver {
         forces.applyLinearImpulse(localImpulse);
         handle.applyForcesAndReset(forces);
         com.lycoris.loconautics.content.knuckle.KnuckleRailCoupler.noteExternal(sub.getUniqueId(), accel * dt);
+        TractionDiagram.record(sub, train, localImpulse, carMass, consistMass);
+        ForceTrace.impulse(sub, ForceSource.TRACTION, worldImpulse, railPoint,
+                (braking ? "servo braking" : "servo driving") + " target=" + f(vTarget) + " current=" + f(vCurrent)
+                        + " accel=" + f(accel) + " limit=" + f(limit) + " carMass=" + f(carMass));
         TrackHostMotion.pushHost(trackSub, railPoint, deliveredImpulse(sub, worldImpulse, tangent, carMass, vCurrent));
     }
 
+    // last substeps along rail speed relative to the rail, what the traction actually got out of the car
     static final java.util.Map<UUID, Double> LAST_TRACTION_V = new java.util.HashMap<>();
 
     private static Vector3dc deliveredImpulse(ServerSubLevel sub, Vector3d commanded, Vector3d tangent,
@@ -492,6 +595,9 @@ public final class SableTrainDriver {
         ForceTotal forces = new ForceTotal();
         forces.applyLinearImpulse(localImpulse);
         handle.applyForcesAndReset(forces);
+        ForceTrace.impulse(sub, ForceSource.DERAILED_DRIVE, worldImpulse,
+                new Vector3d(sub.logicalPose().position()),
+                "wheels on the ground, slip=" + f(slip) + " target=" + f(vTarget) + " accel=" + f(accel));
     }
 
     static boolean anyBogeyGrounded(ServerLevel world, ServerSubLevel sub, Car car) {
@@ -600,10 +706,12 @@ public final class SableTrainDriver {
         }
         TrainRailAdvance.retainTurnLogs(liveSubs);
         WeldedBodies.retain(liveSubs);
+        ForceTrace.forget(liveSubs);
         ExternalForceDerail.retain(live, liveSubs);
         TrainDerailment.retain(live);
         TrainSyncCache.retain(live);
         TrainStatusChat.retain(live);
+        RerailBalance.retain(live);
         TrainResidency.forget(live);
         StationChunkTickets.retain(live);
     }
@@ -620,6 +728,8 @@ public final class SableTrainDriver {
         if (Math.abs(speed) > capMps) {
             Vector3d delta = new Vector3d(tangent).mul(Math.signum(speed) * capMps - speed);
             handle.addLinearAndAngularVelocity(delta, new Vector3d());
+            ForceTrace.deltaV(sub, ForceSource.SPEED_CAP, delta, new Vector3d(sub.logicalPose().position()),
+                    "body was doing " + f(speed) + " b/s along the rail against a cap of " + f(capMps));
         }
     }
 
@@ -691,6 +801,7 @@ public final class SableTrainDriver {
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
+        com.lycoris.loconautics.foundation.debug.StallWatchdog.onServerTick();
         SubLevelSplitWatcher.processPendingSplits();
         if (event.getServer().getTickCount() % 10 == 0) {
             SubLevelSplitWatcher.dropBogeylessTrains();
@@ -700,19 +811,27 @@ public final class SableTrainDriver {
         com.lycoris.loconautics.trainphysics.spawn.ArticulationLinks.processPending(event.getServer());
         forgetDeadTrains();
         sweepStaleState();
+        // runs before the empty check so the last cart removed also drops its shadow
         com.lycoris.loconautics.trainphysics.state.CreateTrainShadow.sync();
         com.lycoris.loconautics.trainphysics.wheels.GhostWheelBodies.sweepOrphans();
+        // before the empty check, a car that ghosted mid entry never clears its own cut and draws half gone
         com.lycoris.loconautics.trainphysics.portal.PortalEntry.sweep();
         com.lycoris.loconautics.trainphysics.portal.PortalTwins.sweep(event.getServer());
         com.lycoris.loconautics.trainphysics.portal.PortalTwins.syncBlocks(event.getServer());
         com.lycoris.loconautics.trainphysics.portal.PortalHold.sweep(event.getServer(),
                 com.lycoris.loconautics.trainphysics.portal.TrainPortalCrossing.entering());
+        // before the empty check, the last pair of carts still has to hand its disabled contacts back
         CarriageCollisions.tick();
+        com.lycoris.loconautics.trainphysics.debug.LengthTrace.tick();
+        com.lycoris.loconautics.trainphysics.debug.GhostGapTrace.tick();
+        com.lycoris.loconautics.trainphysics.debug.GhostConsistTrace.tick();
         SubLevelContacts.sweep();
+        // above the empty check, a schedule has to be able to route onto a dock before any train exists
         com.lycoris.loconautics.trainphysics.rail.RailSeams.sweep();
         com.lycoris.loconautics.common.sable.TrackHostFrameSync.serverTick(event.getServer());
         com.lycoris.loconautics.common.turntable.TurntableRegistry.serverTick(event.getServer());
         TrainStatusChat.tickPending();
+        // above the empty check, the last train removed has to clear its occupancy or the signals stay red
         TrainSignals.updateOccupancy();
         if (SableTrainRegistry.isEmpty()) {
             return;
@@ -763,12 +882,23 @@ public final class SableTrainDriver {
                 LoconauticsConstants.LOGGER.error("[sabletrain] error ticking motion for {}", train.id(), t);
             }
         }
+
+        java.util.Set<ServerLevel> scanned = new java.util.HashSet<>();
+        for (SableTrain train : SableTrainRegistry.all()) {
+            if (scanned.add(train.level())) {
+                ForceTrace.tickEnd(train.level());
+            }
+        }
     }
 
     static double trainMass(ServerSubLevel sub) {
         MassData md = sub.getMassTracker();
         double m = (md != null && !md.isInvalid()) ? md.getMass() : 0.0;
         return m > 0.0 ? m : TrainPropulsion.liveMass(sub);
+    }
+
+    static String f(double d) {
+        return String.format("%.2f", d);
     }
 
 
@@ -879,6 +1009,7 @@ public final class SableTrainDriver {
         if (front == null || nose == null || nose.edge == null) {
             return 1;
         }
+        // a plate edges tangent is in the plates own frame, which a turned plate has swung away from the world
         Vec3 tangent = RailSeams.worldDirOf(nose.edge.node1.getLocation(), nose.edge.getDirectionAt(nose.position));
         if (tangent == null) {
             return 1;

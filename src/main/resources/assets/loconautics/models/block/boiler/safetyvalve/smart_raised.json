@@ -1,0 +1,51 @@
+{
+    "render_type": "minecraft:cutout",
+    "texture_size": [64, 64],
+    "textures": {
+        "0": "loconautics:block/boiler/safetyvalve/smart",
+        "particle": "loconautics:block/boiler/safetyvalve/smart"
+    },
+    "elements": [
+        {
+            "from": [2, 8, 2],
+            "to": [14, 12, 14],
+            "faces": {
+                "north": {"uv": [8.5, 4, 5.5, 5], "texture": "#0"},
+                "east": {"uv": [7, 7, 4, 8], "texture": "#0"},
+                "south": {"uv": [8.5, 4, 5.5, 5], "texture": "#0"},
+                "west": {"uv": [10, 6, 7, 7], "texture": "#0"},
+                "up": {"uv": [3, 0, 0, 3], "texture": "#0"},
+                "down": {"uv": [3, 6, 0, 3], "texture": "#0"}
+            }
+        },
+        {
+            "from": [4, 12, 4],
+            "to": [12, 20, 12],
+            "rotation": {"angle": 0, "axis": "y", "origin": [8, 12, 8]},
+            "faces": {
+                "north": {"uv": [7.5, 0, 5.5, 2], "texture": "#0"},
+                "east": {"uv": [7, 5, 5, 7], "texture": "#0"},
+                "south": {"uv": [5, 5, 3, 7], "texture": "#0"},
+                "west": {"uv": [7.5, 2, 5.5, 4], "texture": "#0"},
+                "up": {"uv": [2, 6, 0, 8], "texture": "#0"},
+                "down": {"uv": [4, 9, 2, 7], "texture": "#0"}
+            }
+        },
+        {
+            "from": [3, 20, 3],
+            "to": [13, 22, 13],
+            "rotation": {"angle": 0, "axis": "y", "origin": [8, 21, 8]},
+            "faces": {
+                "north": {"uv": [10, 0.5, 7.5, 1], "texture": "#0"},
+                "east": {"uv": [10, 0, 7.5, 0.5], "texture": "#0"},
+                "south": {"uv": [9.5, 7, 7, 7.5], "texture": "#0"},
+                "west": {"uv": [10, 1, 7.5, 1.5], "texture": "#0"},
+                "up": {"uv": [5.5, 0, 3, 2.5], "texture": "#0"},
+                "down": {"uv": [5.5, 5, 3, 2.5], "texture": "#0"}
+            }
+        }
+    ],
+    "groups": [
+        {"name": "safety_valve", "origin": [8, 0, 8], "scope": 0, "color": 0, "children": [2, 1, 0]}
+    ]
+}

@@ -15,7 +15,11 @@ import com.lycoris.loconautics.content.hose.flow.PressuredSink;
 import com.lycoris.loconautics.content.hose.link.HoseLinkEndpoint;
 import com.lycoris.loconautics.content.hose.spray.entity.HoseSprayEntity;
 import com.lycoris.loconautics.content.hose.spray.interaction.HoseSprayInteractions;
+import com.lycoris.loconautics.content.hose.rope.HoseRope;
+import com.lycoris.loconautics.content.hose.rope.HoseRopeManager;
 import com.lycoris.loconautics.content.steelcable.SteelCableHolderBehaviour;
+import com.lycoris.loconautics.content.steelcable.rope.SteelCableRope;
+import com.lycoris.loconautics.content.steelcable.rope.SteelCableRopeManager;
 import com.simibubi.create.content.fluids.hosePulley.HosePulleyFluidHandler;
 import com.simibubi.create.content.fluids.transfer.FluidDrainingBehaviour;
 import com.simibubi.create.content.fluids.transfer.FluidFillingBehaviour;
@@ -62,6 +66,7 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
     private static final int SUCTION_TANK_CAPACITY = 1500;
     private static final double SUCTION_ROOT_SLACK_SQ = 4.0;
     private static final double SUCTION_BOTTOM_INSET = 1.0 / 16.0;
+    private static final double[] TRACE_PROBE_INSETS = {1.0 / 16.0, -0.1, -0.25, -0.5, -1.0, -1.5};
 
     private HoseHolderBehaviour holder;
     private FluidDrainingBehaviour drainer;
@@ -147,6 +152,7 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
     private record FluidHit(@Nullable SubLevel sub, BlockPos pos) {
     }
 
+    // pos is a plot position when sub is set, a world position when it is null
     @Nullable
     private FluidHit fluidHit() {
         return fluidHit(SUCTION_BOTTOM_INSET);
@@ -161,6 +167,7 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
                 (sub, pos) -> level.getFluidState(pos).isEmpty() ? null : new FluidHit(sub, pos));
     }
 
+    // create restarts its search on every root move
     private BlockPos suctionRoot() {
         FluidHit hit = fluidHit();
         if (hit == null) {
@@ -376,6 +383,9 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
         dockOrientation.set(orientation);
         dockCaptured = false;
         undockSafety = UNDOCK_SAFETY_TICKS;
+        if (level != null) {
+            NozzleDockSounds.docked(level, worldPosition);
+        }
         setChanged();
     }
 
@@ -394,6 +404,9 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
             dockedTarget = null;
         }
         hatchSubLevelId = null;
+        if (level != null) {
+            NozzleDockSounds.undocked(level, worldPosition);
+        }
         redockReadyTick = gameTime + REDOCK_COOLDOWN_TICKS;
         setChanged();
     }
@@ -437,6 +450,7 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
             forceUndock();
         }
         setPowered(subLevel, isDocked());
+        traceFloat(subLevel, handle);
         if (isDocked()) {
             if (undockSafety > 0) {
                 undockSafety--;
@@ -446,6 +460,71 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
         }
         applySprayRecoil(subLevel, handle);
         driveGrabs(subLevel, level);
+    }
+
+    private void traceFloat(ServerSubLevel subLevel, RigidBodyHandle handle) {
+        if (subLevel.getLevel().getGameTime() % 20 != 0 || handle == null || !handle.isValid()) {
+            return;
+        }
+        FluidHit hit = null;
+        double probeInset = 0.0;
+        for (double inset : TRACE_PROBE_INSETS) {
+            hit = fluidHit(inset);
+            if (hit != null) {
+                probeInset = inset;
+                break;
+            }
+        }
+        dev.ryanhcode.sable.api.physics.mass.MassData mass = subLevel.getMassTracker();
+        Vector3d velocity = handle.getLinearVelocity(new Vector3d());
+        String column = "none";
+        if (hit != null) {
+            BlockPos top = hit.pos();
+            while (!level.getFluidState(top.above()).isEmpty()) {
+                top = top.above();
+            }
+            BlockPos bottom = hit.pos();
+            while (!level.getFluidState(bottom.below()).isEmpty()) {
+                bottom = bottom.below();
+            }
+            double surfaceLocal = top.getY() + level.getFluidState(top).getHeight(level, top);
+            Vector3d surface = new Vector3d(top.getX() + 0.5, surfaceLocal, top.getZ() + 0.5);
+            if (hit.sub() != null) {
+                hit.sub().logicalPose().transformPosition(surface);
+            }
+            BlockPos lp = getBlockPos();
+            double bottomWorldY = subLevel.logicalPose()
+                    .transformPosition(new Vector3d(lp.getX() + 0.5, lp.getY(), lp.getZ() + 0.5)).y;
+            column = "probe=" + probeInset + " depth=" + (top.getY() - bottom.getY() + 1)
+                    + " floor=" + level.getBlockState(bottom.below()) + " surfaceWorldY=" + surface.y
+                    + " bottomWorldY=" + bottomWorldY + " gap=" + (bottomWorldY - surface.y);
+        }
+        LoconauticsConstants.LOGGER.info(
+                "[hosefloat] vy={} speed={} mass={} volume={} hitSub={} hitPos={} column=[{}] ropes=[{}] docked={}",
+                velocity.y, velocity.length(), mass == null ? null : mass.getMass(),
+                dev.ryanhcode.sable.physics.config.block_properties.PhysicsBlockPropertyHelper.getVolume(getBlockState()),
+                hit == null ? null : hit.sub() == null ? "world" : hit.sub().getUniqueId(),
+                hit == null ? null : hit.pos(), column, ropeTrace(), isDocked());
+    }
+
+    private String ropeTrace() {
+        StringBuilder out = new StringBuilder();
+        HoseRopeManager hoses = HoseRopeManager.get(level);
+        if (holder != null && holder.getAttachedStrandId() != null && hoses != null) {
+            HoseRope rope = hoses.get(holder.getAttachedStrandId());
+            out.append("hose stretch=").append(rope == null ? "none" : rope.getStretchRatio()).append(' ');
+        }
+        SteelCableRopeManager cables = SteelCableRopeManager.get(level);
+        SteelCableHolderBehaviour cableHolder = getBehaviour(SteelCableHolderBehaviour.TYPE);
+        if (cableHolder != null && cables != null) {
+            for (UUID id : cableHolder.attachedStrandIds()) {
+                SteelCableRope rope = cables.get(id);
+                out.append("link taut=").append(rope == null ? "none" : rope.isTaut())
+                        .append(" ext=").append(rope == null ? "none" : rope.getCurrentExtension())
+                        .append(" goal=").append(rope == null ? "none" : rope.getExtension()).append(' ');
+            }
+        }
+        return out.toString().trim();
     }
 
     public void setSprayReaction(float reaction) {
@@ -670,6 +749,7 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
             double endRadius = Math.sqrt(level.random.nextDouble()) * SUCK_TIP_RADIUS;
             Vector3d end = new Vector3d(tip)
                     .fma(Math.cos(endAngle) * endRadius, side).fma(Math.sin(endAngle) * endRadius, up);
+            // the particle reads its velocity as the offset to the end point
             Vector3d toEnd = end.sub(start, new Vector3d());
             level.addParticle(new com.lycoris.loconautics.content.hose.spray.HoseSprayOptions(
                     colors[level.random.nextInt(colors.length)], true), start.x, start.y, start.z,

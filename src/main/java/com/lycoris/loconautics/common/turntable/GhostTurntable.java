@@ -1,6 +1,7 @@
 package com.lycoris.loconautics.common.turntable;
 
 import com.lycoris.loconautics.common.sable.TrackHostFrames;
+import com.lycoris.loconautics.foundation.debug.TurntableTrace;
 import com.lycoris.loconautics.trainphysics.drive.ExternalForceDerail;
 import com.simibubi.create.content.trains.graph.TrackNodeLocation;
 import net.minecraft.core.BlockPos;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.UUID;
 
+import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 
 public final class GhostTurntable implements TurntableMotion.Host {
 
@@ -84,8 +86,24 @@ public final class GhostTurntable implements TurntableMotion.Host {
         motion.beginTick();
         motion.step(this, motion.scheduleDriven());
         TrackHostFrames.setAngle(plate, motion.targetAngleDegrees());
+        trace(level);
     }
 
+    private void trace(ServerLevel level) {
+        if (!TurntableTrace.due("ghost" + plate, level.getGameTime(), 20)) {
+            return;
+        }
+        TrackHostFrames.Frame frame = frame();
+        TurntableTrace.log("ghost plate " + shortId(plate) + " target=" + String.format("%.2f", motion.targetAngleDegrees())
+                + " perTick=" + angularPerTick + " powered=" + powered + " sched=" + motion.scheduleDriven()
+                + " alignTarget=" + (motion.alignTarget() != null) + " aligned=" + motion.aligned()
+                + " settled=" + motion.settled() + " reserved=" + TurntableRegistry.reserved(plate)
+                + " occupied=" + TurntableRegistry.occupied(plate) + " registered="
+                + (TurntableRegistry.byPlate(plate) == this) + " frameLoaded=" + (frame != null && frame.loaded())
+                + " bearingLoaded=" + level.isLoaded(bearingPos) + " orphanTicks=" + orphanTicks);
+    }
+
+    // the frame is gone or the bearing block stopped existing while its chunk is loaded
     boolean orphaned(MinecraftServer server) {
         ServerLevel level = server.getLevel(dimension);
         if (level == null) {

@@ -4,6 +4,7 @@ import com.lycoris.loconautics.common.LinkHolder;
 import com.lycoris.loconautics.common.RedstoneLinkPair;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
+import com.lycoris.loconautics.trainphysics.debug.TransmissionTrace;
 import com.simibubi.create.content.kinetics.RotationPropagator;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -54,7 +55,9 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
     public void initialize() {
         super.initialize();
         if (level == null || level.isClientSide) return;
+        TransmissionTrace.note(this, "initialize before links");
         links.register(level);
+        TransmissionTrace.note(this, "initialize after links");
     }
 
     @Override
@@ -64,6 +67,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
 
     @Override
     public void invalidate() {
+        TransmissionTrace.removed(this);
         if (level != null) links.unregister(level);
         super.invalidate();
     }
@@ -159,6 +163,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
 
     public void setRedstonePower(int power) {
         int clamped = Math.max(0, Math.min(15, power));
+        TransmissionTrace.note(this, "setRedstonePower " + this.redstonePower + " to " + clamped);
         if (this.redstonePower == clamped) return;
         this.redstonePower = clamped;
         kineticRefreshQueued = true;
@@ -167,6 +172,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
     }
 
     public void setDirectionActive(boolean active) {
+        TransmissionTrace.note(this, "setDirectionActive " + this.directionActive + " to " + active);
         if (this.directionActive == active) return;
         this.directionActive = active;
         kineticRefreshQueued = true;
@@ -178,6 +184,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
     public void tick() {
         if (reattachPending && level != null && !level.isClientSide) {
             reattachPending = false;
+            TransmissionTrace.note(this, "reattach");
             RotationPropagator.handleAdded(level, worldPosition, this);
         }
         super.tick();
@@ -186,10 +193,11 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
         applyKineticState();
     }
 
-    // detach before the state is written, never from a link callback inside creates network walk. the reattach rides the block entity tick and is saved, so an unload in between cannot strand the block
+    // detach before the state is written, and never from a link callback, that runs inside creates network walk. the reattach rides the block entity tick and is saved, so an unload between the two cannot strand the block.
     private void applyKineticState() {
         BlockState state = getBlockState();
         if (!(state.getBlock() instanceof TransmissionBlock block)) return;
+        TransmissionTrace.note(this, "apply detach");
         block.detachKinetics(level, worldPosition);
         reattachPending = true;
         setChanged();
@@ -260,6 +268,7 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
         directionActive = tag.getBoolean("DirectionActive");
         if (!clientPacket) {
             reattachPending = tag.getBoolean("ReattachPending");
+            TransmissionTrace.note(this, "read from tag");
         }
 
         if (tag.contains("Frequency")) {

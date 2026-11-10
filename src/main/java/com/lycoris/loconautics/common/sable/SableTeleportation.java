@@ -106,7 +106,7 @@ public final class SableTeleportation {
         return null;
     }
 
-    // fullyload takes the slot plotx and plotz name, so that index must be free in the destination. the far side copy gets its own plot there and needs the same rebase as a crossing
+    // fullyload takes the slot plotx and plotz name, so that index must be free in the destination, y stays put the far side copy takes a plot of its own in the destination, so it needs the same rebase a crossing does
     @Nullable
     public static String repot(CompoundTag tag, ServerLevel srcLevel, ServerLevel destLevel, PlotSlot from,
                                PlotSlot to) {
@@ -118,7 +118,7 @@ public final class SableTeleportation {
         return repotPlot(tag, srcContainer, destContainer, from, to);
     }
 
-    // the pose rotation point lives in plot space, so a body moved to another plot slot keeps pointing at the old one and its world bounds land thousands of blocks away
+    // the pose rotation point lives in plot space, so a body moved to another plot slot keeps pointing at the old slot and its world bounds land thousands of blocks away until sable next refreshes the center of mass
     public static Vector3d plotShift(ServerLevel srcLevel, ServerLevel destLevel, PlotSlot from, PlotSlot to) {
         ServerSubLevelContainer srcContainer = SubLevelContainer.getContainer(srcLevel);
         ServerSubLevelContainer destContainer = SubLevelContainer.getContainer(destLevel);
@@ -165,6 +165,7 @@ public final class SableTeleportation {
         return null;
     }
 
+    // create saves the kinetic source as an absolute position and the network id as the generator position
     private static void shiftKinetics(CompoundTag be, int dx, int dz) {
         if (be.contains("Source", Tag.TAG_INT_ARRAY)) {
             int[] source = be.getIntArray("Source");
@@ -253,14 +254,22 @@ public final class SableTeleportation {
         ServerSubLevel moved;
         IN_FLIGHT.add(subLevelId);
         try {
-            for (BlockEntity be : SubLevelBlocks.blockEntities(sub)) {
+            List<BlockEntity> oldBlockEntities = SubLevelBlocks.blockEntities(sub);
+            for (BlockEntity be : oldBlockEntities) {
                 if (be instanceof LinkHolder holder) {
                     holder.releaseLinks();
                 }
             }
             srcContainer.removeSubLevel(sub, SubLevelRemovalReason.REMOVED);
+            // the reload reuses plot positions, and ccs tick scheduler throws on a stale unremoved monitor
+            for (BlockEntity be : oldBlockEntities) {
+                if (!be.isRemoved()) {
+                    be.setRemoved();
+                }
+            }
             moved = SubLevelSerializer.fullyLoad(destLevel, data);
             if (moved == null) {
+                // the blocks in the snapshot were never touched, so the body can still go back where it came from
                 tag.put("pose", keepPose);
                 tag.put("plot", keepPlot);
                 moved = SubLevelSerializer.fullyLoad(srcLevel, data);
@@ -281,6 +290,13 @@ public final class SableTeleportation {
             IN_FLIGHT.remove(subLevelId);
         }
 
+        LoconauticsConstants.LOGGER.info("[twinload] teleport body={} slot={},{} to {},{} pose={},{} rotationPoint={},{} "
+                        + "worldBounds x {}..{} z {}..{}", subLevelId, fromSlot == null ? -1 : fromSlot.x(),
+                fromSlot == null ? -1 : fromSlot.z(), targetSlot == null ? -1 : targetSlot.x(),
+                targetSlot == null ? -1 : targetSlot.z(), (int) moved.logicalPose().position().x(),
+                (int) moved.logicalPose().position().z(), (int) moved.logicalPose().rotationPoint().x(),
+                (int) moved.logicalPose().rotationPoint().z(), (int) moved.boundingBox().minX(),
+                (int) moved.boundingBox().maxX(), (int) moved.boundingBox().minZ(), (int) moved.boundingBox().maxZ());
         SubLevelGlue.put(moved, glue);
         SubLevelPassengers.restore(destLevel, moved, riders);
         relockStaff(destLevel, subLevelId, staffLocked);

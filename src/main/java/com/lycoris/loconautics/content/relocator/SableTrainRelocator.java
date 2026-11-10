@@ -68,6 +68,7 @@ public final class SableTrainRelocator {
     // kept across hovers until the server answers for the new spot, so moving along a train never flashes
     private static boolean trainInTheWay;
 
+    // a point stays in its own rails frame so a moving sub level carries the preview with it
     private record Spot(Vec3 local, @Nullable ClientSubLevel host) {
         Vec3 world() {
             return toWorld(host, local);
@@ -187,7 +188,7 @@ public final class SableTrainRelocator {
         }
         SableTrainClientRegistry.TrainMarker marker = SableTrainClientRegistry.get(sub.getUniqueId());
         if (marker == null) {
-            return;
+            return; // not a train sub level, generic sable sub levels are never marked
         }
         if (LoconauticsConfig.WRENCH_RELOCATION_DERAILED_ONLY.get() && !marker.derailed()) {
             return;
@@ -310,6 +311,7 @@ public final class SableTrainRelocator {
         }
     }
 
+    // mirrors trainrelocator.relocateclient, create always simulates client side, the real move happens on the server
     @Nullable
     private static Boolean relocateClient(boolean simulate) {
         Minecraft mc = Minecraft.getInstance();
@@ -455,6 +457,7 @@ public final class SableTrainRelocator {
         return !blocked;
     }
 
+    // the walk can cross a seam from a sub level onto world rail, so each point reads its own edges host
     private static Spot spotOf(TravellingPoint point, TrackGraph graph) {
         ClientSubLevel host = RailSeams.clientHostOf(point.node1.getLocation()) instanceof ClientSubLevel c ? c : null;
         return new Spot(point.getPosition(graph), host);

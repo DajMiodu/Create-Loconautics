@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.spawn;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.common.sable.SubLevelData;
 import com.lycoris.loconautics.trainphysics.TrainLength;
@@ -21,6 +22,7 @@ public final class ConsistFacing {
     private ConsistFacing() {
     }
 
+    // positive means the front faces the head of the list, negative the tail, zero means unknown
     public static double frontScore(ServerLevel level, List<SableTrain> cars, int index) {
         SableTrain car = cars.get(index);
         double towardHead = index > 0 ? TrainLength.hingeOffset(level, car, cars.get(index - 1)) : Double.NaN;
@@ -53,6 +55,7 @@ public final class ConsistFacing {
         return head ? along : -along;
     }
 
+    // puts the end the axle nose points at first
     @Nullable
     public static Vec3 noseFirst(ServerLevel level, List<SableTrain> cars) {
         for (int i = 0; i < cars.size(); i++) {
@@ -84,6 +87,9 @@ public final class ConsistFacing {
                 out[i] = SableTrainSpawner.facesAgainst(level, cars.get(i), nose);
             } else {
                 out[i] = i > 0 && out[i - 1];
+                LoconauticsConstants.LOGGER.info(
+                        "[sabletrain] relocate: car {} of {} has no hinge or neighbor to say which way it faces, copying car {}",
+                        i + 1, out.length, i);
             }
         }
         return out;

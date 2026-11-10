@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "axis=z": {
+      "model": "loconautics:block/boiler/steamtakeoff/block"
+    },
+    "axis=x": {
+      "model": "loconautics:block/boiler/steamtakeoff/block",
+      "y": 90
+    },
+    "axis=y": {
+      "model": "loconautics:block/boiler/steamtakeoff/block",
+      "x": 90
+    }
+  }
+}

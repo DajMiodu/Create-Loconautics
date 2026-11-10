@@ -94,6 +94,7 @@
 **[Datapacks](Datapacks)**
 
 - [Variant Families](Datapacks-Variant-Families)
+- [Boiler Blocks](Datapacks-Boiler-Blocks)
 - [Hose Spray](Datapacks-Hose-Spray)
 - [Tags](Datapacks-Tags)
 - [Troubleshooting](Datapacks-Troubleshooting)

@@ -31,10 +31,12 @@ final class ManeuverPlan {
         if (hop == null) {
             return;
         }
+        // an entry hop only reaches the plate, the way out is known once the exit is picked
         int after = !hop.entry() && backsOut(hop) ? -rel : rel;
         legs.add(new Leg(after, null, false));
     }
 
+    // leg one stops past the switch, leg two runs the other way
     void recordReversal(int rel) {
         place(new Leg(rel, null, true));
         legs.add(new Leg(-rel, null, false));

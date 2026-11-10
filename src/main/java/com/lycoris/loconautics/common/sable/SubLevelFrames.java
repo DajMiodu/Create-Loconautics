@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.common.sable;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.core.BlockPos;
@@ -23,6 +24,9 @@ public final class SubLevelFrames {
             return worldLook;
         }
         Vec3 local = lookToLocal(level, localPos, worldLook);
+        if (!level.isClientSide && local != worldLook) {
+            LoconauticsConstants.LOGGER.info("[tracklook] pos {} world look {} local look {}", localPos, worldLook, local);
+        }
         return local;
     }
 

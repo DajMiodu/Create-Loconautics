@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "  A",
+    " AB",
+    "AC "
+  ],
+  "key": {
+    "A": {
+      "item": "loconautics:industrial_iron_rod"
+    },
+    "B": {
+      "item": "create:large_cogwheel"
+    },
+    "C": {
+      "item": "create:factory_gauge"
+    }
+  },
+  "result": {
+    "id": "loconautics:valve_gear",
+    "count": 1
+  }
+}

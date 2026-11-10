@@ -8,6 +8,7 @@ import com.lycoris.loconautics.common.sable.SubLevelBlocks;
 import com.lycoris.loconautics.common.sable.SubLevelData;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
 import com.lycoris.loconautics.trainphysics.coupling.BlockEntityCouplingProvider;
+import com.lycoris.loconautics.trainphysics.coupling.TwistLink;
 import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
 import com.simibubi.create.api.contraption.BlockMovementChecks;
 import com.simibubi.create.content.trains.track.ITrackBlock;
@@ -57,11 +58,26 @@ public final class ArticulationLinks {
         TrainConsist.registerProvider(new BlockEntityCouplingProvider<>(
                 SwivelBearingBlockEntity.class,
                 be -> trainCar(be.getSubLevelID()),
-                SwivelBearingBlockEntity::isAssembled));
+                SwivelBearingBlockEntity::isAssembled).twist(ArticulationLinks::twistLink));
         TrainConsist.registerProvider(new BlockEntityCouplingProvider<>(
                 SwivelBearingPlateBlockEntity.class,
                 be -> trainCar(((SwivelPlateAccessor) (Object) be).loconautics$getParentSubLevelId()),
                 be -> true));
+    }
+
+    @Nullable
+    static TwistLink twistLink(ServerSubLevel own, SwivelBearingBlockEntity bearing) {
+        UUID plateSub = trainCar(bearing.getSubLevelID());
+        BlockPos platePos = bearing.getPlatePos();
+        if (plateSub == null || platePos == null) {
+            return null;
+        }
+        Direction facing = bearing.getBlockState().getValue(SwivelBearingBlock.FACING);
+        Vec3 hingeA = bearing.getBlockPos().relative(facing).getCenter();
+        Vec3 hingeB = platePos.relative(facing).getCenter();
+        return new TwistLink(own.getUniqueId(), new Vector3d(hingeA.x, hingeA.y, hingeA.z), plateSub,
+                new Vector3d(hingeB.x, hingeB.y, hingeB.z), TwistLink.Kind.SWIVEL, 1.0,
+                new Vector3d(facing.getStepX(), facing.getStepY(), facing.getStepZ()));
     }
 
     private static UUID trainCar(UUID subLevelId) {

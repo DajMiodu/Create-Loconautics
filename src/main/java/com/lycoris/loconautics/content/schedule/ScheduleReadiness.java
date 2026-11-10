@@ -106,6 +106,7 @@ public final class ScheduleReadiness {
                 && (driver.getY() == front.getY() || driver.getY() == front.getY() - 1);
     }
 
+    // block states only, so the client can ask it for the cap of a player on a seat
     public static boolean seatedAtControls(LivingEntity rider) {
         if (!(rider.getVehicle() instanceof SeatEntity seat)) {
             return false;

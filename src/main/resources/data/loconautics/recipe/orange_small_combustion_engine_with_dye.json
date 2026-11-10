@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SDS",
+    "PCP",
+    "SAS"
+  ],
+  "key": {
+    "S": {
+      "item": "loconautics:industrial_iron_sheet"
+    },
+    "D": {
+      "item": "minecraft:orange_dye"
+    },
+    "P": {
+      "item": "simulated:engine_assembly"
+    },
+    "C": {
+      "item": "loconautics:industrial_fluid_tank"
+    },
+    "A": {
+      "item": "create:shaft"
+    }
+  },
+  "result": {
+    "id": "loconautics:orange_small_combustion_engine",
+    "count": 1
+  }
+}

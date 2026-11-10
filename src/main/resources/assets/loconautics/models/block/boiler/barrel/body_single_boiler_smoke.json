@@ -1,0 +1,11 @@
+{
+    "parent": "loconautics:block/boiler/barrel/base",
+    "render_type": "minecraft:cutout",
+    "textures": {
+        "barrel": "loconautics:block/boiler/barrel/boiler_body/barrel_side_single",
+        "face_pos": "loconautics:block/boiler/barrel/boiler_body/face",
+        "face_neg": "loconautics:block/boiler/barrel/boiler_body/face",
+        "stack": "loconautics:block/boiler/barrel/boiler_body/face",
+        "particle": "loconautics:block/boiler/barrel/boiler_body/barrel_side_single"
+    }
+}

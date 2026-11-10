@@ -28,6 +28,7 @@ public class CreativeTrainRelocatorItemRenderer extends CustomRenderedItemModelR
     private static final int IDLE = 2;
     private static final int CLOSING = 3;
 
+    // blockbench group origins, x and z as authored, y shifted by 8 because create leaves the pose at the model center
     private static final float JAW_PIVOT_X = 0f, JAW_PIVOT_Y = 15f - 8f, JAW_PIVOT_Z = -0.2f;
     private static final float COOB_PIVOT_X = 0f, COOB_PIVOT_Y = 9f - 8f, COOB_PIVOT_Z = -0.9f;
 

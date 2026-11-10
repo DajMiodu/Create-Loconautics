@@ -18,6 +18,7 @@ public final class BlockEntityCouplingProvider<T extends BlockEntity> implements
     private final Function<T, UUID> partnerGetter;
     private final Predicate<T> connectedCheck;
     private Predicate<T> weldedCheck;
+    private BiFunction<ServerSubLevel, T, TwistLink> twistBuilder;
 
     public BlockEntityCouplingProvider(Class<T> type, Function<T, UUID> partnerGetter, Predicate<T> connectedCheck) {
         this.type = type;
@@ -28,6 +29,28 @@ public final class BlockEntityCouplingProvider<T extends BlockEntity> implements
     public BlockEntityCouplingProvider<T> welded(Predicate<T> check) {
         this.weldedCheck = check;
         return this;
+    }
+
+    public BlockEntityCouplingProvider<T> twist(BiFunction<ServerSubLevel, T, TwistLink> builder) {
+        this.twistBuilder = builder;
+        return this;
+    }
+
+    @Override
+    public void collectTwistLinks(ServerLevel level, UUID subLevelId, Consumer<TwistLink> links) {
+        ServerSubLevel sub = twistBuilder == null ? null : SubLevelData.resolve(level, subLevelId);
+        if (sub == null) {
+            return;
+        }
+        for (T be : SubLevelBlocks.findAll(sub, type)) {
+            if (!connectedCheck.test(be)) {
+                continue;
+            }
+            TwistLink link = twistBuilder.apply(sub, be);
+            if (link != null) {
+                links.accept(link);
+            }
+        }
     }
 
     @Override

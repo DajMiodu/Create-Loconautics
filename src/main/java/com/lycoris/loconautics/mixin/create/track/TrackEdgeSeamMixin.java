@@ -21,6 +21,7 @@ public abstract class TrackEdgeSeamMixin {
     @Shadow
     public TrackNode node2;
 
+    // getlength runs every travel step, so the plot grid test is resolved once and read as a field
     @Unique
     private Boolean loconautics$seam;
 

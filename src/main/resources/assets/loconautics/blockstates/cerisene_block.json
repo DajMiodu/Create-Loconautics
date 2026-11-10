@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "heat=0,primed=false": {
+      "model": "loconautics:block/cerisene/block"
+    },
+    "heat=0,primed=true": {
+      "model": "loconautics:block/cerisene/block"
+    },
+    "heat=1,primed=false": {
+      "model": "loconautics:block/cerisene/block"
+    },
+    "heat=1,primed=true": {
+      "model": "loconautics:block/cerisene/block"
+    },
+    "heat=2,primed=false": {
+      "model": "loconautics:block/cerisene/block"
+    },
+    "heat=2,primed=true": {
+      "model": "loconautics:block/cerisene/block"
+    },
+    "heat=3,primed=false": {
+      "model": "loconautics:block/cerisene/block"
+    },
+    "heat=3,primed=true": {
+      "model": "loconautics:block/cerisene/block"
+    },
+    "heat=4,primed=false": {
+      "model": "loconautics:block/cerisene/block"
+    },
+    "heat=4,primed=true": {
+      "model": "loconautics:block/cerisene/block"
+    }
+  }
+}

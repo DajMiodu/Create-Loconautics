@@ -98,6 +98,7 @@ public final class DockGroups {
             }
         }
         if (!leaders.equals(leaderOf)) {
+            LoconauticsConstants.LOGGER.info("[dock] groups changed, leaders {}, followers {}", followers, leaders);
             for (UUID follower : leaders.keySet()) {
                 if (!leaderOf.containsKey(follower)) {
                     reseatRails(bySub.get(follower));
@@ -109,6 +110,7 @@ public final class DockGroups {
         OWNER.clear();
     }
 
+    // a follower rides its leaders pose, so its own rail cursor has to be read back from where its body really is
     private static void reseatRails(SableTrain follower) {
         if (follower == null || follower.car() == null) {
             return;
@@ -118,10 +120,13 @@ public final class DockGroups {
             return;
         }
         double targetSpeed = follower.targetSpeed();
-        SableTrainSpawner.reseatOnRail(follower, sub);
+        boolean reseated = SableTrainSpawner.reseatOnRail(follower, sub);
         follower.setTargetSpeed(targetSpeed);
+        LoconauticsConstants.LOGGER.info("[dockseat] follower {} rail cursor read back from its body, reseated {}",
+                follower.car().subLevelId(), reseated);
     }
 
+    // the old leader keeps the job while it is still in the group, or the pose would flip sides on every refresh
     private static UUID pickLeader(Set<UUID> group, Map<UUID, SableTrain> bySub) {
         for (UUID id : group) {
             if (followersOf.containsKey(id) && group.containsAll(followersOf.get(id))) {
@@ -143,6 +148,7 @@ public final class DockGroups {
         return best;
     }
 
+    // the leaders car with every docked trains bogeys in it, so one chord and one chain drive the whole rigid group
     public static Car composite(ServerSubLevel leaderSub, SableTrain leader, Car car) {
         List<UUID> followers = followersOf.get(car.subLevelId());
         if (followers == null || followers.isEmpty()) {
@@ -205,6 +211,7 @@ public final class DockGroups {
         return false;
     }
 
+    // two bogeys on different bodies have block offsets in different frames, so their rigid gap is measured in the world
     public static double rigidGap(Bogey a, Bogey b) {
         ServerSubLevel ownerA = OWNER.get(a);
         ServerSubLevel ownerB = OWNER.get(b);

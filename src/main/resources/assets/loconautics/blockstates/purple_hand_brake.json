@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "loconautics:block/brakes/pull/purple/base"
+    },
+    "facing=east": {
+      "model": "loconautics:block/brakes/pull/purple/base",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "loconautics:block/brakes/pull/purple/base",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "loconautics:block/brakes/pull/purple/base",
+      "y": 270
+    }
+  }
+}

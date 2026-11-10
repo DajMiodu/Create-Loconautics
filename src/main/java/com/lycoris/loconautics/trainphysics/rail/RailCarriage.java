@@ -2,6 +2,7 @@ package com.lycoris.loconautics.trainphysics.rail;
 
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.compat.railways.RailwaysSwitches;
+import com.lycoris.loconautics.foundation.debug.SteerTrace;
 import com.lycoris.loconautics.trainphysics.portal.PortalFrame;
 import com.simibubi.create.content.trains.entity.TravellingPoint;
 import com.simibubi.create.content.trains.entity.TravellingPoint.IPortalListener;
@@ -48,6 +49,7 @@ public final class RailCarriage {
     private TurnMemory turnMemory;
     private TurnMemory.BogeyId turnId;
     private TravellingPoint followTarget;
+    private String junctionTag = "unset";
     private List<net.createmod.catnip.data.Couple<TrackNode>> path;
     private final double bogeySpacing;
     private final Vec3 upNormal;
@@ -112,6 +114,9 @@ public final class RailCarriage {
         adoptLiveGraph();
         // physics substeps run between server ticks, so a rebuilt graph must not be walked with stale nodes
         rebind();
+        Vec3 hopCenterBefore = hopCenter();
+        String hopKindBefore = hopKind(leading) + "/" + hopKind(trailing);
+        double hopMoved = 0.0;
         if (!stopped && speed != 0.0) {
             Couple<TrackNodeLocation> heldPortal = pendingPortal;
             pendingPortal = null;
@@ -125,8 +130,17 @@ public final class RailCarriage {
                             : followTarget != null && turnLog == null
                                     ? front.follow(followTarget)
                                     : steerSelector(front);
+            String selectorKind = turnLog != null && !turnLeader ? "replay"
+                    : (path != null && !path.isEmpty()) ? "path"
+                    : followTarget != null && turnLog == null ? "follow" : "steer";
             ITrackSelector frontSelector = (g, pair) -> {
                 java.util.Map.Entry<TrackNode, TrackEdge> entry = chosenSelector.apply(g, pair);
+                LoconauticsConstants.LOGGER.info("[issue274] junction {} selector={} options={} picked={} of {} speed={} "
+                        + "intent={} from={}", junctionTag, selectorKind, pair.getSecond().size(),
+                        pair.getSecond().indexOf(entry), nodeList(pair.getSecond()), String.format("%.3f", speed),
+                        String.format("%.3f", travelIntent), front.edge == null ? "none"
+                                : front.edge.node1.getLocation().getLocation() + ">"
+                                        + front.edge.node2.getLocation().getLocation());
                 return settleTurn(g, front, pair.getFirst(), pair.getSecond(), entry);
             };
             // creates carriage.travel stress term. without it a spacing error never heals and the chord wanders.
@@ -144,12 +158,15 @@ public final class RailCarriage {
             } finally {
                 RailwaysSwitches.endTravel();
             }
+            hopMoved = moved;
             if (pendingPortal == null && Math.abs(moved) <= END_LATCH_TRAVEL) {
                 pendingPortal = heldPortal;
             }
             if (pendingPortal != null) {
                 reachedEnd = false;
             } else if (front.blocked) {
+                if (!reachedEnd) {
+                }
                 reachedEnd = true;
                 stopped = true;
             } else if (Math.abs(moved) > END_LATCH_TRAVEL) {
@@ -157,7 +174,71 @@ public final class RailCarriage {
                 reachedEnd = false;
             }
         }
+        traceHopSnap(hopCenterBefore, hopKindBefore, hopMoved);
         return leadingPos().add(trailingPos()).scale(0.5);
+    }
+
+    private Vec3 hopCenter() {
+        Vec3 a = worldPos(leading);
+        Vec3 b = worldPos(trailing);
+        return a == null || b == null ? null : a.add(b).scale(0.5);
+    }
+
+    private String hopKind(TravellingPoint p) {
+        if (p == null || p.edge == null || p.edge.node1 == null) {
+            return "none";
+        }
+        TrackNodeLocation at = p.edge.node1.getLocation();
+        if (p.edge.isInterDimensional()) {
+            return RailSeams.isSeam(at, p.edge.node2.getLocation()) ? "SEAM" : "PORTAL";
+        }
+        if (!RailSeams.inPlotGrid(at)) {
+            return "WORLD";
+        }
+        return RailSeams.serverHostOf(at) != null ? "PLOT-live" : (poseOfEdge(p.edge) != null ? "PLOT-frame" : "PLOT-NOPOSE");
+    }
+
+    private String hopPoint(TravellingPoint p) {
+        if (p == null || p.edge == null) {
+            return "none";
+        }
+        Vec3 w = worldPos(p);
+        Vec3 d = p.edge.getDirectionAt(p.position);
+        Vec3 wd = d == null ? null : homeDir(p.edge, d);
+        return String.format("%s pos=%.3f/%.4f world=%s dir=%s blocked=%s", hopKind(p), p.position, p.edge.getLength(),
+                hopVec(w), hopVec(wd), p.blocked);
+    }
+
+    // temporary, tag cartmove
+    public String moveLine() {
+        Vec3 center = hopCenter();
+        return String.format("center=%s span=%.3f lead[%s] trail[%s]", hopVec(center),
+                leadingPos().distanceTo(trailingPos()), hopPoint(leading), hopPoint(trailing));
+    }
+
+    public Vec3 moveCenter() {
+        return hopCenter();
+    }
+
+    private static String hopVec(Vec3 v) {
+        return v == null ? "null" : String.format("(%.3f,%.3f,%.3f)", v.x, v.y, v.z);
+    }
+
+    // temporary, tag hopsnap
+    private void traceHopSnap(Vec3 centerBefore, String kindBefore, double moved) {
+        Vec3 centerAfter = hopCenter();
+        String kindAfter = hopKind(leading) + "/" + hopKind(trailing);
+        double jump = centerBefore == null || centerAfter == null ? 0.0 : centerAfter.distanceTo(centerBefore);
+        double excess = Math.abs(jump - Math.abs(moved));
+        boolean onSeam = kindAfter.contains("SEAM") || kindBefore.contains("SEAM");
+        if (!onSeam && excess < 0.2 && kindBefore.equals(kindAfter)) {
+            return;
+        }
+        LoconauticsConstants.LOGGER.info("[hopsnap] rail={} kind {} -> {} moved={} centerJump={} excess={} gapSpan={} "
+                        + "lead[{}] trail[{}] centerBefore={} centerAfter={}", System.identityHashCode(this) & 0xffff,
+                kindBefore, kindAfter, String.format("%.4f", moved), String.format("%.4f", jump),
+                String.format("%.4f", excess), String.format("%.4f", leadingPos().distanceTo(trailingPos())),
+                hopPoint(leading), hopPoint(trailing), hopVec(centerBefore), hopVec(centerAfter));
     }
 
     private boolean leadingAtHigherPosition() {
@@ -376,6 +457,7 @@ public final class RailCarriage {
         return edge == null || edge.node1 == null ? null : RailSeams.serverHostOf(edge.node1.getLocation());
     }
 
+    // falls back to the saved frame when the host body is parked
     private static Pose3dc poseOfEdge(TrackEdge edge) {
         return edge == null || edge.node1 == null ? null : RailSeams.serverPoseOf(edge.node1.getLocation());
     }
@@ -426,6 +508,18 @@ public final class RailCarriage {
         return new Vec3(w.x, w.y, w.z);
     }
 
+    private static String nodeList(java.util.List<java.util.Map.Entry<TrackNode, TrackEdge>> options) {
+        StringBuilder out = new StringBuilder();
+        for (java.util.Map.Entry<TrackNode, TrackEdge> option : options) {
+            out.append(option.getKey().getLocation().getLocation()).append(' ');
+        }
+        return out.toString().trim();
+    }
+
+    public void setJunctionTag(String tag) {
+        this.junctionTag = tag;
+    }
+
     private ITrackSelector steerSelector(TravellingPoint point) {
         return (g, pair) -> {
             java.util.List<java.util.Map.Entry<TrackNode, TrackEdge>> targets = pair.getSecond();
@@ -439,12 +533,16 @@ public final class RailCarriage {
                             : point.edge.getDirection(true).scale(-1.0));
             if (steerTarget == null && followTarget != null) {
                 java.util.Map.Entry<TrackNode, TrackEdge> followed = point.follow(followTarget).apply(g, pair);
+                SteerTrace.pick(this, "follow target edge " + followTarget.edge.node1.getLocation().getLocation()
+                        + " pos " + followTarget.position, targets.size(), followed == targets.get(0) ? "first" : "other");
                 return recordTurn(followed);
             }
             boolean unprompted = steerTarget == null;
             java.util.Map.Entry<TrackNode, TrackEdge> best = bestByGoal(targets, unprompted ? trajectory : steerTarget,
                     unprompted);
             java.util.Map.Entry<TrackNode, TrackEdge> picked = best != null ? best : targets.get(0);
+            SteerTrace.pick(this, unprompted ? "straight, no intent and no follow" : "intent", targets.size(),
+                    picked == targets.get(0) ? "first" : "other");
             return recordTurn(picked);
         };
     }
@@ -676,6 +774,7 @@ public final class RailCarriage {
         return p == null || p.edge == null ? null : p.edge.getTrackMaterial();
     }
 
+    // the track point under this span, its own normal and a tangent turned to agree with the reference
     public PointFrame railFrame(Vector3d reference) {
         PointFrame a = pointFrame(leading, reference);
         PointFrame b = pointFrame(trailing, reference);
@@ -746,6 +845,7 @@ public final class RailCarriage {
         return orientationTo(forwardVec());
     }
 
+    // world frame, sabletraindriver.updatebogeyyaw cancels the body out of it before syncing
     public Quaterniond chordFrameQuaternion() {
         Vec3 fw = forward();
         Vector3d f = new Vector3d(fw.x, fw.y, fw.z);
@@ -953,6 +1053,7 @@ public final class RailCarriage {
         return followTarget;
     }
 
+    // a bogey on another network turns on its own nodes, it never follows the others and never counts as a pivot
     public boolean isIndependent() {
         return independent;
     }

@@ -10,6 +10,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlac
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import org.spongepowered.asm.mixin.Mixin;
 
+// remapfalse like the other vanilla mixins here, the target is the mojang name
 @Mixin(value = StructureTemplate.class, remap = false)
 public abstract class StructureTemplatePlacingMixin {
 

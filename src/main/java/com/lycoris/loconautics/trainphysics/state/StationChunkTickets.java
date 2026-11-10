@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 
 
 public final class StationChunkTickets {
@@ -32,7 +33,9 @@ public final class StationChunkTickets {
     // a train that hit the dwell cap must not force the same square again next tick, it stays capped until it leaves
     private static final Set<UUID> CAPPED = new HashSet<>();
 
+    private static final int MAX_WHY_LINES = 300;
 
+    private static int why;
 
     private static TicketController controller;
 
@@ -61,13 +64,14 @@ public final class StationChunkTickets {
             if (holdChainAfterEmbody(train)) {
                 return;
             }
-            release(train.id());
+            release(train.id(), "nothing left to hold chunks for");
             return;
         }
         if (train.isGhost() && TrainResidency.pullBlocked(train)) {
-            release(train.id());
+            release(train.id(), "sable flapped this body");
             return;
         }
+        // a ghost hold ends the tick its body loads, so only a body that cannot be found gets the dwell cap
         if (ghostHold != null) {
             boolean lost = TrainResidency.bodyLost(train);
             if (!lost) {
@@ -103,7 +107,7 @@ public final class StationChunkTickets {
             chunks.addAll(held.chunks());
             since = held.sinceTick();
         } else if (held != null) {
-            release(train.id());
+            release(train.id(), "level changed");
         }
         Set<ChunkPos> already = held != null && held.level() == level ? held.chunks() : Set.of();
         for (ChunkPos pos : chunks) {
@@ -112,6 +116,9 @@ public final class StationChunkTickets {
             }
         }
         HELD.put(train.id(), new Held(level, center, since, chunks));
+        if (held == null) {
+            logWhy("grace hold", train, chunks);
+        }
         return true;
     }
 
@@ -119,10 +126,15 @@ public final class StationChunkTickets {
         CAPPED.remove(trainId);
     }
 
-    public static void release(UUID trainId) {
+    public static void release(UUID trainId, String reason) {
         Held held = HELD.remove(trainId);
         if (held == null) {
             return;
+        }
+        if (why < MAX_WHY_LINES) {
+            why++;
+            LoconauticsConstants.LOGGER.info("[thrashwhy] release train={} reason={} chunks={}", shortId(trainId),
+                    reason, held.chunks().size());
         }
         dropTickets(trainId, held);
     }
@@ -141,7 +153,7 @@ public final class StationChunkTickets {
             if (live.contains(id)) {
                 continue;
             }
-            release(id);
+            release(id, "train is gone");
         }
     }
 
@@ -186,12 +198,14 @@ public final class StationChunkTickets {
         if (held != null && held.center().equals(center) && held.level() == level) {
             if (capped && now - held.sinceTick() > MAX_DWELL_TICKS) {
                 CAPPED.add(train.id());
-                release(train.id());
+                release(train.id(), "dwell cap of " + MAX_DWELL_TICKS + " ticks reached");
+                LoconauticsConstants.LOGGER.info("[ghostedge] chunk hold capped train={} ticks={} ghost={}",
+                        shortId(train.id()), now - held.sinceTick(), train.isGhost());
             }
             return;
         }
         if (held != null) {
-            release(train.id());
+            release(train.id(), "station moved");
         }
         if (controller == null) {
             return;
@@ -202,6 +216,17 @@ public final class StationChunkTickets {
             chunks.add(new ChunkPos(cx, cz));
         });
         HELD.put(train.id(), new Held(level, center, now, chunks));
+        logWhy(train.isGhost() ? "ghost station hold" : "station hold", train, chunks);
+    }
+
+    // temporary, tag thrashwhy, who took a chunk hold and in which state
+    private static void logWhy(String what, SableTrain train, Set<ChunkPos> chunks) {
+        if (why >= MAX_WHY_LINES) {
+            return;
+        }
+        why++;
+        LoconauticsConstants.LOGGER.info("[thrashwhy] {} train={} ghost={} stationState={} scheduleHold={} chunks={}",
+                what, shortId(train.id()), train.isGhost(), train.stationState(), train.scheduleHold(), chunks);
     }
 
     private static BlockPos stationAnchorIfEnabled(SableTrain train) {

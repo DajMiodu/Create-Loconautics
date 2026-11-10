@@ -9,6 +9,7 @@ import com.lycoris.loconautics.content.controls.panel.style.PanelStyles;
 import com.lycoris.loconautics.foundation.LoconauticsLang;
 import net.createmod.catnip.animation.LerpedFloat;
 import net.minecraft.ChatFormatting;
+import com.lycoris.loconautics.content.combustion.SmallEngineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -127,7 +128,7 @@ public class GaugeBlockEntity extends PanelBlockEntity {
             LoconauticsLang.translate(metric.langKey())
                     .style(ChatFormatting.GRAY).forGoggles(tooltip);
             LoconauticsLang.builder().text(metric.read(source))
-                    .style(metric.accepts(source)
+                    .style(metric.accepts(source) && !metric.faulted(source)
                             ? metric.colorFor(source) : ChatFormatting.RED)
                     .forGoggles(tooltip, 1);
         }
@@ -207,6 +208,10 @@ public class GaugeBlockEntity extends PanelBlockEntity {
     @Nullable
     static BlockEntity sourceOf(PanelBlockEntity panel, @Nullable Gauge gauge) {
         if (panel.getLevel() == null || gauge == null) return null;
-        return panel.getLevel().getBlockEntity(gauge.firebox());
+        BlockEntity source = panel.getLevel().getBlockEntity(gauge.firebox());
+        if (source == null && gauge.metric().group() == GaugeMetric.Group.SMALL_ENGINE) {
+            return SmallEngineBlockEntity.resolve(panel.getLevel(), gauge.firebox());
+        }
+        return source;
     }
 }

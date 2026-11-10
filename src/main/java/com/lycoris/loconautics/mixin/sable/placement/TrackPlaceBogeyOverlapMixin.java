@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// priority 500 runs before sables own canplace check, which blocks track under a bogey car or its wheel plate as if it were a full cube
 @Mixin(value = BlockPlaceContext.class, priority = 500)
 public abstract class TrackPlaceBogeyOverlapMixin extends UseOnContext {
 

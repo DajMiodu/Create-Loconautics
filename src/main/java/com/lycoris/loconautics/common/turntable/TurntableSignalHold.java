@@ -38,6 +38,7 @@ public final class TurntableSignalHold {
         calmTicks = other.calmTicks;
     }
 
+    // true when a signal that no longer exists was dropped from the list
     public boolean tick(Level level, boolean busy) {
         if (bound.isEmpty()) {
             return false;

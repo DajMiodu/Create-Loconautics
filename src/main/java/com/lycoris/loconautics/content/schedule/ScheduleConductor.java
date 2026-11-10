@@ -109,6 +109,7 @@ public final class ScheduleConductor {
                 player.displayClientMessage(
                         Component.translatable("loconautics.schedule.removed_conductor",
                                 mob.getDisplayName()), true);
+                // a co driver whose schedule was already taken back carries nothing, a blank item would be a free one
                 if (carried != null) {
                     ItemStack returned = AllItems.SCHEDULE.asStack();
                     returned.set(AllDataComponents.TRAIN_SCHEDULE, carried);
@@ -186,6 +187,7 @@ public final class ScheduleConductor {
         held.shrink(1);
     }
 
+    // the consist already runs a schedule, so this burner shares it and the item stays with the player
     private static void joinAsBlaze(Player player, Level level, BlockPos pos, ServerSubLevel sub,
             AnalogControllerBlockEntity controller, BlazeBurnerBlockEntity burner) {
         if (burner.hat) {
@@ -229,6 +231,7 @@ public final class ScheduleConductor {
         if (announceResume(train.id(), player)) {
             return true;
         }
+        // the store also holds a mob conductors schedule, only the hatted burner may hand one back
         if (!burner.hat) {
             return false;
         }
@@ -245,6 +248,7 @@ public final class ScheduleConductor {
         return true;
     }
 
+    // called once per car, only the first car of the consist still finds the schedule
     public static void returnScheduleOnDisassembly(ServerLevel level, UUID trainId, ServerSubLevel sub,
             Vec3 dropAt, @Nullable ServerPlayer sender) {
         BlockPos at = BlockPos.containing(dropAt.x, dropAt.y, dropAt.z);
@@ -353,6 +357,7 @@ public final class ScheduleConductor {
         ServerSubLevel sub = subLevelOf(mob.getVehicle());
         SableTrain train = trainOf(sub);
         boolean shared = train != null && SableScheduleRuntime.consistKey(train) != null;
+        // a conductor left over from a schedule that was taken back may start a new one
         if (isConductor && (train == null || shared)) {
             deny(player, level, at, "already_conductor");
             return;
@@ -389,6 +394,7 @@ public final class ScheduleConductor {
         held.shrink(1);
     }
 
+    // the consist already runs a schedule, so this mob shares it and the item stays with the player
     private static void joinAsMob(Player player, LivingEntity mob, BlockPos at, ServerSubLevel sub,
             AnalogControllerBlockEntity controller, SableTrain train) {
         Level level = player.level();
@@ -557,6 +563,7 @@ public final class ScheduleConductor {
         }
         UUID trainId = data.getUUID(ADV_TRAIN);
         ScheduleProgressStore store = ScheduleProgressStore.get(server);
+        // older saves kept a copy on the mob too, two copies could each be handed back as an item
         if (!store.hasSchedule(trainId)) {
             store.putSchedule(trainId, data.getCompound(STATION_SCHEDULE));
         }
@@ -587,6 +594,7 @@ public final class ScheduleConductor {
         return tag;
     }
 
+    // the schedule belongs to the consist, so handing it back from any driver ends it for all of them
     @Nullable
     private static CompoundTag takeConsistSchedule(Level level, UUID carId) {
         MinecraftServer server = level.getServer();

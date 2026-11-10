@@ -18,6 +18,7 @@ public final class GrabHandRenderer {
     private static final float MAX_TURN = (float) Math.toRadians(40.0);
     private static final float FADE_PER_TICK = 0.3f;
 
+    // right arm shoulder end in camera space, worked out from the transforms in iteminhandrenderer.renderplayerarm
     private static final Vector3f TOP = new Vector3f(0.48525f, -0.83147f, -0.52540f);
     private static final Vector3f AXIS = new Vector3f(0.33360f, 0.46985f, -0.81729f);
     private static final float EQUIP_DROP = 0.6f;

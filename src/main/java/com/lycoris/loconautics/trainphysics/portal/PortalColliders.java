@@ -56,6 +56,7 @@ public final class PortalColliders {
                         continue;
                     }
                     hidden++;
+                    // buried neighbor was solid, so that one face may not collide. recomputing it would have to
                     Rapier3D.changeBlock(scene, x, y, z, 0);
                 }
             }
@@ -118,6 +119,7 @@ public final class PortalColliders {
                     if (state.isAir()) {
                         continue;
                     }
+                    // the block was never touched, so handing the pipeline its real state rebuilds the collider
                     pipeline.handleBlockChange(SectionPos.of(pos), null, x & 15, y & 15, z & 15,
                             Blocks.AIR.defaultBlockState(), state);
                 }

@@ -1,7 +1,7 @@
 package com.lycoris.loconautics.client.gui.selector;
 
 import com.lycoris.loconautics.client.gui.gauge.GaugePartColumn;
-import com.lycoris.loconautics.content.controls.ControlsBlocks;
+import com.lycoris.loconautics.content.boiler.BoilerBlocks;
 import com.lycoris.loconautics.content.controls.panel.PanelBlockEntity;
 import com.lycoris.loconautics.content.controls.panel.PanelFrequencyMenu;
 import com.lycoris.loconautics.content.controls.panel.PanelPartLayout;
@@ -67,7 +67,7 @@ public abstract class PartSelectorScreen extends AbstractSimiContainerScreen<Pan
     protected abstract PartModelViewer viewer();
 
     protected BlockState state() {
-        return ControlsBlocks.LOCOMOTIVE_GAUGE.get().defaultBlockState();
+        return BoilerBlocks.LOCOMOTIVE_GAUGE.get().defaultBlockState();
     }
 
     protected abstract List<ColumnSpec> columnSpecs();
@@ -108,6 +108,7 @@ public abstract class PartSelectorScreen extends AbstractSimiContainerScreen<Pan
         return options;
     }
 
+    // a columns icon renderer reads its siblings, safe only because renderers fire after init
     protected final int selected(int column) {
         return columns[column].selected();
     }

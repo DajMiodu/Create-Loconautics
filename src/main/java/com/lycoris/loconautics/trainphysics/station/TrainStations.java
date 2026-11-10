@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.station;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlockEntity;
 import com.lycoris.loconautics.content.schedule.SableScheduleRuntime;
 import com.lycoris.loconautics.content.trainmail.TrainMailTransfer;
@@ -126,9 +127,12 @@ public final class TrainStations {
                 || com.lycoris.loconautics.compat.computercraft.CcControl.isDriving(train.id())
                 || Math.abs(ConsistPower.targetFor(train)) > 1.0e-6;
 
+        ConsistPower.Result consistPower = ConsistPower.resultFor(train);
+        // powered is true for any driven consist, the approach needs an axle that is actually turning
+        boolean engineTurning = consistPower != null && consistPower.engineTurning();
         boolean spaceHeld = controller != null && controller.isSpaceHeld();
         // the snap moves the car up to stationparkradius blocks, an idling or shoved loco never asked for that
-        boolean wantsStop = spaceHeld || train.scheduleHold() || train.isScheduleDriven();
+        boolean wantsStop = spaceHeld && engineTurning || train.scheduleHold() || train.isScheduleDriven();
 
         if (!pulling && train.stationState() != StationState.STOPPED
                 && !TrainSignals.consistHeldAtRed(train)
@@ -141,6 +145,10 @@ public final class TrainStations {
                 near = scoutDirection(noseRail(train), nosePoint(train), STATION_PARK_RADIUS, heading, null, 0.0);
             }
             if (near != null && (wantsStop || StationLanding.wheelOnMark(near.distance()))) {
+                LoconauticsConstants.LOGGER.info("[nose2c] car {} relatches {} at {} scan direction {} heading {}",
+                        ConsistNose.shortId(train.id()), near.station().name,
+                        String.format("%.3f", near.distance()), near.direction(), heading);
+                issue255(train, "relatch", near.station(), near.distance(), near.direction());
                 StationLanding.snapConsist(train, near.direction() * near.distance());
                 train.setCurrentStation(near.station());
                 train.setDistanceToStation(0.0);
@@ -165,7 +173,7 @@ public final class TrainStations {
                 if (target == null || target.distance() < StationLanding.hardStopDistance(train)) {
                     return;
                 }
-                if (spaceHeld) {
+                if (spaceHeld && engineTurning) {
                     train.setCurrentStation(target.station());
                     train.setDistanceToStation(target.distance());
                     train.setApproachTotal(target.distance());
@@ -174,12 +182,12 @@ public final class TrainStations {
                     if (controller != null) {
                         controller.setLocked(false);
                     }
-                } else if (operator != null && resend) {
+                } else if (operator != null && resend && engineTurning) {
                     sendApproachPrompt(operator, target.station());
                 }
             }
             case STOPPING -> {
-                if (!spaceHeld) {
+                if (!spaceHeld || !engineTurning) {
                     train.setStationState(StationState.RUNNING);
                     train.setCurrentStation(null);
                     train.setDistanceToStation(Double.MAX_VALUE);
@@ -205,6 +213,7 @@ public final class TrainStations {
                 double mag = StationLanding.approachSpeed(train, distance);
                 boolean snap = StationLanding.canSnap(train, distance);
                 if (snap) {
+                    issue255(train, "landing snap", train.currentStation(), distance, direction);
                     StationLanding.snapConsist(train, direction * distance);
                     if (controller != null) {
                         controller.setLocked(false);
@@ -216,7 +225,7 @@ public final class TrainStations {
                 }
                 double bodyDirection = direction * ConsistNose.frameFlip(train);
                 // applypropulsion zeroed the target for an unpowered train, so the approach must not hand it back
-                train.setTargetSpeed(train.isPowered() ? bodyDirection * mag : 0.0);
+                train.setTargetSpeed(train.isPowered() && engineTurning ? bodyDirection * mag : 0.0);
                 train.setServoBrake(true);
                 if (controller != null) {
                     controller.setCurrentPower((int) Math.signum(bodyDirection) * StationLanding.powerNotches(train, mag));
@@ -264,6 +273,7 @@ public final class TrainStations {
         if (near == null) {
             return false;
         }
+        issue255(train, "park on mark", near.station(), near.distance(), near.direction());
         StationLanding.snapConsist(train, near.direction() * near.distance(), 0.0);
         AnalogControllerBlockEntity drive = SableTrainDriver.controllerIn(train);
         if (drive != null) {
@@ -391,6 +401,23 @@ public final class TrainStations {
         if (train.atStation() != owner.atStation()) {
             train.setAtStation(owner.atStation());
         }
+    }
+
+    private static void issue255(SableTrain train, String how, GlobalStation station, double gap, double direction) {
+        ConsistNose.Nose nose = ConsistNose.of(train);
+        StringBuilder bogeys = new StringBuilder();
+        for (SableTrain.Bogey bogey : train.car().bogeys()) {
+            bogeys.append(bogey.rail() == nose.rail() ? "NOSE " : "").append(bogey.rail().center() == null ? "none"
+                    : String.format("%.2f,%.2f", bogey.rail().center().x, bogey.rail().center().z)).append(' ');
+        }
+        LoconauticsConstants.LOGGER.info("[issue255] {} car={} station={} gap={} dir={} nowCar={} noseCar={} sense={} "
+                        + "flip={} speed={} cars={} noseOnThisCar={} bogeysOfThisCar={}", how,
+                ConsistNose.shortId(train.id()), station == null ? "none" : station.name,
+                String.format("%.3f", gap), direction, ConsistNose.shortId(train.car().subLevelId()),
+                ConsistNose.shortId(nose.car() == null ? null : nose.car().car().subLevelId()),
+                ConsistNose.senseOf(train), ConsistNose.frameFlip(train), String.format("%.3f", train.speed()),
+                TrainConsist.orderedChain(train.level(), train.car().subLevelId()).size(),
+                nose.car() == train, bogeys);
     }
 
     public static TravellingPoint nosePoint(SableTrain train) {

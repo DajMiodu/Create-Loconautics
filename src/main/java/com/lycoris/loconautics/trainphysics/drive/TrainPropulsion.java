@@ -222,6 +222,24 @@ public final class TrainPropulsion {
         }
         train.setPowered(true);
         train.setTargetSpeed(ConsistPower.targetFor(train));
+        traceReload301(train, power, driven);
+    }
+
+    // temporary, tag reload301, why a reloaded train keeps driving with nobody at the controls
+    private static void traceReload301(SableTrain train, ConsistPower.Result power, boolean driven) {
+        if (train.level().getGameTime() % 20 != 0 || Math.abs(train.targetSpeed()) < 1.0e-6) {
+            return;
+        }
+        com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlockEntity controller =
+                SableTrainDriver.controllerIn(train);
+        com.lycoris.loconautics.LoconauticsConstants.LOGGER.info(
+                "[reload301] train {} target {} speed {} scheduleDriven {} station {} stationState {} manual {} driven {} "
+                        + "anyPowered {} controller {} power {} scheduleControlled {} ghostCruise {}",
+                train.id().toString().substring(0, 8), train.targetSpeed(), train.speed(), train.isScheduleDriven(),
+                train.currentStation() == null ? "none" : "set", train.stationState(), ConsistPower.isManual(train),
+                driven, power.anyPowered(), controller == null ? "none" : "present",
+                controller == null ? "n/a" : controller.getCurrentPower(),
+                controller != null && controller.isScheduleControlled(), train.ghostCruise());
     }
 
     private static boolean consistHeldByStaff(SableTrain train) {

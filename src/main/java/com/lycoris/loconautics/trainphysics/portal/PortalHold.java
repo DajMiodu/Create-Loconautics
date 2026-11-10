@@ -48,6 +48,7 @@ public final class PortalHold {
         HELD.put(subLevelId, level.dimension());
     }
 
+    // true once the far chunks around the car are loaded, the ticket keeps them loaded so a twin clone never blocks on a cold chunk
     public static boolean holdFarChunks(ServerLevel farLevel, double x, double y, double z) {
         BlockPos pos = BlockPos.containing(x, y, z);
         ChunkPos chunk = new ChunkPos(pos);

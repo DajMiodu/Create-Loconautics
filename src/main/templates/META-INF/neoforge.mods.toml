@@ -16,6 +16,9 @@ A mod that makes the Create trains work with the Sable engine
 config="loconautics.mixins.json"
 
 [[mixins]]
+config="loconautics.cbc.mixins.json"
+
+[[mixins]]
 config="loconautics.railways.mixins.json"
 
 [[dependencies.loconautics]]
@@ -50,6 +53,13 @@ side="BOTH"
 modId="simulated"
 type="required"
 versionRange="[1.3,)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.loconautics]]
+modId="createbigcannons"
+type="optional"
+versionRange="[5.11,)"
 ordering="AFTER"
 side="BOTH"
 

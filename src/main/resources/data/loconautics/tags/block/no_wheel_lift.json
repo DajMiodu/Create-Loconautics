@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "railways:mono_bogey",
+      "required": false
+    },
+    {
+      "id": "railways:invisible_mono_bogey",
+      "required": false
+    }
+  ]
+}

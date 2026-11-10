@@ -1,0 +1,23 @@
+{
+    "render_type": "minecraft:cutout",
+    "texture_size": [128, 128],
+    "textures": {
+        "0": "loconautics:block/combustion/red/engine",
+        "particle": "loconautics:block/combustion/red/engine"
+    },
+    "elements": [
+        {
+            "name": "piston",
+            "from": [-0.1, 6.35, 1],
+            "to": [5.9, 11.35, 15],
+            "rotation": {"angle": 45, "axis": "z", "origin": [-0.1, 11.35, 8]},
+            "faces": {
+                "north": {"uv": [2.75, 4.375, 3.5, 5], "texture": "#0"},
+                "east": {"uv": [3.5, 3, 5.25, 3.625], "texture": "#0"},
+                "south": {"uv": [3.5, 4.375, 2.75, 5], "texture": "#0"},
+                "west": {"uv": [3.5, 4.375, 5.25, 5], "texture": "#0"},
+                "up": {"uv": [3.5, 3.625, 5.25, 4.375], "rotation": 90, "texture": "#0"}
+            }
+        }
+    ]
+}

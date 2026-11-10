@@ -5,6 +5,7 @@ import com.lycoris.loconautics.common.turntable.TurntableGhosts;
 import com.lycoris.loconautics.common.turntable.TurntableMotion;
 import com.lycoris.loconautics.common.sable.TrackHostFrames;
 import com.lycoris.loconautics.common.turntable.TurntableRegistry;
+import com.lycoris.loconautics.foundation.debug.TurntableTrace;
 import com.lycoris.loconautics.common.turntable.TurntableSignalHold;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.common.turntable.sequence.TurntableInstruction;
@@ -64,6 +65,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 
 public class TurntableBearingBlockEntity extends KineticBlockEntity
         implements ExtraKinetics, IDisplayAssemblyExceptions, BlockEntitySubLevelActor, TurntableMotion.Host,
@@ -129,6 +131,7 @@ public class TurntableBearingBlockEntity extends KineticBlockEntity
         TurntableGhosts.trackLive(this);
         TurntableRegistry.markPlate(subLevelID);
         recordFrame();
+        traceDetached();
         SubLevelPhysicsSystem physicsSystem = SubLevelPhysicsSystem.get(level);
         if (physicsSystem == null || physicsSystem.getPaused()) {
             return;
@@ -140,6 +143,22 @@ public class TurntableBearingBlockEntity extends KineticBlockEntity
         }
         TurntableRegistry.unregister(subLevelID);
         motion.step(this, false);
+    }
+
+    private void traceDetached() {
+        if (subLevelID == null || getAttachedSubLevel() != null
+                || !TurntableTrace.due("bearing" + subLevelID, level.getGameTime(), 20)) {
+            return;
+        }
+        TrackHostFrames.Frame frame = TrackHostFrames.frameOf(subLevelID);
+        SubLevelPhysicsSystem physics = SubLevelPhysicsSystem.get(level);
+        TurntableTrace.log("bearing without plate " + shortId(subLevelID) + " at " + getBlockPos().toShortString()
+                + " powered=" + turntablePowered() + " sched=" + turntableScheduleDriven() + " perTick="
+                + angularPerTick() + " cog=" + cogwheel.getSpeed() + " handle=" + (handle != null) + " target="
+                + String.format("%.2f", motion.targetAngleDegrees()) + " alignTarget=" + (motion.alignTarget() != null)
+                + " aligned=" + motion.aligned() + " reserved=" + TurntableRegistry.reserved(subLevelID)
+                + " registered=" + (TurntableRegistry.byPlate(subLevelID) == this) + " frameLoaded="
+                + (frame != null && frame.loaded()) + " physicsPaused=" + (physics == null || physics.getPaused()));
     }
 
     private void adoptGhost() {

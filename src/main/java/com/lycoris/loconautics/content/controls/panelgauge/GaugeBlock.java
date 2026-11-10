@@ -108,6 +108,6 @@ public class GaugeBlock extends PanelBlock implements IBE<GaugeBlockEntity> {
 
     @Override
     public BlockEntityType<? extends GaugeBlockEntity> getBlockEntityType() {
-        return com.lycoris.loconautics.content.controls.ControlsBlocks.LOCOMOTIVE_GAUGE_BE.get();
+        return com.lycoris.loconautics.content.boiler.BoilerBlocks.LOCOMOTIVE_GAUGE_BE.get();
     }
 }

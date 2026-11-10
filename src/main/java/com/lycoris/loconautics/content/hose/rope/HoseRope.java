@@ -129,7 +129,7 @@ public final class HoseRope extends AttachedRopePhysicsObject {
     }
 
     public void prePhysicsTick(SubLevelPhysicsSystem system, ServerLevel level, double timeStep) {
-        if (isAttachmentGrabbed(level, RopeHandle.AttachmentPoint.END,
+        if (HoseRopeTrace.jointDisabled() || isAttachmentGrabbed(level, RopeHandle.AttachmentPoint.END,
                 be -> be instanceof HoseNozzleBlockEntity nozzle && nozzle.isGrabbed())) {
             removeConstraint();
         } else if (constraintNeedsRebuild(level)) {
@@ -148,6 +148,7 @@ public final class HoseRope extends AttachedRopePhysicsObject {
             applyAttachments(level);
             attachmentsDirty = false;
         }
+        HoseRopeTrace.sample(this, level);
     }
 
     @Override

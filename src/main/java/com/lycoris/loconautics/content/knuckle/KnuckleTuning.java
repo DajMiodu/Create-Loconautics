@@ -1,6 +1,14 @@
 package com.lycoris.loconautics.content.knuckle;
 
+import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 
 public final class KnuckleTuning {
 
@@ -44,6 +52,7 @@ public final class KnuckleTuning {
 
     public static double positionLerp = DEFAULT_POSITION_LERP;
 
+    public static boolean trace;
     public static double springStiffness = DEFAULT_SPRING_STIFFNESS;
     public static double maxBiasSpeed = DEFAULT_MAX_BIAS_SPEED;
 
@@ -56,5 +65,51 @@ public final class KnuckleTuning {
             return hingeGap <= mateCloseGap ? CLIP_LENGTH : 0.0f;
         }
         return (float) (Mth.clamp((mateOpenGap - hingeGap) / span, 0.0, 1.0) * CLIP_LENGTH);
+    }
+
+    public static void addBranch(LiteralArgumentBuilder<CommandSourceStack> root) {
+        root.then(Commands.literal("knuckle")
+                .then(value("hitbox", 0.1, 6.0, () -> connectDistance, v -> connectDistance = v))
+                .then(value("open", 0.1, 8.0, () -> mateOpenGap, v -> mateOpenGap = v))
+                .then(value("close", 0.1, 8.0, () -> mateCloseGap, v -> mateCloseGap = v))
+                .then(value("lerp", 0.0, 4.0, () -> positionLerp, v -> positionLerp = v))
+                .then(value("spring", 100.0, 1000000.0, () -> springStiffness, v -> springStiffness = v))
+                .then(value("bias", 0.05, 10.0, () -> maxBiasSpeed, v -> maxBiasSpeed = v))
+                .then(Commands.literal("trace")
+                        .executes(ctx -> {
+                            trace = !trace;
+                            return report(ctx.getSource(), "trace " + (trace ? "on" : "off"));
+                        }))
+                .then(Commands.literal("reset")
+                        .executes(ctx -> {
+                            connectDistance = DEFAULT_CONNECT_DISTANCE;
+                            mateOpenGap = DEFAULT_MATE_OPEN_GAP;
+                            mateCloseGap = DEFAULT_MATE_CLOSE_GAP;
+                            positionLerp = DEFAULT_POSITION_LERP;
+                            springStiffness = DEFAULT_SPRING_STIFFNESS;
+                            maxBiasSpeed = DEFAULT_MAX_BIAS_SPEED;
+                            return report(ctx.getSource(), "knuckle tuning reset");
+                        })));
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> value(String name, double min, double max,
+                                                                    DoubleSupplier get,
+                                                                    DoubleConsumer set) {
+        return Commands.literal(name)
+                .executes(ctx -> report(ctx.getSource(), name + " = " + fmt(get.getAsDouble())))
+                .then(Commands.argument("value", DoubleArgumentType.doubleArg(min, max))
+                        .executes(ctx -> {
+                            set.accept(DoubleArgumentType.getDouble(ctx, "value"));
+                            return report(ctx.getSource(), name + " = " + fmt(get.getAsDouble()));
+                        }));
+    }
+
+    static String fmt(double v) {
+        return String.format("%.3f", v);
+    }
+
+    private static int report(CommandSourceStack source, String message) {
+        source.sendSuccess(() -> Component.literal("[knuckle] " + message), false);
+        return 1;
     }
 }

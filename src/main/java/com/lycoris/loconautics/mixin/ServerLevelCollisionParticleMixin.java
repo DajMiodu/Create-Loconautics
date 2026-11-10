@@ -22,6 +22,7 @@ public abstract class ServerLevelCollisionParticleMixin {
         if (!(type instanceof BlockParticleOption block)) {
             return;
         }
+        // the pad is invisible so it has no sprite to sample, rapierphysicspipeline still hands its state to the
         if (block.getState().getBlock() instanceof GhostWheelBlock) {
             cir.setReturnValue(0);
             return;

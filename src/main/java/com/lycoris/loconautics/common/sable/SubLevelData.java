@@ -52,6 +52,7 @@ public final class SubLevelData {
         return worldOf(sub, new Vector3d(local.getX() + 0.5, local.getY() + 0.5, local.getZ() + 0.5));
     }
 
+    // offset is measured from the plot center, the frame sabletrain.bogeylocalpos is stored in
     public static Vector3d worldOfOffset(SubLevel sub, Vec3i offset) {
         return worldOfBlock(sub, sub.getPlot().getCenterBlock().offset(offset));
     }

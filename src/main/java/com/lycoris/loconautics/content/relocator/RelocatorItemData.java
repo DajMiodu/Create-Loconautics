@@ -52,6 +52,7 @@ public final class RelocatorItemData {
         return build(tag, trainName, "carriage " + label);
     }
 
+    // the whole cart travels in the item, so it can be put down in a world that never saw the original body
     public static ItemStack forStored(UUID trainId, @Nullable String trainName, List<CompoundTag> structures,
                                       double span) {
         CompoundTag tag = base(TYPE_STORED, trainId, trainName);

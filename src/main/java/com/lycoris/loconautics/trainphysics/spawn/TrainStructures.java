@@ -53,9 +53,16 @@ public final class TrainStructures {
     private TrainStructures() {
     }
 
+    public static final ResourceLocation BOILER_CART = LoconauticsConstants.id("boiler_cart");
+
     @Nullable
     public static CompoundTag defaultCart(ServerLevel level) {
         return bundled(level, DEFAULT_CART);
+    }
+
+    @Nullable
+    public static CompoundTag boilerCart(ServerLevel level) {
+        return bundled(level, BOILER_CART);
     }
 
     @Nullable
@@ -176,6 +183,7 @@ public final class TrainStructures {
         return new RailHead(head, track.getUpNormal(level, pick.pos(), trackState));
     }
 
+    // per cart, its center distance from the head and then its half length
     private static List<double[]> cartSpans(ServerLevel level, List<CompoundTag> structures) {
         List<double[]> spans = new ArrayList<>(structures.size());
         double cursor = 0.0;

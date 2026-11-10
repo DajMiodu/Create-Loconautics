@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// remapfalse like the other vanilla mixins here, the target is the mojang name
 @Mixin(value = BlockGetter.class, remap = false)
 public interface BlockGetterCutClipMixin {
 

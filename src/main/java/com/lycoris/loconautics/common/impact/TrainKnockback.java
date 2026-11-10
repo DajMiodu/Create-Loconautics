@@ -1,5 +1,7 @@
 package com.lycoris.loconautics.common.impact;
 
+import com.lycoris.loconautics.trainphysics.debug.force.ForceSource;
+import com.lycoris.loconautics.trainphysics.debug.force.ForceTrace;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.drive.TrainRailAdvance;
 import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
@@ -38,6 +40,8 @@ public final class TrainKnockback {
         ForceTotal forces = new ForceTotal();
         forces.applyLinearImpulse(localImpulse);
         handle.applyForcesAndReset(forces);
+        ForceTrace.impulse(sub, ForceSource.KNOCKBACK, worldImpulse,
+                new Vector3d(sub.logicalPose().position()), "queued knockback for a derailed car");
     }
 
     public static void applyKnockbackNow(SableTrain train, Vector3d worldDeltaVelocity) {
@@ -65,6 +69,8 @@ public final class TrainKnockback {
                 plate.addLinearAndAngularVelocity(worldDeltaVelocity, new Vector3d());
             }
         }
+        ForceTrace.deltaV(sub, ForceSource.KNOCKBACK, worldDeltaVelocity,
+                new Vector3d(sub.logicalPose().position()), "immediate knockback");
     }
 
     public static void launchOnDerail(SableTrain train, double lift) {
@@ -96,6 +102,9 @@ public final class TrainKnockback {
         }
         Vector3d spin = rollAxis == null ? new Vector3d() : new Vector3d(rollAxis.x, rollAxis.y, rollAxis.z).mul(roll);
         handle.addLinearAndAngularVelocity(launch, spin);
+        ForceTrace.deltaV(sub, ForceSource.DERAIL_LAUNCH, launch, new Vector3d(sub.logicalPose().position()),
+                "thrown clear of the railhead at " + String.format(java.util.Locale.ROOT, "%.2f", speed)
+                        + " b/s with lift " + lift);
     }
 
     public static void applyKnockbackNowAtPoint(SableTrain train, Vector3d worldDeltaVelocity, Vector3d worldPoint) {
@@ -136,6 +145,9 @@ public final class TrainKnockback {
         Vector3d deltaOmegaWorld = orientation.transform(deltaOmegaLocal, new Vector3d());
 
         handle.addLinearAndAngularVelocity(worldDeltaVelocity, deltaOmegaWorld);
+        ForceTrace.deltaV(sub, ForceSource.KNOCKBACK, worldDeltaVelocity, worldPoint,
+                "off center knockback, spin " + String.format(java.util.Locale.ROOT, "%.3f",
+                        deltaOmegaWorld.length()) + " rad/s");
     }
 
     public static void applyRailRecoil(SableTrain train, Vector3d worldRecoilVelocity) {
@@ -168,8 +180,36 @@ public final class TrainKnockback {
         Vector3d dvWorld = new Vector3d(tangent).mul(alongMps);
         container.physicsSystem().getPipeline().wakeUp(sub);
         handle.addLinearAndAngularVelocity(dvWorld, new Vector3d());
+        ForceTrace.deltaV(sub, ForceSource.RAIL_RECOIL, dvWorld, new Vector3d(sub.logicalPose().position()),
+                "recoil resolved onto the rail, " + String.format(java.util.Locale.ROOT, "%.3f", alongMps)
+                        + " b/s along tangent");
         train.setSpeed(train.speed() + alongMps / 20.0);
         com.lycoris.loconautics.content.knuckle.KnuckleRailCoupler.noteExternal(id, alongMps);
+    }
+
+    public static int applyKnockbackToAllSubLevels(ServerLevel level, Vector3d worldDeltaVelocity) {
+        ServerSubLevelContainer container = SubLevelContainer.getContainer(level);
+        if (container == null) {
+            return 0;
+        }
+        int nudged = 0;
+        for (ServerSubLevel sub : container.getAllSubLevels()) {
+            if (sub == null || sub.isRemoved()) {
+                continue;
+            }
+            // registered trains have their own recoil, pushing them with global knockback breaks the rail constraint
+            if (SableTrainRegistry.bySubLevel(sub.getUniqueId()) != null) {
+                continue;
+            }
+            RigidBodyHandle handle = RigidBodyHandle.of(sub);
+            if (handle == null) {
+                continue;
+            }
+            container.physicsSystem().getPipeline().wakeUp(sub);
+            handle.addLinearAndAngularVelocity(worldDeltaVelocity, new Vector3d());
+            nudged++;
+        }
+        return nudged;
     }
 
     private TrainKnockback() {

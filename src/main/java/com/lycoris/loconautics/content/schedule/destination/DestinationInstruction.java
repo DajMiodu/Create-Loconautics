@@ -26,6 +26,7 @@ public class DestinationInstruction extends TextScheduleInstruction {
 		return Schedule.portedId("destination");
 	}
 
+	// a one cab maneuver holds its nose to the station facing, a waypoint is only driven through
 	public boolean landsFront() {
 		return true;
 	}

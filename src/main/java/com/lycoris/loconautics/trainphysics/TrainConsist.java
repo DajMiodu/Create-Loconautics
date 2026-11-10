@@ -3,6 +3,7 @@ package com.lycoris.loconautics.trainphysics;
 import com.lycoris.loconautics.common.sable.SubLevelBlocks;
 import com.lycoris.loconautics.common.sable.SubLevelData;
 import com.lycoris.loconautics.trainphysics.coupling.CouplingProvider;
+import com.lycoris.loconautics.trainphysics.coupling.TwistLink;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
 import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
@@ -53,6 +54,12 @@ public final class TrainConsist {
         return out;
     }
 
+    public static void twistLinks(ServerLevel level, UUID id, Consumer<TwistLink> links) {
+        for (CouplingProvider provider : PROVIDERS) {
+            provider.collectTwistLinks(level, id, links);
+        }
+    }
+
     public static List<UUID> orderedConsist(ServerLevel level, UUID start) {
         List<UUID> order = new java.util.ArrayList<>();
         if (start == null) {
@@ -97,6 +104,7 @@ public final class TrainConsist {
         return welded;
     }
 
+    // walks twice, since one walk from a car coupled mid rake only ever returns the arm it happened to step into.
     public static List<UUID> orderedChain(ServerLevel level, UUID start) {
         List<UUID> arm = walkArm(level, start);
         if (arm.size() < 2) {

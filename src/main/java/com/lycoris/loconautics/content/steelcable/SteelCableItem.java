@@ -98,9 +98,11 @@ public class SteelCableItem extends Item {
         BlockPos clickedB = posB;
         if (holderA == null || holderB == null || holderA == holderB
                 || !holderA.accepts(cableType()) || !holderB.accepts(cableType())) {
+            logRefusal("holders", holderA, holderB);
             return false;
         }
 
+        // the winch is always end a, so it stays the stable side that owns the rope
         if (holderB.isWinch() && !holderA.isWinch()) {
             SteelCableHolder tmpHolder = holderA;
             holderA = holderB;
@@ -113,10 +115,12 @@ public class SteelCableItem extends Item {
             return false;
         }
         if (!holderA.canAttachStrand() || !holderB.canAttachStrand()) {
+            logRefusal("slot taken", holderA, holderB);
             return false;
         }
         if (cableType().carriesFluid() && (HoseLinks.atLinkLimit((BlockEntity) holderA)
                 || HoseLinks.atLinkLimit((BlockEntity) holderB))) {
+            logRefusal("link limit", holderA, holderB);
             return false;
         }
 
@@ -128,6 +132,7 @@ public class SteelCableItem extends Item {
         Vec3 worldB = Sable.HELPER.projectOutOfSubLevel(level, localPointB);
 
         if (!worldB.closerThan(worldA, maxRange())) {
+            logRefusal("range", holderA, holderB);
             return false;
         }
 
@@ -164,5 +169,10 @@ public class SteelCableItem extends Item {
         level.playSound(null, posA, SoundEvents.CHAIN_PLACE, SoundSource.BLOCKS, 0.5f, 1.0f);
         level.playSound(null, posB, SoundEvents.CHAIN_PLACE, SoundSource.BLOCKS, 0.5f, 1.0f);
         return true;
+    }
+
+    private void logRefusal(String why, @Nullable SteelCableHolder a, @Nullable SteelCableHolder b) {
+        if (cableType().carriesFluid()) {
+        }
     }
 }

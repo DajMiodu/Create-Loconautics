@@ -1,11 +1,14 @@
 package com.lycoris.loconautics.common;
 
+import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
@@ -25,6 +28,16 @@ public interface DyedBlock {
         level.setBlock(pos, painted, 3);
     }
 
+    default void painted(ServerPlayer player, DyeColor dyed) {
+    }
+
+    default void sanitizeAfterPaint(BlockEntity fresh) {
+        if (!(fresh instanceof KineticBlockEntity kinetic) || fresh.getLevel() == null) return;
+        kinetic.removeSource();
+        if (kinetic instanceof GeneratingKineticBlockEntity generator) generator.reActivateSource = true;
+        kinetic.attachKinetics();
+    }
+
     default ItemInteractionResult paint(ItemStack stack, BlockState state, Level level,
                                         BlockPos pos, Player player) {
         if (!(stack.getItem() instanceof DyeItem dye) || dye.getDyeColor() == getColor()) {
@@ -41,6 +54,7 @@ public interface DyedBlock {
         BlockEntity fresh = level.getBlockEntity(pos);
         if (data != null && fresh != null) {
             fresh.loadWithComponents(data, registries);
+            sanitizeAfterPaint(fresh);
             if (fresh instanceof SmartBlockEntity smart) {
                 smart.notifyUpdate();
             } else {
@@ -48,6 +62,7 @@ public interface DyedBlock {
             }
         }
 
+        if (player instanceof ServerPlayer serverPlayer) painted(serverPlayer, dye.getDyeColor());
         if (!player.isCreative()) stack.shrink(1);
         level.playSound(null, pos, SoundEvents.DYE_USE, SoundSource.BLOCKS, 1.0f, 1.0f);
         return ItemInteractionResult.SUCCESS;

@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.controls.panel;
 
+import com.lycoris.loconautics.content.combustion.SmallEngineBlock;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.redstone.link.RedstoneLinkBlock;
 import net.minecraft.ChatFormatting;
@@ -56,9 +57,19 @@ public abstract class LinkBoundBlockItem extends PanelBlockItem {
         BlockPos pos = context.getClickedPos();
         BlockState state = level.getBlockState(pos);
 
+        Player player = context.getPlayer();
+        if (state.getBlock() instanceof SmallEngineBlock) {
+            if (!level.isClientSide) {
+                context.getItemInHand().set(targetComponent(), pos);
+                if (player != null) {
+                    player.displayClientMessage(Component.translatable(langPrefix() + ".bound"), true);
+                }
+            }
+            return InteractionResult.SUCCESS;
+        }
+
         if (!AllBlocks.REDSTONE_LINK.has(state)) return super.useOn(context);
 
-        Player player = context.getPlayer();
         boolean receiver = state.getValue(RedstoneLinkBlock.RECEIVER);
         if (!level.isClientSide) {
             if (receiver) context.getItemInHand().set(targetComponent(), pos);

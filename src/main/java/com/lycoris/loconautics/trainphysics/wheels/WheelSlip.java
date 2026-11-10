@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.wheels;
 
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.compat.computercraft.CcControl;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.drive.ExternalForceDerail;
@@ -48,6 +49,7 @@ public final class WheelSlip {
     }
 
     public static double bite(long gameTime, BlockPos bogeyLocal) {
+        // the wheel grabs and lets go in a pulse, the client applies this on top of the slip speed
         double phase = gameTime * SLIP_PULSE_RATE + bogeyLocal.hashCode();
         return SLIP_MIN_GRIP + (1.0 - SLIP_MIN_GRIP) * Math.abs(Math.sin(phase));
     }
@@ -70,6 +72,15 @@ public final class WheelSlip {
                 : stuck ? Math.min(was + 1, STALL_DELAY_TICKS + RELEASE_TICKS) : Math.max(was - 1, 0);
         train.wheelStall().put(bogeyLocal, stall);
         boolean slipping = stall >= STALL_DELAY_TICKS || stall > 0 && train.slippingBogeys().contains(bogeyLocal);
+        if (slipping != train.slippingBogeys().contains(bogeyLocal)) {
+            LoconauticsConstants.LOGGER.info("[slipdbg] car {} bogey {} slipping {} stall {} commanded {} carSpeed {} trainSpeed {} locked {} computerIdle {}",
+                    train.id().toString().substring(0, 8), bogeyLocal.toShortString(), slipping, stall, commanded,
+                    carSpeed, train.speed(), locked, computerIdle);
+            LoconauticsConstants.LOGGER.info("[issue289] car {} bogey {} slipping {} brakeScale {} braked {} brakeHard {} brakeHold {} handbrake {} ccHeld {} ccDriving {} target {} powered {}",
+                    train.id().toString().substring(0, 8), bogeyLocal.toShortString(), slipping, train.brakeScale(),
+                    train.isBraked(), train.brakeHard(), train.brakeHold(), train.handbrake(), CcControl.held(train.id()),
+                    CcControl.isDriving(train.id()), train.targetSpeed(), train.isPowered());
+        }
         if (slipping) {
             train.slippingBogeys().add(bogeyLocal);
         } else {

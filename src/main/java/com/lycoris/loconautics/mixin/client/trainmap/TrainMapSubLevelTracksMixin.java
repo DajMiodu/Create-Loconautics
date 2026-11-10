@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+// create draws every node at its plot coordinates, so sub level rails are skipped there and painted in world space
 @Mixin(value = TrainMapManager.class, remap = false)
 public abstract class TrainMapSubLevelTracksMixin {
 

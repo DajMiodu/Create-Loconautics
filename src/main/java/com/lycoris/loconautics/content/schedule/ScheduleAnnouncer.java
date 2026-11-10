@@ -154,6 +154,7 @@ public final class ScheduleAnnouncer {
         return at != null && player.distanceToSqr(at) <= HEAR_RANGE * HEAR_RANGE || rides(player, train);
     }
 
+    // a seat sits in the plot, far from the rails, so a seated rider is matched by plot and not by distance
     private static boolean rides(ServerPlayer player, SableTrain train) {
         Entity seat = player.getVehicle();
         ServerSubLevelContainer container = SubLevelContainer.getContainer(train.level());

@@ -117,6 +117,7 @@ public final class SteelCableStrandDriver {
         strands.touch();
     }
 
+    // end a is always the winch when there is one, steelcableitem swaps the ends to guarantee it
     private static void driveWinch(ServerLevel level, @Nullable SubLevelContainer container,
                                     SteelCableStrand strand, SteelCableRope rope) {
         BlockEntity be = StrandEndpoints.blockEntity(level, container, strand.subA, strand.localA);

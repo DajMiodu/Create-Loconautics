@@ -41,6 +41,8 @@ public record GrabUndockPacket(UUID subLevelUUID, BlockPos nozzleLocalPos, float
                     || !(player.level() instanceof ServerLevel level)) {
                 return;
             }
+            com.lycoris.loconautics.LoconauticsConstants.LOGGER.info("[undockdbg] packet got pos={} range={}",
+                    packet.nozzleLocalPos(), packet.range());
             if (!PacketTargets.finite(packet.range())) {
                 return;
             }
@@ -48,11 +50,15 @@ public record GrabUndockPacket(UUID subLevelUUID, BlockPos nozzleLocalPos, float
             if (container == null
                     || !(container.getSubLevel(packet.subLevelUUID()) instanceof ServerSubLevel sub)
                     || !(sub.getLevel().getBlockEntity(packet.nozzleLocalPos()) instanceof HoseNozzleBlockEntity nozzle)) {
+                com.lycoris.loconautics.LoconauticsConstants.LOGGER.info("[undockdbg] packet refused, no sublevel or nozzle");
                 return;
             }
             if (!nozzle.canUndock()) {
+                com.lycoris.loconautics.LoconauticsConstants.LOGGER.info(
+                        "[undockdbg] packet refused, docked={} canUndock=false", nozzle.isDocked());
                 return;
             }
+            com.lycoris.loconautics.LoconauticsConstants.LOGGER.info("[undockdbg] packet undocking");
             nozzle.undock(level.getGameTime());
             nozzle.updateGrab(player.getUUID(), packet.range(), false, new Quaterniond());
         });

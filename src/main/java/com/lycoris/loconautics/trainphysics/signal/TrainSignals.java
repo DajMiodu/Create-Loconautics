@@ -8,6 +8,7 @@ import com.lycoris.loconautics.common.turntable.TurntableSignals;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
 import com.lycoris.loconautics.trainphysics.drive.SableTrainDriver;
+import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.station.ConsistNose;
 import com.lycoris.loconautics.trainphysics.station.StationLanding;
 import com.lycoris.loconautics.trainphysics.station.TrainStations;
@@ -52,6 +53,7 @@ public final class TrainSignals {
 
     private static final Map<UUID, Double> HELD = new HashMap<>();
 
+    private static final Map<UUID, String> MANEUVER_LOG = new HashMap<>();
 
     private record Reservation(UUID train, UUID boundary) {}
 
@@ -128,6 +130,7 @@ public final class TrainSignals {
         }
         seedChainClaims(live);
         HELD.keySet().retainAll(live);
+        MANEUVER_LOG.keySet().retainAll(live);
         RAN_RED.retainAll(live);
         com.lycoris.loconautics.compat.computercraft.CcControl.retain(live);
         CcNetworkEvents.tick();
@@ -190,6 +193,7 @@ public final class TrainSignals {
         return Math.max(SIGNAL_SCAN_MIN, SIGNAL_STOP_MARGIN * (v * v) / (2.0 * SIGNAL_DECELERATION) + SIGNAL_STOP_MARGIN);
     }
 
+    // direction is the sign of this cars own speed, the scan turns it into the sense of the nose point
     public static double gapToRed(SableTrain train, double direction) {
         return gapToRed(train, direction, scanRange(Math.abs(train.speed())));
     }
@@ -202,6 +206,10 @@ public final class TrainSignals {
         double distance = distanceToRed(train, Math.signum(direction), range, false);
         double gap = Double.isNaN(distance) ? Double.NaN : distance - SignalSnap.stopOffset;
         return gap;
+    }
+
+    private static String fmt(double v) {
+        return Double.isNaN(v) ? "none" : String.format("%.2f", v);
     }
 
     public static void tickSignals(SableTrain train) {
@@ -264,6 +272,8 @@ public final class TrainSignals {
             train.setSpeed(0.0);
         }
         if (HELD.put(train.id(), direction) == null) {
+            LoconauticsConstants.LOGGER.info("[nose2c] car {} holds at red, body direction {} flip {} gap {}",
+                    ConsistNose.shortId(train.id()), direction, ConsistNose.frameFlip(train), fmt(gap));
             announce(train, "holding at a red signal");
             CcEvents.queue(train, "train_signal_red", gap);
         }
@@ -420,6 +430,7 @@ public final class TrainSignals {
         private final double range;
         private final boolean reserve;
         private final GlobalStation destination;
+        // null outside maneuver mode
         private final Set<UUID> former;
         private final Map<UUID, SignalBoundary> chain = new HashMap<>();
         private SignalBoundary chainStart;
@@ -504,12 +515,32 @@ public final class TrainSignals {
             String why = maneuverHold(signal, side, entering, group, ahead);
             if (why != null) {
                 stopAt = distance;
+                logOnce(entering, "stop in " + distance(distance) + " m, " + why);
                 return true;
             }
+            logOnce(entering, null);
             if (reserve) {
                 RESERVED.put(entering, new Reservation(train.id(), signal.getId()));
             }
             return false;
+        }
+
+        private static String distance(double value) {
+            return fmt(value);
+        }
+
+        private void logOnce(UUID groupId, String line) {
+            String key = line == null ? "" : groupId + line;
+            if (key.equals(MANEUVER_LOG.get(train.id()))) {
+                return;
+            }
+            if (line == null) {
+                MANEUVER_LOG.remove(train.id());
+                return;
+            }
+            MANEUVER_LOG.put(train.id(), key);
+            LoconauticsConstants.LOGGER.info("[maneuver] car {} group {}: {}",
+                    ConsistNose.shortId(train.id()), ConsistNose.shortId(groupId), line);
         }
 
         private String maneuverHold(SignalBoundary signal, boolean side, UUID groupId, SignalEdgeGroup group, TrackNode ahead) {

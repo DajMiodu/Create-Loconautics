@@ -47,6 +47,7 @@ public final class ConsistBrake {
         return strongest <= 0.0 && !hold ? NONE : new Demand(strongest, hold);
     }
 
+    // a braked consist could never depart without this, the hold outlives the panellever press by a tick or two
     private static boolean pulling(SableTrain train) {
         if (train.stationState() == StationState.DEPARTING
                 || com.lycoris.loconautics.compat.computercraft.CcControl.isDriving(train.id())) {

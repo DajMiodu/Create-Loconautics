@@ -21,6 +21,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.AttachFace;
@@ -38,7 +42,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public abstract class PanelBlock extends FaceAttachedHorizontalDirectionalBlock
-        implements IWrenchable, PanelHost, BlockSubLevelAssemblyListener {
+        implements IWrenchable, PanelHost, BlockSubLevelAssemblyListener, SimpleWaterloggedBlock {
+
+    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
     public static final double[] FLAT_SLOT_BOX = {1, 0, 1, 7, 2, 7};
 
@@ -120,7 +126,7 @@ public abstract class PanelBlock extends FaceAttachedHorizontalDirectionalBlock
 
     protected PanelBlock(Properties properties) {
         super(properties);
-        BlockState state = defaultBlockState();
+        BlockState state = defaultBlockState().setValue(WATERLOGGED, false);
         for (BooleanProperty slot : PanelSlot.PROPERTIES) {
             state = state.setValue(slot, false);
         }
@@ -143,7 +149,22 @@ public abstract class PanelBlock extends FaceAttachedHorizontalDirectionalBlock
     @Override
     protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder.add(FACE, FACING));
+        builder.add(WATERLOGGED);
         builder.add(PanelSlot.PROPERTIES);
+    }
+
+    @Override
+    protected FluidState getFluidState(BlockState state) {
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
+                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+        if (state.getValue(WATERLOGGED)) {
+            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+        }
+        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
 
     @Override
@@ -157,6 +178,8 @@ public abstract class PanelBlock extends FaceAttachedHorizontalDirectionalBlock
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState placement = super.getStateForPlacement(context);
         if (placement == null) return null;
+        placement = placement.setValue(WATERLOGGED,
+                context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER);
         if (placement.getValue(FACE) == AttachFace.FLOOR) {
             placement = placement.setValue(FACING, placement.getValue(FACING).getOpposite());
         }

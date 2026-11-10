@@ -180,6 +180,7 @@ public abstract class StationScreenMixin extends Screen {
         this.dropScheduleButton.visible = true;
         this.dropScheduleButton.active = false;
 
+        // create gates this on a third party map mod, our own fullscreen map always reads the color
         this.colorTypeScroll.visible = true;
         this.colorTypeScroll.active = true;
         this.loconautics$iconScroll.visible = true;

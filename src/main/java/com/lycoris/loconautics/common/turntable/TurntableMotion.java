@@ -16,10 +16,12 @@ public final class TurntableMotion {
 
     private static final int HOME_DELAY_TICKS = 40;
     private static final double DEGREE_EPSILON = 1.0e-4;
+    // the servo overshoots a little, so a turn counts once it held still this long
     private static final int ALIGN_SETTLE_TICKS = 5;
 
     public interface Host extends Turntable {
 
+        // signed degrees per tick the plate would turn at its current speed, before any facing flip
         float angularPerTick();
 
         boolean facingNegative();

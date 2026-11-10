@@ -186,6 +186,8 @@ public final class StationAssembly {
         acc.loconautics$exception(null, -1);
         station.exitAssemblyMode();
         TrainAdvancements.assembled(player, built, blockBreakers);
+        LoconauticsConstants.LOGGER.info("[sabletrain] station at {} assembled {} independent Sable car(s) (idle)",
+                stationPos, built);
     }
 
     // read before assembly, the blocks leave the world afterwards

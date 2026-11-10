@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// railways only keeps the pick on the server, a multiplayer client copies it into its own map so the casing picker can draw it
 @Mixin(targets = "com.railwayteam.railways.util.packet.BogeyStyleSelectionPacket", remap = false)
 public abstract class BogeyStyleSelectionPacketMixin {
 

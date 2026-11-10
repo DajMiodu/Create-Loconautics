@@ -110,6 +110,7 @@ public final class TrackHostFrames {
                     && chunkZ >= minChunkZ && chunkZ <= maxChunkZ;
         }
 
+        // base pose turned about the hinge by the angle gone since it was taken
         public synchronized Pose3dc pose() {
             if (cached != null && cachedAngle == angle) {
                 return cached;
@@ -189,6 +190,7 @@ public final class TrackHostFrames {
         FRAMES.putIfAbsent(frame.host(), frame);
     }
 
+    // taken every tick a turntable plate is loaded, so the frame is never older than the last live tick
     public static void record(UUID host, ResourceKey<Level> dimension, ServerSubLevel sub, double angle,
                               Vec3 axis, Vec3 normal) {
         Frame frame = FRAMES.computeIfAbsent(host, id -> new Frame(id, dimension));
@@ -197,6 +199,7 @@ public final class TrackHostFrames {
         frame.loaded = true;
     }
 
+    // the last pose of an unloaded body that carries track
     public static void onUnloaded(ServerSubLevel sub, ResourceKey<Level> dimension) {
         UUID id = sub.getUniqueId();
         Frame known = FRAMES.get(id);
@@ -254,6 +257,7 @@ public final class TrackHostFrames {
         return Create.RAILWAYS == null ? List.of() : new ArrayList<>(Create.RAILWAYS.trackNetworks.values());
     }
 
+    // frames whose rails are gone, the body was removed while nobody was looking
     public static List<UUID> orphans() {
         List<UUID> gone = new ArrayList<>();
         List<TrackGraph> graphs = networks();

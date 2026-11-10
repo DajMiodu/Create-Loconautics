@@ -106,6 +106,7 @@ final class RouteScout {
         return ahead;
     }
 
+    // rails on a moving body or across a portal live in another frame
     private static boolean readable(TrackEdge edge) {
         return !edge.isInterDimensional() && edge.node1 != null && RailSeams.hostIdOf(edge.node1.getLocation()) == null;
     }

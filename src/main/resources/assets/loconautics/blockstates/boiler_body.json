@@ -1,0 +1,372 @@
+{
+  "variants": {
+    "connected_neg=true,connected_pos=true,facing=north,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle"
+    },
+    "connected_neg=true,connected_pos=true,facing=north,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle"
+    },
+    "connected_neg=true,connected_pos=true,facing=north,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle"
+    },
+    "connected_neg=true,connected_pos=true,facing=north,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle"
+    },
+    "connected_neg=false,connected_pos=true,facing=north,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front"
+    },
+    "connected_neg=false,connected_pos=true,facing=north,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front"
+    },
+    "connected_neg=false,connected_pos=true,facing=north,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front"
+    },
+    "connected_neg=false,connected_pos=true,facing=north,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front"
+    },
+    "connected_neg=true,connected_pos=false,facing=north,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back"
+    },
+    "connected_neg=true,connected_pos=false,facing=north,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back"
+    },
+    "connected_neg=true,connected_pos=false,facing=north,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back"
+    },
+    "connected_neg=true,connected_pos=false,facing=north,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back"
+    },
+    "connected_neg=false,connected_pos=false,facing=north,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_smoke"
+    },
+    "connected_neg=false,connected_pos=false,facing=north,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_boiler"
+    },
+    "connected_neg=false,connected_pos=false,facing=north,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_smoke"
+    },
+    "connected_neg=false,connected_pos=false,facing=north,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_boiler"
+    },
+    "connected_neg=true,connected_pos=true,facing=east,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 90
+    },
+    "connected_neg=true,connected_pos=true,facing=east,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 90
+    },
+    "connected_neg=true,connected_pos=true,facing=east,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 90
+    },
+    "connected_neg=true,connected_pos=true,facing=east,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 90
+    },
+    "connected_neg=false,connected_pos=true,facing=east,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 90
+    },
+    "connected_neg=false,connected_pos=true,facing=east,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 90
+    },
+    "connected_neg=false,connected_pos=true,facing=east,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 90
+    },
+    "connected_neg=false,connected_pos=true,facing=east,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 90
+    },
+    "connected_neg=true,connected_pos=false,facing=east,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 90
+    },
+    "connected_neg=true,connected_pos=false,facing=east,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 90
+    },
+    "connected_neg=true,connected_pos=false,facing=east,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 90
+    },
+    "connected_neg=true,connected_pos=false,facing=east,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 90
+    },
+    "connected_neg=false,connected_pos=false,facing=east,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_smoke",
+      "y": 90
+    },
+    "connected_neg=false,connected_pos=false,facing=east,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_smoke",
+      "y": 90
+    },
+    "connected_neg=false,connected_pos=false,facing=east,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_boiler",
+      "y": 90
+    },
+    "connected_neg=false,connected_pos=false,facing=east,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_boiler",
+      "y": 90
+    },
+    "connected_neg=true,connected_pos=true,facing=south,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 180
+    },
+    "connected_neg=true,connected_pos=true,facing=south,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 180
+    },
+    "connected_neg=true,connected_pos=true,facing=south,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 180
+    },
+    "connected_neg=true,connected_pos=true,facing=south,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 180
+    },
+    "connected_neg=false,connected_pos=true,facing=south,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 180
+    },
+    "connected_neg=false,connected_pos=true,facing=south,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 180
+    },
+    "connected_neg=false,connected_pos=true,facing=south,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 180
+    },
+    "connected_neg=false,connected_pos=true,facing=south,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 180
+    },
+    "connected_neg=true,connected_pos=false,facing=south,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 180
+    },
+    "connected_neg=true,connected_pos=false,facing=south,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 180
+    },
+    "connected_neg=true,connected_pos=false,facing=south,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 180
+    },
+    "connected_neg=true,connected_pos=false,facing=south,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 180
+    },
+    "connected_neg=false,connected_pos=false,facing=south,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_smoke",
+      "y": 180
+    },
+    "connected_neg=false,connected_pos=false,facing=south,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_smoke",
+      "y": 180
+    },
+    "connected_neg=false,connected_pos=false,facing=south,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_boiler",
+      "y": 180
+    },
+    "connected_neg=false,connected_pos=false,facing=south,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_boiler",
+      "y": 180
+    },
+    "connected_neg=true,connected_pos=true,facing=west,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 270
+    },
+    "connected_neg=true,connected_pos=true,facing=west,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 270
+    },
+    "connected_neg=true,connected_pos=true,facing=west,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 270
+    },
+    "connected_neg=true,connected_pos=true,facing=west,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "y": 270
+    },
+    "connected_neg=false,connected_pos=true,facing=west,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 270
+    },
+    "connected_neg=false,connected_pos=true,facing=west,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 270
+    },
+    "connected_neg=false,connected_pos=true,facing=west,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 270
+    },
+    "connected_neg=false,connected_pos=true,facing=west,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "y": 270
+    },
+    "connected_neg=true,connected_pos=false,facing=west,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 270
+    },
+    "connected_neg=true,connected_pos=false,facing=west,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 270
+    },
+    "connected_neg=true,connected_pos=false,facing=west,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 270
+    },
+    "connected_neg=true,connected_pos=false,facing=west,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "y": 270
+    },
+    "connected_neg=false,connected_pos=false,facing=west,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_smoke",
+      "y": 270
+    },
+    "connected_neg=false,connected_pos=false,facing=west,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_boiler",
+      "y": 270
+    },
+    "connected_neg=false,connected_pos=false,facing=west,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_smoke",
+      "y": 270
+    },
+    "connected_neg=false,connected_pos=false,facing=west,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_boiler",
+      "y": 270
+    },
+    "connected_neg=true,connected_pos=true,facing=up,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "x": 270
+    },
+    "connected_neg=true,connected_pos=true,facing=up,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "x": 270
+    },
+    "connected_neg=true,connected_pos=true,facing=up,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "x": 270
+    },
+    "connected_neg=true,connected_pos=true,facing=up,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "x": 270
+    },
+    "connected_neg=false,connected_pos=true,facing=up,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "x": 270
+    },
+    "connected_neg=false,connected_pos=true,facing=up,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "x": 270
+    },
+    "connected_neg=false,connected_pos=true,facing=up,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "x": 270
+    },
+    "connected_neg=false,connected_pos=true,facing=up,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "x": 270
+    },
+    "connected_neg=true,connected_pos=false,facing=up,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "x": 270
+    },
+    "connected_neg=true,connected_pos=false,facing=up,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "x": 270
+    },
+    "connected_neg=true,connected_pos=false,facing=up,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "x": 270
+    },
+    "connected_neg=true,connected_pos=false,facing=up,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "x": 270
+    },
+    "connected_neg=false,connected_pos=false,facing=up,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_smoke",
+      "x": 270
+    },
+    "connected_neg=false,connected_pos=false,facing=up,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_smoke",
+      "x": 270
+    },
+    "connected_neg=false,connected_pos=false,facing=up,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_boiler",
+      "x": 270
+    },
+    "connected_neg=false,connected_pos=false,facing=up,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_boiler",
+      "x": 270
+    },
+    "connected_neg=true,connected_pos=true,facing=down,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "x": 90
+    },
+    "connected_neg=true,connected_pos=true,facing=down,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "x": 90
+    },
+    "connected_neg=true,connected_pos=true,facing=down,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "x": 90
+    },
+    "connected_neg=true,connected_pos=true,facing=down,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_middle",
+      "x": 90
+    },
+    "connected_neg=false,connected_pos=true,facing=down,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "x": 90
+    },
+    "connected_neg=false,connected_pos=true,facing=down,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "x": 90
+    },
+    "connected_neg=false,connected_pos=true,facing=down,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "x": 90
+    },
+    "connected_neg=false,connected_pos=true,facing=down,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_front",
+      "x": 90
+    },
+    "connected_neg=true,connected_pos=false,facing=down,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "x": 90
+    },
+    "connected_neg=true,connected_pos=false,facing=down,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "x": 90
+    },
+    "connected_neg=true,connected_pos=false,facing=down,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "x": 90
+    },
+    "connected_neg=true,connected_pos=false,facing=down,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_back",
+      "x": 90
+    },
+    "connected_neg=false,connected_pos=false,facing=down,smoke_neg=true,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_smoke",
+      "x": 90
+    },
+    "connected_neg=false,connected_pos=false,facing=down,smoke_neg=false,smoke_pos=true": {
+      "model": "loconautics:block/boiler/barrel/body_single_smoke_boiler",
+      "x": 90
+    },
+    "connected_neg=false,connected_pos=false,facing=down,smoke_neg=true,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_smoke",
+      "x": 90
+    },
+    "connected_neg=false,connected_pos=false,facing=down,smoke_neg=false,smoke_pos=false": {
+      "model": "loconautics:block/boiler/barrel/body_single_boiler_boiler",
+      "x": 90
+    }
+  }
+}

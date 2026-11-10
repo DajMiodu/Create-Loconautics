@@ -13,6 +13,7 @@ public record PortalCut(UUID subLevelId, int axis, int cutoff, boolean positive)
         return positive ? coord > cutoff : coord < cutoff;
     }
 
+    // the seam cell spans the plane, so its body collider reaches up to a block into whatever stands behind the portal
     public boolean noCollider(int x, int y, int z) {
         return hidden(x, y, z) || seam(x, y, z);
     }

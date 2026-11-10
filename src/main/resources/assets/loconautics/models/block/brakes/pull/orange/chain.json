@@ -1,0 +1,8 @@
+{
+    "parent": "loconautics:block/brakes/pull/chain",
+    "render_type": "minecraft:cutout",
+    "textures": {
+        "0": "loconautics:block/brakes/pull/orange/sheet",
+        "particle": "loconautics:block/brakes/pull/orange/sheet"
+    }
+}

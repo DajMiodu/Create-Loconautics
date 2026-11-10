@@ -1,0 +1,8 @@
+{
+  "parent": "loconautics:block/combustion/engine_front",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "0": "loconautics:block/combustion/gray/engine",
+    "particle": "loconautics:block/combustion/gray/engine"
+  }
+}

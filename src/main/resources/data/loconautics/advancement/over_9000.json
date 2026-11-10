@@ -1,0 +1,25 @@
+{
+  "parent": "loconautics:root",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "loconautics:red_small_combustion_engine"
+    },
+    "title": {
+      "translate": "advancement.loconautics.over_9000"
+    },
+    "description": {
+      "translate": "advancement.loconautics.over_9000.desc"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

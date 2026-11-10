@@ -28,6 +28,8 @@ public final class CrnCartDisplays {
 
     private static final Method CONTRAPTION_TICK = resolve();
 
+    private static final java.util.Set<BlockPos> SEEN = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private CrnCartDisplays() {
     }
 
@@ -43,11 +45,14 @@ public final class CrnCartDisplays {
 
     public static void clear() {
         STANDINS.clear();
+        SEEN.clear();
     }
 
     public static void tick(BlockEntity display) {
         Level level = display.getLevel();
         UUID trainId = level != null && level.isClientSide ? trainIdOf(display) : null;
+        if (SEEN.add(display.getBlockPos().immutable())) {
+        }
         if (CONTRAPTION_TICK == null || trainId == null) {
             return;
         }

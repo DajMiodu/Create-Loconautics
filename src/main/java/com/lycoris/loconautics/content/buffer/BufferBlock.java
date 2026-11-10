@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.content.buffer;
 
+import com.lycoris.loconautics.common.ShiftPlacement;
 import com.lycoris.loconautics.common.DyedBlock;
 import com.lycoris.loconautics.common.copycat.CopycatBlockLogic;
 import com.lycoris.loconautics.common.copycat.CopycatPlacement;
@@ -188,7 +189,7 @@ public class BufferBlock extends HorizontalDirectionalBlock
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState()
-                .setValue(FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(FACING, ShiftPlacement.facing(context))
                 .setValue(CopycatPlacement.PLACEMENT, CopycatPlacement.aimedAt(context));
     }
 
