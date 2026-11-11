@@ -88,7 +88,7 @@ public final class ScheduleGui extends AnimatedOverlayElementBase {
         GuiPonder.stamp();
 
         AllGuiTextures background = AllGuiTextures.SCHEDULE;
-        int x = ui.width * 2 / 5 - background.getWidth() / 2;
+        int x = ui.width / 4 - 100;
         int y = (ui.height - background.getHeight()) / 2 + 14;
         Font font = Minecraft.getInstance().font;
         int alpha = (int) (fade * 255f) << 24;
