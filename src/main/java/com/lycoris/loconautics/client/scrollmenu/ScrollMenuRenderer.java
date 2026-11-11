@@ -33,13 +33,14 @@ public final class ScrollMenuRenderer {
         if (alpha <= 0.01f) return;
         float scale = s.scale.getValue(pt);
 
-        int w = graphics.guiWidth();
-        int h = graphics.guiHeight();
+        draw(graphics, s, alpha, scale, graphics.guiWidth() / 2, graphics.guiHeight() - 59 - NAME_GAP - SLOT + DROP);
+    }
+
+    public static void draw(GuiGraphics graphics, ScrollMenu s, float alpha, float scale, int cx, int rowY) {
+        Minecraft mc = Minecraft.getInstance();
         int total = SLOT * 3 + GAP * 2;
-        int startX = (w - total) / 2;
-        int rowY = h - 59 - NAME_GAP - SLOT + DROP;
+        int startX = cx - total / 2;
         int[] slotX = {startX, startX + SLOT + GAP, startX + (SLOT + GAP) * 2};
-        int cx = w / 2;
 
         PoseStack ms = graphics.pose();
         ms.pushPose();

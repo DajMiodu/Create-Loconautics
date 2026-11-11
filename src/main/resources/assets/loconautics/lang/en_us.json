@@ -1198,5 +1198,17 @@
   "loconautics.ponder.turntable_bearing_maneuver.text_6": "The Train reverses out of the parking at that speed",
   "loconautics.ponder.turntable_bearing_maneuver.text_7": "It stops centered on the plate",
   "loconautics.ponder.turntable_bearing_maneuver.text_8": "The plate takes the Train and turns it to face the leg it needs next",
-  "loconautics.ponder.turntable_bearing_maneuver.text_9": "Then it drives off forward toward its next stop"
+  "loconautics.ponder.turntable_bearing_maneuver.text_9": "Then it drives off forward toward its next stop",
+  "loconautics.ponder.train_casing_bogeys.header": "Building Trains with Train Casing",
+  "loconautics.ponder.train_casing_bogeys.text_1": "Holding C with a Train Casing opens the selection menu",
+  "loconautics.ponder.train_casing_bogeys.text_2": "Scrolling swaps the Casing for a Bogey",
+  "loconautics.ponder.train_casing_bogeys.text_3": "Right click a Track to place the Bogey on it",
+  "loconautics.ponder.train_casing_bogeys.text_4": "Train Casings placed between the Bogeys form the body of the train",
+  "loconautics.ponder.train_casing_bogeys.text_5": "Glue the blocks together and hold right click on a Physics Assembler",
+  "loconautics.ponder.train_casing_bogeys.text_6": "The assembled body counts as a Train and can dock at Stations",
+  "loconautics.ponder.train_casing_shaft.header": "Passing Rotation through Bogeys",
+  "loconautics.ponder.train_casing_shaft.text_1": "Bogeys can be fitted with a Shaft by right clicking them with one",
+  "loconautics.ponder.train_casing_shaft.text_2": "Rotation from one side passes straight through, like an encased Shaft",
+  "loconautics.ponder.train_casing_shaft.text_3": "Sneak and Right click with a Wrench to remove the Shaft again",
+  "loconautics.ponder.train_casing_shaft.text_4": "Without the Shaft, rotation stops at the Bogey"
 }

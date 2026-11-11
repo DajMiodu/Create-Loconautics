@@ -3,6 +3,8 @@ package com.lycoris.loconautics.client.ponder;
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlocks;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
+import com.simibubi.create.AllBlocks;
+import dev.simulated_team.simulated.ponder.new_ponder_tooltip.NewPonderTooltipManager;
 import net.createmod.ponder.api.registration.PonderPlugin;
 import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -49,6 +51,20 @@ public class TrainPonderPlugin implements PonderPlugin {
                 .addStoryBoard("train/train", TrainScenes::drivetrain)
                 .addStoryBoard("train/train", TrainScenes::controls)
                 .addStoryBoard("train/train", TrainScenes::assembly);
+
+        registerCasing(helper);
+    }
+
+    private static void registerCasing(PonderSceneRegistrationHelper<ResourceLocation> helper) {
+        helper.forComponents(AllBlocks.RAILWAY_CASING.getId(), LoconauticsRegistries.BOGEY.getId())
+                .addStoryBoard("train_casing/train_casing", TrainCasingScenes::bogeys);
+        helper.forComponents(AllBlocks.RAILWAY_CASING.getId(), LoconauticsRegistries.BOGEY.getId(),
+                        AllBlocks.SMALL_BOGEY.getId(), AllBlocks.LARGE_BOGEY.getId())
+                .addStoryBoard("train_casing/bogey_shaft", TrainCasingScenes::shaft);
+        NewPonderTooltipManager.forItems(AllBlocks.RAILWAY_CASING.asItem(), LoconauticsRegistries.BOGEY.get(),
+                        AllBlocks.SMALL_BOGEY.asItem(), AllBlocks.LARGE_BOGEY.asItem())
+                .addScenes(LoconauticsConstants.id("train_casing_bogeys"),
+                        LoconauticsConstants.id("train_casing_shaft"));
     }
 
     private static List<ResourceLocation> controllers() {
