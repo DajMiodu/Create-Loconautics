@@ -1,12 +1,17 @@
 package com.lycoris.loconautics.client.ponder;
 
+import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlockEntity;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerMenu;
 import com.lycoris.loconautics.content.bearingaxle.BearingAxleMenu;
 import com.lycoris.loconautics.content.transmission.TransmissionBlock;
 import com.lycoris.loconautics.content.transmission.TransmissionBlockEntity;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
+import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.content.trains.station.StationBlock;
+import com.simibubi.create.content.trains.track.TrackBlock;
+import com.simibubi.create.content.trains.track.TrackShape;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import dev.simulated_team.simulated.content.blocks.portable_engine.PortableEngineBlockEntity;
 import dev.simulated_team.simulated.service.SimItemService;
@@ -20,11 +25,15 @@ import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -32,15 +41,17 @@ public class TrainScenes {
 
     private static final float ENGINE_RPM = 32f;
     private static final float AXLE_RPM = 256f;
-    private static final double SHIFT = 1.5;
+    private static final double SHIFT = -1.5;
+    private static final int SLIDE = 40;
 
-    private static final BlockPos STATION = new BlockPos(4, 1, 1);
-    private static final BlockPos BOGEY = new BlockPos(3, 2, 4);
-    private static final BlockPos AXLE = new BlockPos(4, 2, 4);
+    private static final BlockPos STATION = new BlockPos(8, 1, 1);
+    private static final BlockPos BOGEY = new BlockPos(7, 2, 4);
+    private static final BlockPos AXLE = new BlockPos(6, 2, 4);
     private static final BlockPos TRANSMISSION = new BlockPos(5, 2, 4);
-    private static final BlockPos ENGINE = new BlockPos(6, 2, 4);
-    private static final BlockPos BOGEY_FAR = new BlockPos(7, 2, 4);
-    private static final BlockPos CONTROLLER = new BlockPos(3, 3, 4);
+    private static final BlockPos ENGINE = new BlockPos(4, 2, 4);
+    private static final BlockPos BOGEY_FAR = new BlockPos(3, 2, 4);
+    private static final BlockPos CONTROLLER = new BlockPos(7, 3, 4);
+    private static final BlockPos STATION_FAR = new BlockPos(48, 1, 1);
 
     public static void wheels(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = open(builder, "locomotive_wheels", "Setting up Bearing Axles");
@@ -48,7 +59,7 @@ public class TrainScenes {
 
         centered(scene, util, util.select().position(BOGEY));
         scene.idle(15);
-        scene.overlay().showControls(util.vector().blockSurface(BOGEY, Direction.EAST).add(SHIFT, 0, 0), Pointing.RIGHT, 40)
+        scene.overlay().showControls(util.vector().blockSurface(BOGEY, Direction.WEST).add(SHIFT, 0, 0), Pointing.LEFT, 40)
                 .rightClick()
                 .withItem(new ItemStack(LoconauticsRegistries.BEARING_AXLE_ITEM.get()));
         scene.idle(25);
@@ -131,6 +142,33 @@ public class TrainScenes {
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(ENGINE));
         scene.idle(80);
+
+        scene.overlay().showText(70)
+                .text("The Portable Engine is only a demonstration, any Rotational Force works")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(ENGINE));
+        scene.idle(80);
+
+        swapSource(scene, util, AllBlocks.CREATIVE_MOTOR.getDefaultState().setValue(DirectionalKineticBlock.FACING, Direction.EAST));
+        scene.overlay().showText(60)
+                .text("A Creative Motor can power the Transmission as well")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(ENGINE));
+        scene.idle(70);
+
+        swapSource(scene, util, AllBlocks.WATER_WHEEL.getDefaultState().setValue(DirectionalKineticBlock.FACING, Direction.EAST));
+        scene.overlay().showText(60)
+                .text("And so can a spinning Water Wheel")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(ENGINE));
+        scene.idle(70);
+
+        swapSource(scene, util, engineState());
+        lit(scene, util);
+        scene.idle(20);
 
         signal(scene, util, 15);
         scene.world().setKineticSpeed(util.select().position(AXLE), AXLE_RPM);
@@ -299,17 +337,19 @@ public class TrainScenes {
     }
 
     public static void assembly(SceneBuilder builder, SceneBuildingUtil util) {
-        CreateSceneBuilder scene = open(builder, "locomotive_assembly", "Assembling Locomotives");
-        showTrack(scene, util);
+        CreateSceneBuilder scene = open(builder, "locomotive_assembly", "Assembling Locomotives", false);
 
-        scene.world().showSection(util.select().position(STATION), Direction.DOWN);
+        Selection groundBlocks = util.select().fromTo(1, 0, 0, 9, 0, 8).add(util.select().fromTo(0, 1, 4, 9, 1, 4));
+        ElementLink<WorldSectionElement> ground = scene.world().showIndependentSection(groundBlocks, Direction.DOWN);
+        scene.idle(15);
+        scene.world().showSectionAndMerge(util.select().position(STATION), Direction.DOWN, ground);
         scene.idle(20);
+
         Selection locomotive = util.select().fromTo(BOGEY, BOGEY_FAR).add(util.select().position(CONTROLLER));
         lit(scene, util);
         feed(scene, util);
-        ElementLink<WorldSectionElement> train = scene.world().showIndependentSection(locomotive, Direction.DOWN);
+        scene.world().showIndependentSection(locomotive, Direction.DOWN);
         scene.world().setKineticSpeed(util.select().fromTo(ENGINE, TRANSMISSION), ENGINE_RPM);
-        scene.world().cycleBlockProperty(STATION, StationBlock.ASSEMBLING);
         scene.idle(15);
 
         scene.overlay().showText(70)
@@ -319,43 +359,126 @@ public class TrainScenes {
                 .pointAt(util.vector().topOf(AXLE));
         scene.idle(80);
 
-        scene.overlay().showControls(util.vector().topOf(STATION), Pointing.DOWN, 40).rightClick();
-        scene.idle(25);
-        scene.overlay().showText(70)
-                .text("Open the Station and confirm the Assembly process")
+        StationGui gui = StationGui.open();
+        scene.overlay().showControls(util.vector().topOf(STATION), Pointing.DOWN, 30).rightClick();
+        scene.idle(10);
+        scene.overlay().showText(50)
+                .text("Right click the Station to open its Interface")
                 .attachKeyFrame()
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(STATION));
-        scene.idle(80);
+        scene.idle(55);
+
+        gui.show(scene);
+        scene.idle(20);
+        scene.overlay().showText(70)
+                .text("The New Train button switches the Station to Assembly mode")
+                .attachKeyFrame()
+                .placeNearTarget();
+        scene.idle(30);
+        gui.press(scene, true);
+        scene.idle(10);
+        gui.press(scene, false);
+        gui.assembly(scene);
+        scene.world().cycleBlockProperty(STATION, StationBlock.ASSEMBLING);
+        scene.idle(50);
+
+        scene.overlay().showText(70)
+                .text("Assemble as Sable Train builds the locomotive as a physics train")
+                .attachKeyFrame()
+                .placeNearTarget();
+        scene.idle(30);
+        gui.press(scene, true);
+        scene.idle(10);
+        gui.press(scene, false);
+        gui.hide(scene);
+        scene.idle(45);
 
         scene.world().cycleBlockProperty(STATION, StationBlock.ASSEMBLING);
         scene.effects().indicateSuccess(STATION);
         scene.world().animateTrainStation(STATION, true);
         scene.idle(20);
 
-        scene.world().moveSection(train, util.vector().of(3, 0, 0), 30);
-        scene.world().animateBogey(BOGEY, -3f, 30);
-        scene.world().animateBogey(BOGEY_FAR, -3f, 30);
+        scene.world().setBlock(new BlockPos(10, 1, 4),
+                AllBlocks.TRACK.getDefaultState().setValue(TrackBlock.SHAPE, TrackShape.XO), false);
+        Selection strip = util.select().fromTo(10, 0, 0, 52, 0, 8)
+                .add(util.select().fromTo(10, 1, 4, 52, 1, 4))
+                .add(util.select().position(STATION_FAR));
+        ElementLink<WorldSectionElement> far = scene.world().showIndependentSection(strip, null);
+        scene.idle(5);
         scene.world().animateTrainStation(STATION, false);
-        scene.idle(40);
-        scene.overlay().showText(70)
-                .text("The Analog Controller then drives the assembled train")
-                .attachKeyFrame()
-                .placeNearTarget()
-                .pointAt(util.vector().topOf(CONTROLLER).add(3, 0, 0));
-        scene.idle(80);
 
-        scene.world().moveSection(train, util.vector().of(-3, 0, 0), 30);
-        scene.world().animateBogey(BOGEY, 3f, 30);
-        scene.world().animateBogey(BOGEY_FAR, 3f, 30);
-        scene.idle(40);
-        scene.world().animateTrainStation(STATION, true);
         scene.overlay().showText(70)
-                .text("Trains can only be disassembled back into blocks at Stations")
+                .text("Raising the Analog Controller output steps the train up to speed")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(STATION));
+                .pointAt(util.vector().topOf(CONTROLLER));
+        slide(scene, util, ground, far, 8, 60);
+        for (int level = 1; level <= 10; level++) {
+            controllerPower(scene, util, level);
+            scene.idle(6);
+        }
+        slide(scene, util, ground, far, 20, 70);
+        for (int level = 11; level <= 15; level++) {
+            controllerPower(scene, util, level);
+            scene.idle(6);
+        }
+        scene.idle(40);
+        scene.world().hideIndependentSection(ground, null);
+
+        scene.overlay().showText(70)
+                .text("Letting go steps the output and the train back down")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(CONTROLLER));
+        slide(scene, util, null, far, 8, 70);
+        for (int level = 14; level >= 4; level--) {
+            controllerPower(scene, util, level);
+            scene.idle(6);
+        }
+        scene.idle(4);
+
+        scene.overlay().showText(70)
+                .text("Hold Space near a Station to park the train on it")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(CONTROLLER));
+        slide(scene, util, null, far, 4, 60);
+        for (int level = 3; level >= 0; level--) {
+            controllerPower(scene, util, level);
+            scene.idle(5);
+        }
+        scene.idle(40);
+        BlockPos parked = STATION_FAR.offset(-SLIDE, 0, 0);
+        scene.world().animateTrainStation(STATION_FAR, true);
+        scene.effects().indicateSuccess(parked);
+        scene.idle(15);
+
+        scene.overlay().showText(70)
+                .text("A Physics Assembler can also turn a train back into blocks")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(parked));
         scene.idle(80);
+    }
+
+    private static void slide(CreateSceneBuilder scene, SceneBuildingUtil util,
+                              ElementLink<WorldSectionElement> ground, ElementLink<WorldSectionElement> far,
+                              int blocks, int ticks) {
+        Vec3 offset = util.vector().of(-blocks, 0, 0);
+        if (ground != null) {
+            scene.world().moveSection(ground, offset, ticks);
+        }
+        scene.world().moveSection(far, offset, ticks);
+        scene.world().animateBogey(BOGEY, -(float) blocks, ticks);
+        scene.world().animateBogey(BOGEY_FAR, -(float) blocks, ticks);
+    }
+
+    private static void controllerPower(CreateSceneBuilder scene, SceneBuildingUtil util, int level) {
+        scene.world().modifyBlockEntityNBT(util.select().position(CONTROLLER), AnalogControllerBlockEntity.class,
+                tag -> tag.putInt("Power", level));
+        scene.world().modifyBlockEntity(CONTROLLER, AnalogControllerBlockEntity.class,
+                be -> be.animSpeed.startWithValue(level / 15.0));
     }
 
     private static ElementLink<WorldSectionElement> centered(CreateSceneBuilder scene, SceneBuildingUtil util, Selection selection) {
@@ -366,6 +489,22 @@ public class TrainScenes {
 
     private static Selection drivetrain(SceneBuildingUtil util) {
         return util.select().fromTo(AXLE, ENGINE);
+    }
+
+    private static void swapSource(CreateSceneBuilder scene, SceneBuildingUtil util, BlockState state) {
+        scene.world().setBlock(ENGINE, state, true);
+        scene.world().setKineticSpeed(util.select().fromTo(ENGINE, TRANSMISSION), ENGINE_RPM);
+    }
+
+    private static BlockState engineState() {
+        BlockState state = BuiltInRegistries.BLOCK
+                .get(ResourceLocation.fromNamespaceAndPath("simulated", "red_portable_engine")).defaultBlockState();
+        return state.getProperties().stream().filter(property -> property.getName().equals("facing"))
+                .findFirst().map(property -> withValue(state, property, "east")).orElse(state);
+    }
+
+    private static <T extends Comparable<T>> BlockState withValue(BlockState state, Property<T> property, String name) {
+        return property.getValue(name).map(value -> state.setValue(property, value)).orElse(state);
     }
 
     private static void feed(CreateSceneBuilder scene, SceneBuildingUtil util) {
@@ -396,7 +535,7 @@ public class TrainScenes {
         });
         feed(scene, util);
         scene.world().setKineticSpeed(util.select().fromTo(ENGINE, TRANSMISSION), ENGINE_RPM);
-        scene.effects().emitParticles(util.vector().of(6.9, 2.2, 4.5),
+        scene.effects().emitParticles(util.vector().of(4.1, 2.2, 4.5),
                 scene.effects().simpleParticleEmitter(ParticleTypes.LAVA, Vec3.ZERO), 3.0f, 1);
     }
 
@@ -410,17 +549,23 @@ public class TrainScenes {
     }
 
     private static CreateSceneBuilder open(SceneBuilder builder, String id, String title) {
+        return open(builder, id, title, true);
+    }
+
+    private static CreateSceneBuilder open(SceneBuilder builder, String id, String title, boolean plate) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         scene.title(id, title);
         scene.configureBasePlate(1, 0, 9);
         scene.scaleSceneView(.75f);
         scene.setSceneOffsetY(-1);
-        scene.showBasePlate();
+        if (plate) {
+            scene.showBasePlate();
+        }
         return scene;
     }
 
     private static void showTrack(CreateSceneBuilder scene, SceneBuildingUtil util) {
-        for (int i = 10; i >= 0; i--) {
+        for (int i = 9; i >= 0; i--) {
             scene.world().showSection(util.select().position(i, 1, 4), Direction.DOWN);
             scene.idle(1);
         }

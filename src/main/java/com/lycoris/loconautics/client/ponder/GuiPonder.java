@@ -43,6 +43,10 @@ public final class GuiPonder {
     private GuiPonder() {
     }
 
+    static void stamp() {
+        blurStamp = System.nanoTime();
+    }
+
     public static boolean blurring() {
         return System.nanoTime() - blurStamp < BLUR_WINDOW_NANOS;
     }
