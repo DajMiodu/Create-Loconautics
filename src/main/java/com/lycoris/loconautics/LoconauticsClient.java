@@ -3,6 +3,7 @@ package com.lycoris.loconautics;
 import com.lycoris.loconautics.client.LoconauticsPartialModels;
 import com.lycoris.loconautics.client.LoconauticsSpriteShifts;
 import com.lycoris.loconautics.client.StationParkingFlagClient;
+import com.lycoris.loconautics.client.gui.LoconauticsConfigScreen;
 import com.lycoris.loconautics.client.ponder.LoconauticsPonderPlugin;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerClientHandler;
@@ -39,7 +40,6 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
@@ -49,7 +49,7 @@ public final class LoconauticsClient {
 
     public LoconauticsClient(ModContainer container, IEventBus modBus) {
         container.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT, LoconauticsConfig.CLIENT_SPEC);
-        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+        container.registerExtensionPoint(IConfigScreenFactory.class, LoconauticsConfigScreen::create);
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(this::onClientSetup);
@@ -62,6 +62,7 @@ public final class LoconauticsClient {
         modBus.addListener(this::onRegisterClientExtensions);
         modBus.addListener(this::onAddPackFinders);
 
+        NeoForge.EVENT_BUS.addListener(LoconauticsConfigScreen::onScreenInit);
         NeoForge.EVENT_BUS.addListener(this::onClientTick);
         NeoForge.EVENT_BUS.addListener(this::onKeyInput);
         NeoForge.EVENT_BUS.addListener(this::onMouseScroll);
