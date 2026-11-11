@@ -21,6 +21,7 @@ import com.lycoris.loconautics.content.hose.nozzle.HoseNozzleBlockEntity;
 import com.lycoris.loconautics.content.hose.rope.HoseRope;
 import com.lycoris.loconautics.content.hose.rope.HoseRopeManager;
 import com.lycoris.loconautics.trainphysics.TrainConsist;
+import com.simibubi.create.content.kinetics.base.KineticEffectHandler;
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
@@ -111,6 +112,15 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
 
     public HoseWinchBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+        effects = new KineticEffectHandler(this) {
+            @Override
+            public void queueRotationIndicators() {
+            }
+
+            @Override
+            public void spawnRotationIndicators() {
+            }
+        };
     }
 
     @Override
