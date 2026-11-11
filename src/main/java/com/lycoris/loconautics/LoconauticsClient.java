@@ -270,6 +270,9 @@ public final class LoconauticsClient {
                 .forEach((color, item) -> registerTooltip(item.get(), "block.loconautics.analog_controller"));
         registerTooltip(LoconauticsRegistries.BEARING_AXLE_ITEM.get(), "block.loconautics.bearing_axle");
         registerTooltip(LoconauticsRegistries.TRANSMISSION_ITEM.get(), "block.loconautics.transmission");
+        registerTooltip(LoconauticsRegistries.TURNTABLE_BEARING_ITEM.get(), "block.loconautics.turntable_bearing");
+        registerKineticTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.STEAM_TAKEOFF_ITEM.get());
+        registerKineticTooltip(LoconauticsRegistries.HOSE_WINCH_ITEM.get());
         registerTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.LOCOMOTIVE_GAUGE_ITEM.get(),
                 "block.loconautics.locomotive_gauge");
         registerTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.SMART_SAFETY_VALVE_ITEM.get(),
@@ -293,9 +296,15 @@ public final class LoconauticsClient {
 
     private static void registerTooltip(net.minecraft.world.item.Item item, String key) {
         ItemDescription.useKey(item, key);
+        registerKineticTooltip(item);
+    }
+
+    private static void registerKineticTooltip(net.minecraft.world.item.Item item) {
         TooltipModifier.REGISTRY.register(item,
                 new ItemDescription.Modifier(item,
-                        net.createmod.catnip.lang.FontHelper.Palette.STANDARD_CREATE));
+                        net.createmod.catnip.lang.FontHelper.Palette.STANDARD_CREATE)
+                        .andThen(TooltipModifier.mapNull(
+                                com.simibubi.create.foundation.item.KineticStats.create(item))));
     }
 
     private void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {

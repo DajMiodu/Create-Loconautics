@@ -104,6 +104,7 @@ public final class Loconautics {
     private void commonSetup(FMLCommonSetupEvent event) {
         LoconauticsConstants.LOGGER.info("Loconautics common setup");
         com.lycoris.loconautics.content.bearingaxle.BogeyShaftPlacement.init();
+        com.lycoris.loconautics.foundation.LoconauticsStress.register();
         if (net.neoforged.fml.ModList.get().isLoaded("hullsteel")) {
             com.lycoris.loconautics.content.hatch.HullsteelSocketBridge.install();
         }

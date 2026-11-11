@@ -50,7 +50,7 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
     private static final float COIL_DEGREES_PER_RPM_TICK = 0.3f;
     private static final double TAUT_STRETCH = 1.02;
     private static final int FLOW_LINGER_TICKS = 3;
-    private static final float FREE_SPIN_CAPACITY = 256.0f;
+    public static final float FREE_SPIN_CAPACITY = 256.0f;
     private static final double FREE_SPIN_SLACK = 0.001;
     private static final double FREE_SPIN_GAIN = 30.0;
     private static final double FREE_SPIN_GRAB_GAIN = 0.5;
