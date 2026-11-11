@@ -26,11 +26,11 @@ public class TrainScenes {
 
     private static final BlockPos STATION = new BlockPos(4, 1, 1);
     private static final BlockPos BOGEY = new BlockPos(5, 2, 4);
-    private static final BlockPos ENGINE = new BlockPos(2, 3, 4);
-    private static final BlockPos LINK = new BlockPos(3, 3, 4);
-    private static final BlockPos TRANSMISSION = new BlockPos(4, 3, 4);
-    private static final BlockPos AXLE = new BlockPos(5, 3, 4);
-    private static final BlockPos CONTROLLER = new BlockPos(7, 3, 4);
+    private static final BlockPos ENGINE = new BlockPos(9, 2, 4);
+    private static final BlockPos LINK = new BlockPos(8, 2, 4);
+    private static final BlockPos TRANSMISSION = new BlockPos(7, 2, 4);
+    private static final BlockPos AXLE = new BlockPos(6, 2, 4);
+    private static final BlockPos CONTROLLER = new BlockPos(3, 3, 4);
 
     public static void wheels(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = open(builder, "locomotive_wheels", "Setting up Bearing Axles");
@@ -50,7 +50,7 @@ public class TrainScenes {
 
         scene.overlay().showOutline(PonderPalette.GREEN, "bogey", util.select().position(BOGEY), 60);
         scene.overlay().showText(60)
-                .text("They have to touch a bogey, beside it or above it")
+                .text("They have to sit right beside a bogey, never above or below it")
                 .attachKeyFrame()
                 .placeNearTarget()
                 .pointAt(util.vector().centerOf(BOGEY));
@@ -252,7 +252,7 @@ public class TrainScenes {
     }
 
     private static Selection floor(SceneBuildingUtil util) {
-        return util.select().fromTo(2, 2, 4, 4, 2, 4).add(util.select().fromTo(6, 2, 4, 7, 2, 4));
+        return util.select().fromTo(2, 2, 4, 4, 2, 4);
     }
 
     private static Selection drivetrain(SceneBuildingUtil util) {

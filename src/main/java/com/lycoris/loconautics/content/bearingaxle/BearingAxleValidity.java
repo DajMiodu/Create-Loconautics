@@ -22,7 +22,7 @@ public final class BearingAxleValidity {
     }
 
     private static final Direction[] BOGEY_DIRS = {
-            Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.DOWN
+            Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST
     };
 
     private record Classified(long tick, List<BearingAxleBlockEntity> valid) {

@@ -139,6 +139,7 @@ public class BearingAxleBlock extends HorizontalKineticBlock implements IBE<Bear
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos,
                                             Player player, BlockHitResult hit) {
+        if (!player.getMainHandItem().isEmpty() || !player.getOffhandItem().isEmpty()) return InteractionResult.PASS;
         if (worldIn.isClientSide) return InteractionResult.SUCCESS;
         BlockEntity be = worldIn.getBlockEntity(pos);
         if (be instanceof BearingAxleBlockEntity axle) {
