@@ -17,6 +17,7 @@ import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.item.ItemStack;
 
 public class TransmissionScenes {
@@ -44,6 +45,7 @@ public class TransmissionScenes {
         scene.idle(80);
 
         scene.world().showSection(input(util), Direction.NORTH);
+        feed(scene, util);
         scene.world().setKineticSpeed(util.select().position(TRANSMISSION).add(input(util)), INPUT_RPM);
         scene.idle(10);
         scene.overlay().showText(60)
@@ -95,6 +97,7 @@ public class TransmissionScenes {
         scene.world().showSection(input(util), Direction.NORTH);
         scene.world().showSection(output(util), Direction.SOUTH);
         scene.world().showSection(util.select().position(SPEED_LEVER), Direction.EAST);
+        feed(scene, util);
         scene.world().setKineticSpeed(util.select().position(TRANSMISSION).add(input(util)), INPUT_RPM);
         scene.world().modifyBlockEntityNBT(util.select().position(SPEED_LEVER), AnalogLeverBlockEntity.class,
                 nbt -> nbt.putInt("State", 8));
@@ -110,6 +113,8 @@ public class TransmissionScenes {
                 .pointAt(util.vector().topOf(DIRECTION_LEVER));
         scene.idle(80);
 
+        scene.rotateCameraY(90);
+        scene.idle(25);
         scene.overlay().showControls(util.vector().topOf(DIRECTION_LEVER), Pointing.DOWN, 30).rightClick();
         scene.idle(7);
         scene.world().toggleRedstonePower(util.select().position(DIRECTION_LEVER));
@@ -139,6 +144,7 @@ public class TransmissionScenes {
         scene.world().showSection(util.select().position(TRANSMISSION), Direction.DOWN);
         scene.world().showSection(input(util), Direction.NORTH);
         scene.world().showSection(output(util), Direction.SOUTH);
+        feed(scene, util);
         scene.world().setKineticSpeed(util.select().position(TRANSMISSION).add(input(util)), INPUT_RPM);
         scene.idle(10);
         scene.world().showSection(util.select().fromTo(CASING_LOW, CASING_HIGH), Direction.DOWN);
@@ -213,6 +219,11 @@ public class TransmissionScenes {
                 nbt -> nbt.putInt("State", strength));
         scene.effects().indicateRedstone(SPEED_LEVER);
         drive(scene, util, strength, false);
+    }
+
+    private static void feed(CreateSceneBuilder scene, SceneBuildingUtil util) {
+        scene.world().modifyBlockEntityNBT(util.select().position(TRANSMISSION), TransmissionBlockEntity.class,
+                tag -> tag.put("Source", NbtUtils.writeBlockPos(new BlockPos(2, 1, 3))));
     }
 
     private static void drive(CreateSceneBuilder scene, SceneBuildingUtil util, int power, boolean reversed) {

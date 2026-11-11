@@ -13,6 +13,8 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -44,14 +46,29 @@ public class TransmissionBlock extends AbstractEncasedShaftBlock
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(POWERED, PLUS_SIDE);
+        builder.add(POWERED, PLUS_SIDE, PipeBlock.NORTH, PipeBlock.EAST, PipeBlock.SOUTH, PipeBlock.WEST,
+                PipeBlock.UP, PipeBlock.DOWN);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return super.getStateForPlacement(context)
+        BlockState placed = super.getStateForPlacement(context)
                 .setValue(POWERED, false)
                 .setValue(PLUS_SIDE, false);
+        for (Direction side : Direction.values()) {
+            if (side.getAxis() == placed.getValue(BlockStateProperties.AXIS)) continue;
+            BlockState neighbor = context.getLevel().getBlockState(context.getClickedPos().relative(side));
+            placed = placed.setValue(PipeBlock.PROPERTY_BY_DIRECTION.get(side), !neighbor.isAir());
+        }
+        return placed;
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
+                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+        BlockState updated = super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        if (direction.getAxis() == state.getValue(BlockStateProperties.AXIS)) return updated;
+        return updated.setValue(PipeBlock.PROPERTY_BY_DIRECTION.get(direction), !neighborState.isAir());
     }
 
     @Override
@@ -97,6 +114,11 @@ public class TransmissionBlock extends AbstractEncasedShaftBlock
     }
 
     @Override
+    protected VoxelShape getBlockSupportShape(BlockState state, BlockGetter level, BlockPos pos) {
+        return Shapes.block();
+    }
+
+    @Override
     public Class<TransmissionBlockEntity> getBlockEntityClass() {
         return TransmissionBlockEntity.class;
     }
@@ -109,6 +131,7 @@ public class TransmissionBlock extends AbstractEncasedShaftBlock
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos,
                                             Player player, BlockHitResult hit) {
+        if (!player.getMainHandItem().isEmpty() || !player.getOffhandItem().isEmpty()) return InteractionResult.PASS;
         if (worldIn.isClientSide) return InteractionResult.SUCCESS;
         BlockEntity be = worldIn.getBlockEntity(pos);
         if (be instanceof TransmissionBlockEntity tbe) {

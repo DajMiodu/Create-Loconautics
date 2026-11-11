@@ -16,6 +16,7 @@ import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.item.ItemStack;
 
 public class TrainScenes {
@@ -104,6 +105,7 @@ public class TrainScenes {
         scene.world().showSection(util.select().position(ENGINE), Direction.DOWN);
         scene.idle(10);
         engine(scene, util, true);
+        feed(scene, util);
         scene.world().setKineticSpeed(util.select().fromTo(LINK, TRANSMISSION), ENGINE_RPM);
         scene.overlay().showText(70)
                 .text("Rotational Force from an Engine enters on its other end")
@@ -139,6 +141,7 @@ public class TrainScenes {
         scene.world().showSection(drivetrain(util), Direction.DOWN);
         scene.idle(15);
         engine(scene, util, true);
+        feed(scene, util);
         scene.world().setKineticSpeed(util.select().fromTo(LINK, TRANSMISSION), ENGINE_RPM);
         scene.world().showSection(util.select().position(CONTROLLER), Direction.DOWN);
         scene.idle(15);
@@ -199,6 +202,7 @@ public class TrainScenes {
         Selection locomotive = floor(util).add(util.select().position(BOGEY)).add(drivetrain(util))
                 .add(util.select().position(CONTROLLER));
         ElementLink<WorldSectionElement> train = scene.world().showIndependentSection(locomotive, Direction.DOWN);
+        feed(scene, util);
         scene.world().setKineticSpeed(util.select().fromTo(LINK, TRANSMISSION), ENGINE_RPM);
         scene.world().cycleBlockProperty(STATION, StationBlock.ASSEMBLING);
         scene.idle(15);
@@ -253,6 +257,11 @@ public class TrainScenes {
 
     private static Selection drivetrain(SceneBuildingUtil util) {
         return util.select().fromTo(ENGINE, AXLE);
+    }
+
+    private static void feed(CreateSceneBuilder scene, SceneBuildingUtil util) {
+        scene.world().modifyBlockEntityNBT(util.select().position(TRANSMISSION), TransmissionBlockEntity.class,
+                tag -> tag.put("Source", NbtUtils.writeBlockPos(LINK)));
     }
 
     private static void signal(CreateSceneBuilder scene, SceneBuildingUtil util, int power) {

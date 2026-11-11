@@ -1,0 +1,19 @@
+{
+    "texture_size": [128, 128],
+    "textures": {
+        "8": "loconautics:block/transmission/body",
+        "particle": "loconautics:block/transmission/body"
+    },
+    "elements": [
+        {
+            "name": "levercube",
+            "from": [4, 15, 2],
+            "to": [12, 16, 9],
+            "faces": {
+                "east": {"uv": [0.5, 2.5, 1.375, 2.625], "texture": "#8"},
+                "west": {"uv": [0.5, 2.5, 1.375, 2.625], "texture": "#8"},
+                "up": {"uv": [0.5, 2.5, 1.5, 3.375], "texture": "#8"}
+            }
+        }
+    ]
+}
