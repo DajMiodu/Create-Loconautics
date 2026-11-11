@@ -617,8 +617,35 @@ public class TurntableScenes {
         stopTurn(scene, util, YARD_DRIVE);
         scene.idle(40);
 
+        ScheduleGui book = ScheduleGui.open(ScheduleGui.travel("Parking"), ScheduleGui.maneuver(50),
+                ScheduleGui.travel("Dock"));
+        book.show(scene);
+        scene.idle(10);
         scene.overlay().showText(80)
-                .text("A Maneuver instruction reverses it at a set share of full speed")
+                .text("A Maneuver instruction goes into the Schedule between two destinations")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(YARD_BEARING.above(2)));
+        book.mark(scene, 1);
+        scene.idle(90);
+        scene.overlay().showText(80)
+                .text("Its speed is a share of full speed, up to 75 percent")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(YARD_BEARING.above(2)));
+        scene.idle(90);
+        book.mark(scene, 2);
+        scene.overlay().showText(80)
+                .text("The destination after it is where the Train maneuvers to, so it needs one")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(YARD_BEARING.above(2)));
+        scene.idle(90);
+        book.hide(scene);
+        scene.idle(15);
+
+        scene.overlay().showText(80)
+                .text("The Train reverses out of the parking at that speed")
                 .attachKeyFrame()
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(new BlockPos(11, 3, 19)));

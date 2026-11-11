@@ -1192,8 +1192,11 @@
   "loconautics.ponder.turntable_bearing_maneuver.header": "Leaving a Parking with Turntable Bearings",
   "loconautics.ponder.turntable_bearing_maneuver.text_1": "A Train parked on a dead end leg has to back out when its Schedule moves on",
   "loconautics.ponder.turntable_bearing_maneuver.text_2": "The plate turns to meet the leg the Train waits on",
-  "loconautics.ponder.turntable_bearing_maneuver.text_3": "A Maneuver instruction reverses it at a set share of full speed",
-  "loconautics.ponder.turntable_bearing_maneuver.text_4": "It stops centered on the plate",
-  "loconautics.ponder.turntable_bearing_maneuver.text_5": "The plate takes the Train and turns it to face the leg it needs next",
-  "loconautics.ponder.turntable_bearing_maneuver.text_6": "Then it drives off forward toward its next stop"
+  "loconautics.ponder.turntable_bearing_maneuver.text_3": "A Maneuver instruction goes into the Schedule between two destinations",
+  "loconautics.ponder.turntable_bearing_maneuver.text_4": "Its speed is a share of full speed, up to 75 percent",
+  "loconautics.ponder.turntable_bearing_maneuver.text_5": "The destination after it is where the Train maneuvers to, so it needs one",
+  "loconautics.ponder.turntable_bearing_maneuver.text_6": "The Train reverses out of the parking at that speed",
+  "loconautics.ponder.turntable_bearing_maneuver.text_7": "It stops centered on the plate",
+  "loconautics.ponder.turntable_bearing_maneuver.text_8": "The plate takes the Train and turns it to face the leg it needs next",
+  "loconautics.ponder.turntable_bearing_maneuver.text_9": "Then it drives off forward toward its next stop"
 }
