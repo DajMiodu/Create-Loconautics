@@ -3,7 +3,10 @@ package com.lycoris.loconautics.client.ponder;
 import com.lycoris.loconautics.common.turntable.sequence.TurntableSpeedModifier;
 import com.lycoris.loconautics.content.turntablebearing.TurntableBearingBlock;
 import com.lycoris.loconautics.content.turntablebearing.TurntableBearingBlockEntity;
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
+import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
+import com.simibubi.create.content.trains.signal.SignalBlockEntity.SignalState;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import net.createmod.catnip.math.Pointing;
 import net.createmod.ponder.api.PonderPalette;
@@ -20,18 +23,42 @@ import net.minecraft.world.phys.Vec3;
 
 public class TurntableScenes {
 
-    private static final float INPUT_RPM = 32f;
+    private record Drive(BlockPos bearing, BlockPos... chain) {
+    }
+
     private static final int QUARTER_TICKS = 30;
 
     private static final BlockPos BEARING = new BlockPos(2, 1, 2);
     private static final BlockPos PLATE = new BlockPos(2, 2, 2);
-    private static final BlockPos BUTTON = new BlockPos(2, 1, 3);
+    private static final BlockPos TOP_CELL = new BlockPos(2, 3, 2);
+    private static final BlockPos BUTTON = new BlockPos(2, 1, 1);
     private static final BlockPos SMALL_COG = new BlockPos(3, 1, 2);
     private static final Vec3 VALUE_PANEL = new Vec3(2.5, 1.1875, 2.02);
 
     private static final BlockPos WIDE_BEARING = new BlockPos(4, 1, 2);
     private static final BlockPos WIDE_BOGEY = new BlockPos(2, 5, 2);
     private static final BlockPos WIDE_BOGEY_FAR = new BlockPos(6, 5, 2);
+    private static final BlockPos WIDE_BLAZE = new BlockPos(3, 6, 2);
+    private static final BlockPos DIAG_BEARING = new BlockPos(4, 1, 1);
+    private static final BlockPos DIAG_BOGEY = new BlockPos(2, 5, 1);
+    private static final BlockPos DIAG_BOGEY_FAR = new BlockPos(6, 5, 1);
+    private static final BlockPos DIAG_BLAZE = new BlockPos(3, 6, 1);
+    private static final BlockPos SIGNAL_BEARING = new BlockPos(4, 1, 2);
+    private static final BlockPos SIGNAL_EAST = new BlockPos(11, 3, 0);
+    private static final BlockPos SIGNAL_SOUTH = new BlockPos(6, 3, 9);
+    private static final BlockPos YARD_BEARING = new BlockPos(11, 1, 11);
+    private static final BlockPos YARD_BLAZE = new BlockPos(12, 6, 11);
+    private static final BlockPos STATION_EAST = new BlockPos(22, 3, 8);
+    private static final BlockPos STATION_NORTH = new BlockPos(14, 3, 0);
+    private static final BlockPos STATION_SOUTH = new BlockPos(14, 3, 22);
+    private static final Drive SMALL_DRIVE = new Drive(BEARING, SMALL_COG, new BlockPos(4, 1, 3),
+            new BlockPos(5, 0, 3));
+    private static final Drive FINAL_DRIVE = new Drive(WIDE_BEARING, new BlockPos(3, 1, 2), new BlockPos(2, 1, 3),
+            new BlockPos(2, 0, 3));
+    private static final Drive DIAG_DRIVE = new Drive(DIAG_BEARING, new BlockPos(3, 1, 1), new BlockPos(2, 1, 2),
+            new BlockPos(2, 0, 2));
+    private static final Drive YARD_DRIVE = new Drive(YARD_BEARING, new BlockPos(10, 1, 11), new BlockPos(9, 1, 12),
+            new BlockPos(9, 0, 12));
     private static final int DRIVE_IN = 6;
     private static final int DRIVE_TICKS = 60;
     private static final int EXIT = 8;
@@ -91,7 +118,7 @@ public class TurntableScenes {
                 .pointAt(util.vector().blockSurface(BEARING, Direction.NORTH));
         scene.idle(80);
 
-        scene.world().showSection(cogs(util), Direction.WEST);
+        scene.world().showSection(chain(util, SMALL_DRIVE), Direction.WEST);
         scene.idle(10);
         scene.overlay().showText(70)
                 .text("A cogwheel beside the bearing sets how fast it turns")
@@ -264,10 +291,11 @@ public class TurntableScenes {
         scene.idle(5);
 
         scene.world().showSection(util.select().position(WIDE_BEARING), Direction.DOWN);
-        scene.world().showSection(util.select().position(3, 1, 2), Direction.WEST);
+        scene.world().showSection(chain(util, FINAL_DRIVE), Direction.WEST);
         ElementLink<WorldSectionElement> platform = scene.world().showIndependentSectionImmediately(
                 util.select().fromTo(0, 2, 2, 8, 4, 2));
         scene.world().moveSection(platform, util.vector().of(0, -1, 0), 0);
+        scene.world().configureCenterOfRotation(platform, util.vector().centerOf(WIDE_BEARING));
         scene.world().modifyBlocks(util.select().position(WIDE_BEARING),
                 state -> state.setValue(TurntableBearingBlock.ASSEMBLED, true), false);
         scene.idle(10);
@@ -290,8 +318,8 @@ public class TurntableScenes {
                 .placeNearTarget();
         scene.idle(100);
         gui.mark(scene, -1);
-        gui.dock(scene);
-        scene.idle(10);
+        gui.hide(scene);
+        scene.idle(15);
 
         scene.overlay().showText(80)
                 .text("Rails on it meet the rails of the legs around it")
@@ -301,25 +329,32 @@ public class TurntableScenes {
         scene.idle(90);
 
         ElementLink<WorldSectionElement> train = scene.world().showIndependentSectionImmediately(
-                util.select().fromTo(WIDE_BOGEY, WIDE_BOGEY_FAR).add(util.select().position(2, 6, 2)));
+                util.select().fromTo(WIDE_BOGEY, WIDE_BOGEY_FAR).add(util.select().position(2, 6, 2))
+                        .add(util.select().position(WIDE_BLAZE)));
         scene.world().moveSection(train, util.vector().of(DRIVE_IN, -1, 0), 0);
-        scene.idle(15);
+        scene.world().configureCenterOfRotation(train, util.vector().centerOf(WIDE_BEARING));
+        scene.world().modifyBlocks(util.select().position(WIDE_BLAZE),
+                state -> state.setValue(BlazeBurnerBlock.HEAT_LEVEL, BlazeBurnerBlock.HeatLevel.FADING), false);
+        scene.idle(20);
+
+        scene.overlay().showControls(util.vector().topOf(WIDE_BLAZE).add(DRIVE_IN, -1, 0), Pointing.DOWN, 50)
+                .rightClick()
+                .withItem(AllItems.SCHEDULE.asStack());
+        scene.idle(10);
+        scene.world().conductorBlaze(WIDE_BLAZE, true);
+        scene.idle(45);
+
         scene.world().moveSection(train, util.vector().of(-DRIVE_IN, 0, 0), DRIVE_TICKS);
         scene.world().animateBogey(WIDE_BOGEY, (float) DRIVE_IN, DRIVE_TICKS);
         scene.world().animateBogey(WIDE_BOGEY_FAR, (float) DRIVE_IN, DRIVE_TICKS);
-        scene.idle(DRIVE_TICKS + 10);
         scene.overlay().showText(80)
-                .text("A Train whose Schedule needs the other leg parks centered on it")
+                .text("A Train carrying a Schedule for the other leg parks centered on it")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(new BlockPos(4, 4, 2)));
-        scene.idle(90);
+                .pointAt(util.vector().topOf(WIDE_BLAZE).add(DRIVE_IN - 3, -1, 0));
+        scene.idle(DRIVE_TICKS + 40);
 
-        spin(scene, util, util.select().position(3, 1, 2), WIDE_BEARING, INPUT_RPM);
-        scene.world().rotateSection(platform, 0, 90, 0, QUARTER_TICKS * 2);
-        scene.world().rotateSection(train, 0, 90, 0, QUARTER_TICKS * 2);
-        scene.idle(QUARTER_TICKS * 2);
-        spin(scene, util, util.select().position(3, 1, 2), WIDE_BEARING, 0f);
+        turn(scene, util, FINAL_DRIVE, 90, QUARTER_TICKS, platform, train);
         scene.overlay().showText(80)
                 .text("It turns the Train to face that leg, no Redstone needed")
                 .attachKeyFrame()
@@ -330,13 +365,10 @@ public class TurntableScenes {
         scene.world().moveSection(train, util.vector().of(0, 0, EXIT), DRIVE_TICKS + 20);
         scene.world().animateBogey(WIDE_BOGEY, (float) EXIT, DRIVE_TICKS + 20);
         scene.world().animateBogey(WIDE_BOGEY_FAR, (float) EXIT, DRIVE_TICKS + 20);
-        scene.idle(DRIVE_TICKS + 20);
-        scene.world().hideIndependentSection(train, Direction.SOUTH);
-        scene.idle(10);
-        spin(scene, util, util.select().position(3, 1, 2), WIDE_BEARING, -INPUT_RPM);
-        scene.world().rotateSection(platform, 0, -90, 0, QUARTER_TICKS * 2);
-        scene.idle(QUARTER_TICKS * 2);
-        spin(scene, util, util.select().position(3, 1, 2), WIDE_BEARING, 0f);
+        scene.idle(DRIVE_TICKS / 2);
+        scene.world().hideIndependentSection(train, null);
+        scene.idle(DRIVE_TICKS / 2 + 30);
+        turn(scene, util, FINAL_DRIVE, -90, QUARTER_TICKS, platform);
         scene.overlay().showText(80)
                 .text("Then the Train drives off and it turns back to where it started")
                 .attachKeyFrame()
@@ -350,8 +382,325 @@ public class TurntableScenes {
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(new BlockPos(3, 1, 2)));
         scene.idle(90);
-        gui.hide(scene);
+    }
+
+    public static void diagonal(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = wide(builder, 17);
+        scene.title("turntable_bearing_diagonal", "Reaching Diagonal Legs with Turntable Bearings");
+
+        scene.world().showSection(util.select().position(DIAG_BEARING), Direction.DOWN);
+        scene.world().showSection(chain(util, DIAG_DRIVE), Direction.WEST);
+        ElementLink<WorldSectionElement> platform = scene.world().showIndependentSectionImmediately(
+                util.select().fromTo(0, 2, 1, 8, 4, 1));
+        scene.world().moveSection(platform, util.vector().of(0, -1, 0), 0);
+        scene.world().configureCenterOfRotation(platform, util.vector().centerOf(DIAG_BEARING));
+        scene.world().modifyBlocks(util.select().position(DIAG_BEARING),
+                state -> state.setValue(TurntableBearingBlock.ASSEMBLED, true), false);
+        scene.idle(10);
+        scene.world().showSection(util.select().fromTo(9, 1, 1, 16, 3, 1), Direction.WEST);
+        scene.world().showSection(util.select().fromTo(4, 1, 6, 4, 3, 13), Direction.NORTH);
+        scene.idle(30);
+
+        scene.overlay().showText(80)
+                .text("A Turntable can turn to any angle, so a leg can leave it diagonally")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(new BlockPos(8, 3, 5)));
+        for (int step = 0; step < 8; step++) {
+            scene.world().showSection(util.select().fromTo(8 + step, 1, 5 + step, 8 + step, 3, 5 + step), Direction.DOWN);
+            scene.idle(4);
+        }
+        scene.idle(60);
+
+        ElementLink<WorldSectionElement> train = scene.world().showIndependentSectionImmediately(
+                util.select().fromTo(DIAG_BOGEY, DIAG_BOGEY_FAR).add(util.select().position(2, 6, 1))
+                        .add(util.select().position(DIAG_BLAZE)));
+        scene.world().moveSection(train, util.vector().of(DRIVE_IN, -1, 0), 0);
+        scene.world().configureCenterOfRotation(train, util.vector().centerOf(DIAG_BEARING));
+        awake(scene, util, DIAG_BLAZE);
+        scene.idle(10);
+        scene.world().moveSection(train, util.vector().of(-DRIVE_IN, 0, 0), DRIVE_TICKS);
+        scene.world().animateBogey(DIAG_BOGEY, (float) DRIVE_IN, DRIVE_TICKS);
+        scene.world().animateBogey(DIAG_BOGEY_FAR, (float) DRIVE_IN, DRIVE_TICKS);
+        scene.overlay().showText(80)
+                .text("A Train whose Schedule needs the diagonal leg parks centered on the plate")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(DIAG_BLAZE).add(DRIVE_IN - 3, -1, 0));
+        scene.idle(DRIVE_TICKS + 40);
+
+        turn(scene, util, DIAG_DRIVE, 135, QUARTER_TICKS * 3 / 2, platform, train);
+        scene.overlay().showText(80)
+                .text("The plate turns it by whatever angle that leg needs")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(new BlockPos(4, 4, 1)));
+        scene.idle(90);
+
+        scene.world().moveSection(train, util.vector().of(EXIT, 0, EXIT), DRIVE_TICKS + 20);
+        scene.world().animateBogey(DIAG_BOGEY, (float) (EXIT * 1.4142), DRIVE_TICKS + 20);
+        scene.world().animateBogey(DIAG_BOGEY_FAR, (float) (EXIT * 1.4142), DRIVE_TICKS + 20);
+        scene.idle(DRIVE_TICKS / 2);
+        scene.world().hideIndependentSection(train, null);
+        scene.overlay().showText(80)
+                .text("Then the Train drives straight onto the diagonal leg")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(new BlockPos(11, 3, 8)));
+        scene.idle(DRIVE_TICKS / 2 + 70);
+    }
+
+    public static void signals(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = wide(builder, 17);
+        scene.title("turntable_bearing_signals", "Binding Train Signals to Turntable Bearings");
+
+        scene.world().showSection(util.select().position(SIGNAL_BEARING), Direction.DOWN);
+        scene.world().showSection(chain(util, FINAL_DRIVE), Direction.WEST);
+        ElementLink<WorldSectionElement> platform = scene.world().showIndependentSectionImmediately(
+                util.select().fromTo(0, 2, 2, 8, 4, 2));
+        scene.world().moveSection(platform, util.vector().of(0, -1, 0), 0);
+        scene.world().configureCenterOfRotation(platform, util.vector().centerOf(SIGNAL_BEARING));
+        scene.world().modifyBlocks(util.select().position(SIGNAL_BEARING),
+                state -> state.setValue(TurntableBearingBlock.ASSEMBLED, true), false);
+        scene.idle(10);
+        scene.world().showSection(util.select().fromTo(9, 1, 2, 16, 3, 2), Direction.WEST);
+        scene.world().showSection(util.select().fromTo(4, 1, 7, 4, 3, 14), Direction.NORTH);
+        scene.idle(30);
+
+        scene.overlay().showControls(util.vector().topOf(SIGNAL_BEARING), Pointing.DOWN, 60)
+                .rightClick()
+                .whileSneaking()
+                .withItem(AllBlocks.TRACK_SIGNAL.asStack());
         scene.idle(15);
+        scene.overlay().showText(70)
+                .text("Sneak and Right click a Turntable Bearing with a Train Signal to bind it")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(SIGNAL_BEARING));
+        scene.idle(80);
+
+        scene.overlay().showControls(util.vector().topOf(new BlockPos(11, 3, 2)), Pointing.DOWN, 40)
+                .rightClick()
+                .withItem(AllBlocks.TRACK_SIGNAL.asStack());
+        scene.idle(10);
+        scene.world().showSection(util.select().fromTo(11, 1, 0, 11, 4, 0), Direction.DOWN);
+        scene.idle(10);
+        scene.world().showSection(util.select().fromTo(6, 1, 9, 6, 4, 9), Direction.DOWN);
+        scene.overlay().showText(70)
+                .text("Signals placed afterwards are linked to that bearing")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(SIGNAL_EAST));
+        scene.idle(80);
+
+        scene.world().changeSignalState(SIGNAL_EAST, SignalState.RED);
+        scene.world().changeSignalState(SIGNAL_SOUTH, SignalState.RED);
+        startTurn(scene, util, FINAL_DRIVE, 90, QUARTER_TICKS, platform);
+        scene.overlay().showText(80)
+                .text("Linked signals stay red while the plate is turning or holds a Train")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(SIGNAL_EAST));
+        scene.idle(QUARTER_TICKS);
+        stopTurn(scene, util, FINAL_DRIVE);
+        scene.idle(50);
+
+        scene.world().changeSignalState(SIGNAL_EAST, SignalState.GREEN);
+        scene.world().changeSignalState(SIGNAL_SOUTH, SignalState.GREEN);
+        scene.overlay().showText(80)
+                .text("They turn green again once the plate has settled")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(SIGNAL_SOUTH));
+        scene.idle(90);
+    }
+
+    public static void parking(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = wide(builder, 23);
+        scene.title("turntable_bearing_parking", "Parking Trains with Turntable Bearings");
+
+        ElementLink<WorldSectionElement> platform = yard(scene, util);
+        scene.world().animateTrainStation(STATION_EAST, true);
+        scene.world().animateTrainStation(STATION_NORTH, true);
+        ElementLink<WorldSectionElement> east = scene.world().showIndependentSectionImmediately(
+                util.select().fromTo(9, 5, 8, 13, 6, 8));
+        scene.world().moveSection(east, util.vector().of(8, -1, 3), 0);
+        awake(scene, util, new BlockPos(12, 6, 8));
+        ElementLink<WorldSectionElement> north = scene.world().showIndependentSectionImmediately(
+                util.select().fromTo(9, 5, 14, 13, 6, 14));
+        scene.world().rotateSection(north, 0, 90, 0, 0);
+        scene.world().moveSection(north, util.vector().of(0, -1, -11), 0);
+        awake(scene, util, new BlockPos(12, 6, 14));
+        scene.idle(30);
+
+        for (BlockPos station : new BlockPos[]{STATION_EAST, STATION_NORTH, STATION_SOUTH}) {
+            AABB box = new AABB(station);
+            scene.overlay().chaseBoundingBoxOutline(PonderPalette.GREEN, station, box, 90);
+        }
+        scene.overlay().showText(90)
+                .text("Stations on different legs can share one name, with a * to match them all")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .colored(PonderPalette.GREEN)
+                .pointAt(util.vector().topOf(STATION_SOUTH));
+        scene.idle(100);
+
+        ElementLink<WorldSectionElement> train = scene.world().showIndependentSectionImmediately(
+                util.select().fromTo(9, 5, 11, 13, 6, 11));
+        scene.world().moveSection(train, util.vector().of(-DRIVE_IN, -1, 0), 0);
+        scene.world().configureCenterOfRotation(train, util.vector().centerOf(YARD_BEARING));
+        awake(scene, util, YARD_BLAZE);
+        scene.idle(10);
+        scene.world().moveSection(train, util.vector().of(DRIVE_IN, 0, 0), DRIVE_TICKS);
+        scene.world().animateBogey(new BlockPos(9, 5, 11), -(float) DRIVE_IN, DRIVE_TICKS);
+        scene.world().animateBogey(new BlockPos(13, 5, 11), -(float) DRIVE_IN, DRIVE_TICKS);
+        scene.overlay().showText(80)
+                .text("A Train sent to that name takes a station that is free")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(YARD_BEARING.above(2)));
+        scene.idle(DRIVE_TICKS + 40);
+
+        startTurn(scene, util, YARD_DRIVE, -90, QUARTER_TICKS, platform, train);
+        scene.overlay().showText(80)
+                .text("The Turntable turns it toward the leg that has a free station")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(YARD_BEARING.above(2)));
+        scene.idle(QUARTER_TICKS);
+        stopTurn(scene, util, YARD_DRIVE);
+        scene.idle(60);
+
+        scene.world().moveSection(train, util.vector().of(0, 0, EXIT), DRIVE_TICKS + 20);
+        scene.world().animateBogey(new BlockPos(9, 5, 11), -(float) EXIT, DRIVE_TICKS + 20);
+        scene.world().animateBogey(new BlockPos(13, 5, 11), -(float) EXIT, DRIVE_TICKS + 20);
+        scene.idle(DRIVE_TICKS + 20);
+        scene.world().animateTrainStation(STATION_SOUTH, true);
+        startTurn(scene, util, YARD_DRIVE, 90, QUARTER_TICKS, platform);
+        scene.overlay().showText(80)
+                .text("The Train parks there and the plate returns to its first angle")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(STATION_SOUTH));
+        scene.idle(QUARTER_TICKS);
+        stopTurn(scene, util, YARD_DRIVE);
+        scene.idle(60);
+    }
+
+    public static void maneuver(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = wide(builder, 23);
+        scene.title("turntable_bearing_maneuver", "Leaving a Parking with Turntable Bearings");
+
+        ElementLink<WorldSectionElement> platform = yard(scene, util);
+        scene.world().animateTrainStation(STATION_SOUTH, true);
+        ElementLink<WorldSectionElement> parked = scene.world().showIndependentSectionImmediately(
+                util.select().fromTo(9, 5, 17, 13, 6, 17));
+        scene.world().rotateSection(parked, 0, -90, 0, 0);
+        scene.world().moveSection(parked, util.vector().of(0, -1, 2), 0);
+        awake(scene, util, new BlockPos(12, 6, 17));
+        scene.idle(30);
+
+        scene.overlay().showText(80)
+                .text("A Train parked on a dead end leg has to back out when its Schedule moves on")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(new BlockPos(11, 3, 19)));
+        scene.idle(90);
+
+        startTurn(scene, util, YARD_DRIVE, 90, QUARTER_TICKS, platform);
+        scene.overlay().showText(60)
+                .text("The plate turns to meet the leg the Train waits on")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(YARD_BEARING.above(2)));
+        scene.idle(QUARTER_TICKS);
+        stopTurn(scene, util, YARD_DRIVE);
+        scene.idle(40);
+
+        scene.overlay().showText(80)
+                .text("A Maneuver instruction reverses it at a set share of full speed")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(new BlockPos(11, 3, 19)));
+        scene.world().animateTrainStation(STATION_SOUTH, false);
+        scene.world().moveSection(parked, util.vector().of(0, 0, -8), 70);
+        scene.world().animateBogey(new BlockPos(9, 5, 17), 8f, 70);
+        scene.world().animateBogey(new BlockPos(13, 5, 17), 8f, 70);
+        scene.idle(80);
+
+        scene.world().hideIndependentSection(parked, null);
+        ElementLink<WorldSectionElement> train = scene.world().showIndependentSectionImmediately(
+                util.select().fromTo(9, 5, 11, 13, 6, 11));
+        scene.world().rotateSection(train, 0, -90, 0, 0);
+        scene.world().moveSection(train, util.vector().of(0, -1, 0), 0);
+        scene.world().configureCenterOfRotation(train, util.vector().centerOf(YARD_BEARING));
+        awake(scene, util, YARD_BLAZE);
+        scene.overlay().showText(80)
+                .text("It stops centered on the plate")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(YARD_BEARING.above(2)));
+        scene.idle(90);
+
+        startTurn(scene, util, YARD_DRIVE, -90, QUARTER_TICKS, platform, train);
+        scene.overlay().showText(80)
+                .text("The plate takes the Train and turns it to face the leg it needs next")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(YARD_BEARING.above(2)));
+        scene.idle(QUARTER_TICKS);
+        stopTurn(scene, util, YARD_DRIVE);
+        scene.idle(60);
+
+        scene.world().moveSection(train, util.vector().of(-EXIT - 4, 0, 0), DRIVE_TICKS + 40);
+        scene.world().animateBogey(new BlockPos(9, 5, 11), -(float) (EXIT + 4), DRIVE_TICKS + 40);
+        scene.world().animateBogey(new BlockPos(13, 5, 11), -(float) (EXIT + 4), DRIVE_TICKS + 40);
+        scene.idle(DRIVE_TICKS / 2);
+        scene.world().hideIndependentSection(train, null);
+        scene.overlay().showText(80)
+                .text("Then it drives off forward toward its next stop")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(new BlockPos(3, 3, 11)));
+        scene.idle(DRIVE_TICKS / 2 + 80);
+    }
+
+    private static ElementLink<WorldSectionElement> yard(CreateSceneBuilder scene, SceneBuildingUtil util) {
+        scene.world().showSection(util.select().position(YARD_BEARING), Direction.DOWN);
+        scene.world().showSection(chain(util, YARD_DRIVE), Direction.WEST);
+        ElementLink<WorldSectionElement> platform = scene.world().showIndependentSectionImmediately(
+                util.select().fromTo(7, 2, 11, 15, 4, 11));
+        scene.world().moveSection(platform, util.vector().of(0, -1, 0), 0);
+        scene.world().configureCenterOfRotation(platform, util.vector().centerOf(YARD_BEARING));
+        scene.world().modifyBlocks(util.select().position(YARD_BEARING),
+                state -> state.setValue(TurntableBearingBlock.ASSEMBLED, true), false);
+        scene.idle(10);
+        scene.world().showSection(util.select().fromTo(0, 1, 11, 6, 3, 11), Direction.EAST);
+        scene.world().showSection(util.select().fromTo(16, 1, 11, 22, 3, 11), Direction.WEST);
+        scene.world().showSection(util.select().fromTo(11, 1, 0, 11, 3, 6), Direction.SOUTH);
+        scene.world().showSection(util.select().fromTo(11, 1, 16, 11, 3, 22), Direction.NORTH);
+        scene.idle(10);
+        scene.world().showSection(util.select().fromTo(22, 1, 8, 22, 3, 8), Direction.DOWN);
+        scene.world().showSection(util.select().fromTo(14, 1, 0, 14, 3, 0), Direction.DOWN);
+        scene.world().showSection(util.select().fromTo(14, 1, 22, 14, 3, 22), Direction.DOWN);
+        scene.idle(10);
+        return platform;
+    }
+
+    private static void awake(CreateSceneBuilder scene, SceneBuildingUtil util, BlockPos blaze) {
+        scene.world().modifyBlocks(util.select().position(blaze),
+                state -> state.setValue(BlazeBurnerBlock.HEAT_LEVEL, BlazeBurnerBlock.HeatLevel.FADING), false);
+        scene.world().conductorBlaze(blaze, true);
+    }
+
+    private static CreateSceneBuilder wide(SceneBuilder builder, int size) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        scene.configureBasePlate(0, 0, size);
+        scene.scaleSceneView(size > 17 ? .5f : .55f);
+        scene.setSceneOffsetY(-1);
+        scene.showBasePlate();
+        scene.idle(5);
+        return scene;
     }
 
     private static void assemble(CreateSceneBuilder scene, SceneBuildingUtil util,
@@ -364,12 +713,29 @@ public class TurntableScenes {
     @SafeVarargs
     private static void turn(CreateSceneBuilder scene, SceneBuildingUtil util, int degrees, int ticks,
                              ElementLink<WorldSectionElement>... parts) {
-        spin(scene, util, degrees < 0 ? -INPUT_RPM : INPUT_RPM);
+        turn(scene, util, SMALL_DRIVE, degrees, ticks, parts);
+    }
+
+    @SafeVarargs
+    private static void turn(CreateSceneBuilder scene, SceneBuildingUtil util, Drive drive, int degrees, int ticks,
+                             ElementLink<WorldSectionElement>... parts) {
+        startTurn(scene, util, drive, degrees, ticks, parts);
+        scene.idle(ticks);
+        stopTurn(scene, util, drive);
+    }
+
+    @SafeVarargs
+    private static void startTurn(CreateSceneBuilder scene, SceneBuildingUtil util, Drive drive, int degrees,
+                                  int ticks, ElementLink<WorldSectionElement>... parts) {
+        float rpm = Math.abs(degrees) / (0.3f * ticks);
+        spin(scene, util, drive, degrees < 0 ? -rpm : rpm);
         for (ElementLink<WorldSectionElement> part : parts) {
             scene.world().rotateSection(part, 0, degrees, 0, ticks);
         }
-        scene.idle(ticks);
-        spin(scene, util, 0f);
+    }
+
+    private static void stopTurn(CreateSceneBuilder scene, SceneBuildingUtil util, Drive drive) {
+        spin(scene, util, drive, 0f);
     }
 
     private static void signal(CreateSceneBuilder scene, SceneBuildingUtil util) {
@@ -383,18 +749,17 @@ public class TurntableScenes {
         powered(scene, util, false);
     }
 
-    private static void spin(CreateSceneBuilder scene, SceneBuildingUtil util, float rpm) {
-        spin(scene, util, cogs(util), BEARING, rpm);
-    }
-
-    private static void spin(CreateSceneBuilder scene, SceneBuildingUtil util, Selection cogs, BlockPos bearing,
-                             float rpm) {
-        scene.world().setKineticSpeed(cogs, rpm);
-        scene.world().modifyBlockEntityNBT(util.select().position(bearing), TurntableBearingBlockEntity.class, tag -> {
-            CompoundTag cog = tag.getCompound("TurntableCog");
-            cog.putFloat("Speed", rpm);
-            tag.put("TurntableCog", cog);
-        });
+    private static void spin(CreateSceneBuilder scene, SceneBuildingUtil util, Drive drive, float rpm) {
+        scene.world().setKineticSpeed(util.select().position(drive.bearing()), rpm);
+        scene.world().modifyBlockEntityNBT(util.select().position(drive.bearing()),
+                TurntableBearingBlockEntity.class, tag -> {
+                    CompoundTag cog = tag.getCompound("TurntableCog");
+                    cog.putFloat("Speed", rpm);
+                    tag.put("TurntableCog", cog);
+                });
+        for (int link = 0; link < drive.chain().length; link++) {
+            scene.world().setKineticSpeed(util.select().position(drive.chain()[link]), link % 2 == 0 ? -rpm : rpm);
+        }
     }
 
     private static void powered(CreateSceneBuilder scene, SceneBuildingUtil util, boolean on) {
@@ -404,19 +769,23 @@ public class TurntableScenes {
 
     private static ElementLink<WorldSectionElement> standing(CreateSceneBuilder scene, SceneBuildingUtil util) {
         scene.world().showSection(util.select().position(BEARING), Direction.DOWN);
-        scene.world().showSection(cogs(util), Direction.WEST);
+        scene.world().showSection(chain(util, SMALL_DRIVE), Direction.WEST);
         scene.world().showSection(util.select().position(BUTTON), Direction.EAST);
         ElementLink<WorldSectionElement> structure = scene.world().showIndependentSectionImmediately(
                 util.select().fromTo(0, 2, 2, 4, 4, 2));
         scene.world().moveSection(structure, util.vector().of(0, -1, 0), 0);
+        scene.world().configureCenterOfRotation(structure, util.vector().centerOf(TOP_CELL));
         scene.world().modifyBlocks(util.select().position(BEARING),
                 state -> state.setValue(TurntableBearingBlock.ASSEMBLED, true), false);
         return structure;
     }
 
-    private static Selection cogs(SceneBuildingUtil util) {
-        return util.select().position(SMALL_COG).add(util.select().position(4, 1, 3))
-                .add(util.select().position(5, 0, 3));
+    private static Selection chain(SceneBuildingUtil util, Drive drive) {
+        Selection selection = util.select().position(drive.chain()[0]);
+        for (int link = 1; link < drive.chain().length; link++) {
+            selection = selection.add(util.select().position(drive.chain()[link]));
+        }
+        return selection;
     }
 
     private static CreateSceneBuilder open(SceneBuilder builder, String id, String title) {

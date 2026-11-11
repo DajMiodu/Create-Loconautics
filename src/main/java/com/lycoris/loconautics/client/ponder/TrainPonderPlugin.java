@@ -37,7 +37,11 @@ public class TrainPonderPlugin implements PonderPlugin {
                 .addStoryBoard("turntable/turntable", TurntableScenes::assembly)
                 .addStoryBoard("turntable/turntable", TurntableScenes::instructions)
                 .addStoryBoard("turntable/turntable", TurntableScenes::trigger)
-                .addStoryBoard("turntable/turntable_schedule", TurntableScenes::schedule);
+                .addStoryBoard("turntable/turntable_schedule", TurntableScenes::schedule)
+                .addStoryBoard("turntable/turntable_diagonal", TurntableScenes::diagonal)
+                .addStoryBoard("turntable/turntable_signal", TurntableScenes::signals)
+                .addStoryBoard("turntable/turntable_yard", TurntableScenes::parking)
+                .addStoryBoard("turntable/turntable_yard", TurntableScenes::maneuver);
 
         helper.forComponents(LoconauticsRegistries.BEARING_AXLE.getId())
                 .addStoryBoard("train/train", TrainScenes::wheels)

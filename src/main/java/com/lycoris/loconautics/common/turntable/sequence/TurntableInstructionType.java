@@ -16,7 +16,7 @@ public enum TurntableInstructionType {
     DELAY("duration", AllGuiTextures.SEQUENCER_DELAY, true, false, 600, 20, 10),
     AWAIT("", AllGuiTextures.SEQUENCER_AWAIT),
     END("", AllGuiTextures.SEQUENCER_END),
-    SCHEDULE("", AllGuiTextures.SEQUENCER_INSTRUCTION);
+    SCHEDULE("", AllGuiTextures.SEQUENCER_AWAIT);
 
     public static final StreamCodec<ByteBuf, TurntableInstructionType> STREAM_CODEC =
             CatnipStreamCodecBuilders.ofEnum(TurntableInstructionType.class);

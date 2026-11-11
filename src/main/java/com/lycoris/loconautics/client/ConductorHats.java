@@ -4,6 +4,7 @@ import com.lycoris.loconautics.trainphysics.state.SableTrainClientRegistry;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.sublevel.ClientSubLevel;
+import net.createmod.ponder.api.level.PonderLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -45,6 +46,9 @@ public final class ConductorHats {
     }
 
     public static PartialModel hatFor(BlockEntity be, PartialModel original) {
+        if (be.getLevel() instanceof PonderLevel) {
+            return LoconauticsPartialModels.conductorsHat(be.getBlockPos().asLong());
+        }
         ClientSubLevel sub = Sable.HELPER.getContainingClient(be);
         if (sub == null || !SableTrainClientRegistry.isTrain(sub.getUniqueId())) {
             return original;
