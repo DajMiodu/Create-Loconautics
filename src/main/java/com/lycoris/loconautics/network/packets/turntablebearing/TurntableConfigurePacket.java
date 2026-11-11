@@ -3,7 +3,6 @@ package com.lycoris.loconautics.network.packets.turntablebearing;
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.content.turntablebearing.TurntableBearingBlockEntity;
 import com.lycoris.loconautics.common.turntable.sequence.TurntableInstruction;
-import com.lycoris.loconautics.common.turntable.sequence.TurntableTriggerMode;
 import com.lycoris.loconautics.network.PacketTargets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -14,8 +13,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
 
-public record TurntableConfigurePacket(BlockPos pos, List<TurntableInstruction> instructions,
-                                        TurntableTriggerMode trigger) implements CustomPacketPayload {
+public record TurntableConfigurePacket(BlockPos pos, List<TurntableInstruction> instructions) implements CustomPacketPayload {
 
     private static final double MAX_REACH_SQUARED = 64.0;
 
@@ -26,7 +24,6 @@ public record TurntableConfigurePacket(BlockPos pos, List<TurntableInstruction> 
             StreamCodec.composite(
                     BlockPos.STREAM_CODEC, TurntableConfigurePacket::pos,
                     TurntableInstruction.LIST_STREAM_CODEC, TurntableConfigurePacket::instructions,
-                    TurntableTriggerMode.STREAM_CODEC, TurntableConfigurePacket::trigger,
                     TurntableConfigurePacket::new
             );
 
@@ -43,7 +40,7 @@ public record TurntableConfigurePacket(BlockPos pos, List<TurntableInstruction> 
             TurntableBearingBlockEntity bearing = PacketTargets.blockEntity(
                     player.level(), packet.pos(), TurntableBearingBlockEntity.class);
             if (bearing == null) return;
-            bearing.applyConfiguration(packet.instructions(), packet.trigger());
+            bearing.applyConfiguration(packet.instructions());
         });
     }
 }

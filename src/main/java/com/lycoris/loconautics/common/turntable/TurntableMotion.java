@@ -113,6 +113,10 @@ public final class TurntableMotion {
         return trigger;
     }
 
+    public void setTrigger(TurntableTriggerMode mode) {
+        trigger = mode;
+    }
+
     public int currentInstruction() {
         return currentInstruction;
     }

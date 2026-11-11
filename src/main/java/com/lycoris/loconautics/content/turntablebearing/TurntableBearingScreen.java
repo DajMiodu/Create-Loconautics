@@ -3,7 +3,6 @@ package com.lycoris.loconautics.content.turntablebearing;
 import com.lycoris.loconautics.common.turntable.sequence.TurntableInstruction;
 import com.lycoris.loconautics.common.turntable.sequence.TurntableInstructionType;
 import com.lycoris.loconautics.common.turntable.sequence.TurntableSpeedModifier;
-import com.lycoris.loconautics.common.turntable.sequence.TurntableTriggerMode;
 import com.lycoris.loconautics.network.packets.turntablebearing.TurntableConfigurePacket;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
@@ -32,14 +31,11 @@ public class TurntableBearingScreen extends AbstractSimiScreen {
 
     private final List<TurntableInstruction> instructions;
     private final List<List<ScrollInput>> inputs = new ArrayList<>();
-    private TurntableTriggerMode trigger;
-    private ScrollInput triggerInput;
 
     public TurntableBearingScreen(TurntableBearingBlockEntity blockEntity) {
         super(Component.translatable("loconautics.gui.turntable_bearing.title"));
         this.blockEntity = blockEntity;
         this.instructions = new ArrayList<>(blockEntity.getInstructions());
-        this.trigger = blockEntity.getTrigger();
     }
 
     @Override
@@ -58,15 +54,6 @@ public class TurntableBearingScreen extends AbstractSimiScreen {
         for (int row = 0; row < instructions.size(); row++) {
             initInputsOfRow(row, x, y);
         }
-
-        triggerInput = new SelectionScrollInput(
-                x + 30, y + background.getHeight() - 27, 90, 18)
-                .forOptions(TurntableTriggerMode.getOptions())
-                .calling(state -> trigger = TurntableTriggerMode.values()[state])
-                .setState(trigger.ordinal())
-                .titled(Component.translatable("loconautics.gui.turntable_bearing.trigger"));
-        addRenderableWidget(triggerInput);
-        refreshScheduleLock();
 
         IconButton confirmButton = new IconButton(x + background.getWidth() - 33,
                 y + background.getHeight() - 24, AllIcons.I_CONFIRM);
@@ -140,11 +127,6 @@ public class TurntableBearingScreen extends AbstractSimiScreen {
         }
     }
 
-    private void refreshScheduleLock() {
-        boolean locked = TurntableInstruction.isScheduleDriven(instructions);
-        triggerInput.active = triggerInput.visible = !locked;
-    }
-
     private void collapseToSchedule() {
         for (int i = instructions.size() - 1; i > 0; i--) {
             instructions.remove(i);
@@ -154,7 +136,6 @@ public class TurntableBearingScreen extends AbstractSimiScreen {
         }
         instructions.get(0).type = TurntableInstructionType.SCHEDULE;
         initInputsOfRow(0, guiLeft, guiTop);
-        refreshScheduleLock();
     }
 
     private void instructionUpdated(int index, int state) {
@@ -167,7 +148,6 @@ public class TurntableBearingScreen extends AbstractSimiScreen {
             collapseToSchedule();
             return;
         }
-        refreshScheduleLock();
         if (newValue == TurntableInstructionType.END) {
             for (int i = instructions.size() - 1; i > index; i--) {
                 instructions.remove(i);
@@ -227,6 +207,6 @@ public class TurntableBearingScreen extends AbstractSimiScreen {
     @Override
     public void removed() {
         PacketDistributor.sendToServer(
-                new TurntableConfigurePacket(blockEntity.getBlockPos(), instructions, trigger));
+                new TurntableConfigurePacket(blockEntity.getBlockPos(), instructions));
     }
 }

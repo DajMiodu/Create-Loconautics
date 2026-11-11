@@ -248,7 +248,7 @@ public class TurntableBearingPeripheral implements IPeripheral {
         if (parsed.isEmpty()) {
             throw new LuaException("the instruction list is empty, pass at least one instruction");
         }
-        live().applyConfiguration(parsed, live().getTrigger());
+        live().applyConfiguration(parsed);
     }
 
     private static TurntableInstruction parseInstruction(int index, Map<?, ?> entry) throws LuaException {
@@ -294,7 +294,7 @@ public class TurntableBearingPeripheral implements IPeripheral {
     @LuaFunction(mainThread = true)
     public void setTrigger(String mode) throws LuaException {
         TurntableTriggerMode trigger = lookup(TurntableTriggerMode.class, mode, "mode must be a string");
-        live().applyConfiguration(live().getInstructions(), trigger);
+        live().setTrigger(trigger);
     }
 
     @LuaFunction(mainThread = true)

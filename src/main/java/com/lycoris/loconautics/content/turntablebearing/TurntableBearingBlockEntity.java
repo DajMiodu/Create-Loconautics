@@ -19,6 +19,9 @@ import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel;
 import com.simibubi.create.content.trains.graph.TrackNodeLocation;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.api.SubLevelAssemblyHelper;
 import dev.ryanhcode.sable.api.block.BlockEntitySubLevelActor;
@@ -38,6 +41,7 @@ import dev.simulated_team.simulated.util.SimLevelUtil;
 import dev.simulated_team.simulated.util.extra_kinetics.ExtraBlockPos;
 import dev.simulated_team.simulated.util.extra_kinetics.ExtraKinetics;
 import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -48,6 +52,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
@@ -99,9 +104,20 @@ public class TurntableBearingBlockEntity extends KineticBlockEntity
 
     private final TurntableSignalHold signals = new TurntableSignalHold();
 
+    private ScrollOptionBehaviour<TurntableTriggerMode> triggerOption;
+
     public TurntableBearingBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
         cogwheel = new TurntableCogwheelBlockEntity(typeIn, pos, state, this);
+    }
+
+    @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+        super.addBehaviours(behaviours);
+        triggerOption = new ScrollOptionBehaviour<>(TurntableTriggerMode.class,
+                Component.translatable("loconautics.gui.turntable_bearing.trigger"), this, new TriggerValueBox());
+        triggerOption.withCallback(value -> motion.setTrigger(TurntableTriggerMode.values()[value]));
+        behaviours.add(triggerOption);
     }
 
     @Override
@@ -378,8 +394,12 @@ public class TurntableBearingBlockEntity extends KineticBlockEntity
         }
     }
 
-    public void applyConfiguration(List<TurntableInstruction> newInstructions, TurntableTriggerMode newTrigger) {
-        motion.configure(this, newInstructions, newTrigger);
+    public void applyConfiguration(List<TurntableInstruction> newInstructions) {
+        motion.configure(this, newInstructions, getTrigger());
+    }
+
+    public void setTrigger(TurntableTriggerMode mode) {
+        triggerOption.setValue(mode.ordinal());
     }
 
     private float limitCogSpeed(float speed) {
@@ -669,6 +689,9 @@ public class TurntableBearingBlockEntity extends KineticBlockEntity
             setPlatePos(NbtUtils.readBlockPos(compound, "TurntablePlate").orElse(null));
         }
         lastException = AssemblyException.read(compound, registries);
+        if (triggerOption != null) {
+            motion.setTrigger(triggerOption.get());
+        }
     }
 
     @Override
@@ -753,7 +776,7 @@ public class TurntableBearingBlockEntity extends KineticBlockEntity
     }
 
     public TurntableTriggerMode getTrigger() {
-        return motion.trigger();
+        return triggerOption == null ? motion.trigger() : triggerOption.get();
     }
 
     @Override
@@ -825,6 +848,30 @@ public class TurntableBearingBlockEntity extends KineticBlockEntity
     public @Nullable Iterable<@NotNull SubLevel> sable$getConnectionDependencies() {
         SubLevel attached = getAttachedSubLevel();
         return attached == null ? null : List.of(attached);
+    }
+
+    private static class TriggerValueBox extends CenteredSideValueBoxTransform {
+
+        TriggerValueBox() {
+            super((state, direction) ->
+                    direction.getAxis() != state.getValue(DirectionalKineticBlock.FACING).getAxis());
+        }
+
+        @Override
+        public Vec3 getLocalOffset(LevelAccessor level, BlockPos pos, BlockState state) {
+            Vec3i facing = state.getValue(DirectionalKineticBlock.FACING).getNormal();
+            return super.getLocalOffset(level, pos, state).subtract(Vec3.atLowerCornerOf(facing).scale(0.3125));
+        }
+
+        @Override
+        protected Vec3 getSouthLocation() {
+            return VecHelper.voxelSpace(8.0, 8.0, 15.75);
+        }
+
+        @Override
+        public float getScale() {
+            return 0.35f;
+        }
     }
 
     public static class TurntableCogwheelBlockEntity extends KineticBlockEntity
