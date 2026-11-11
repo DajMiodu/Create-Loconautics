@@ -90,26 +90,26 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-var modJar = { String pattern ->
-    def dir = file('run/mods')
-    def jars = dir.isDirectory() ? dir.listFiles().findAll { it.isFile() } : []
+var runMods = file('run/mods')
+var depsDir = file('deps')
+
+var findModJars = { String pattern ->
     def regex = '(?i)^' + pattern.replace('.', '\\.').replace('*', '.*') + '$'
-    def hits = jars.findAll { it.name ==~ regex }
-    if (hits.size() != 1) {
-        throw new GradleException("run/mods needs exactly one jar matching '${pattern}', found ${hits.size()}. " +
-                "run/mods holds: ${jars ? jars*.name.sort().join(', ') : 'nothing'}")
-    }
-    return hits[0]
+    runMods.isDirectory() ? runMods.listFiles().findAll { it.isFile() && it.name ==~ regex } : []
 }
 
 var optionalModJar = { String pattern ->
-    def dir = file('run/mods')
-    def regex = '(?i)^' + pattern.replace('.', '\\.').replace('*', '.*') + '$'
-    def hits = dir.isDirectory() ? dir.listFiles().findAll { it.isFile() && it.name ==~ regex } : []
-    return hits.size() == 1 ? hits[0] : null
+    def hits = findModJars(pattern)
+    hits.size() == 1 ? hits[0] : null
 }
 
-var simulatedFromBundle = optionalModJar('simulated-*.jar') == null
+var sableNeoforgeJar = optionalModJar('sable-neoforge-*.jar')
+var simulatedJar = optionalModJar('simulated-*.jar')
+var aeronauticsBundleJar = optionalModJar('create-aeronautics-bundled-*.jar')
+var simulatedFromBundle = simulatedJar == null
+
+var jarHitNames = ['sable-neoforge-*.jar', 'simulated-*.jar', 'create-aeronautics-bundled-*.jar']
+        .collectEntries { [(it): findModJars(it)*.name.sort()] }
 
 configurations {
     runtimeClasspath.extendsFrom localRuntime
@@ -124,8 +124,10 @@ dependencies {
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
 
     compileOnly("dev.ryanhcode.sable:sable-common-${minecraft_version}:${sable_version}")
-    compileOnly files(modJar('sable-neoforge-*.jar'))
-    compileOnly files(simulatedFromBundle ? 'deps/simulated-neoforge.jar' : modJar('simulated-*.jar'))
+    if (sableNeoforgeJar != null) {
+        compileOnly files(sableNeoforgeJar)
+    }
+    compileOnly files(simulatedFromBundle ? 'deps/simulated-neoforge.jar' : simulatedJar)
 
     compileOnly files('deps/sable-companion-common.jar')
     compileOnly files('deps/veil-neoforge.jar')
@@ -135,25 +137,29 @@ dependencies {
     localRuntime("cc.tweaked:cc-tweaked-${minecraft_version}-forge:${cc_tweaked_version}")
 }
 
-def registerExtract = { String taskName, String sourceJar, String entryPattern, String outputName ->
+var extractTaskNames = []
+
+var registerExtract = { String taskName, File sourceJar, String entryPattern, String outputName ->
     tasks.register(taskName, Copy) {
-        var source = modJar(sourceJar)
-        from(zipTree(source)) {
+        from(zipTree(sourceJar)) {
             include entryPattern
         }
         eachFile { it.relativePath = new RelativePath(true, outputName) }
         includeEmptyDirs = false
         into 'deps'
     }
+    extractTaskNames << taskName
 }
 
-registerExtract('extractSableCompanion', 'sable-neoforge-*.jar', 'META-INF/jarjar/sable-companion-common-*.jar', 'sable-companion-common.jar')
-registerExtract('extractSableRapier', 'sable-neoforge-*.jar', 'META-INF/jarjar/dev.ryanhcode.sable.sable-sable_rapier-*.jar', 'sable-rapier.jar')
-registerExtract('extractVeil', 'sable-neoforge-*.jar', 'META-INF/jarjar/veil-neoforge-1.21.1-*.jar', 'veil-neoforge.jar')
+if (sableNeoforgeJar != null) {
+    registerExtract('extractSableCompanion', sableNeoforgeJar, 'META-INF/jarjar/sable-companion-common-*.jar', 'sable-companion-common.jar')
+    registerExtract('extractSableRapier', sableNeoforgeJar, 'META-INF/jarjar/dev.ryanhcode.sable.sable-sable_rapier-*.jar', 'sable-rapier.jar')
+    registerExtract('extractVeil', sableNeoforgeJar, 'META-INF/jarjar/veil-neoforge-1.21.1-*.jar', 'veil-neoforge.jar')
+}
 
-if (simulatedFromBundle) {
+if (simulatedFromBundle && aeronauticsBundleJar != null) {
     tasks.register('extractSimulated', Copy) {
-        var bundle = modJar('create-aeronautics-bundled-*.jar')
+        var bundle = aeronauticsBundleJar
         from(zipTree(bundle)) {
             include 'META-INF/jarjar/*simulated*.jar'
             exclude '**/*offroad*', '**/*aeronautics*'
@@ -162,13 +168,37 @@ if (simulatedFromBundle) {
         includeEmptyDirs = false
         into 'deps'
     }
+    extractTaskNames << 'extractSimulated'
 }
 
 tasks.named('compileJava') {
-    dependsOn 'extractSableCompanion'
-    dependsOn 'extractVeil'
-    dependsOn 'extractSableRapier'
-    if (simulatedFromBundle) dependsOn 'extractSimulated'
+    extractTaskNames.each { dependsOn it }
+
+    // Fail here
+    doFirst {
+        def problems = []
+
+        jarHitNames.each { pattern, names ->
+            if (names.size() > 1) {
+                problems << "run/mods needs exactly one jar matching '${pattern}', found ${names.size()}: ${names.join(', ')}"
+            }
+        }
+        if (jarHitNames['sable-neoforge-*.jar'].isEmpty()) {
+            problems << "run/mods needs exactly one jar matching 'sable-neoforge-*.jar', found 0"
+        }
+
+        ['sable-companion-common.jar', 'veil-neoforge.jar', 'sable-rapier.jar', 'simulated-neoforge.jar'].each { name ->
+            if (name == 'simulated-neoforge.jar' && !simulatedFromBundle) return
+            if (!new File(depsDir, name).isFile()) {
+                problems << "deps/${name} is missing (it is extracted from the Sable / create-aeronautics-bundled jar in run/mods, " +
+                        "or must be provided in deps/)"
+            }
+        }
+
+        if (!problems.isEmpty()) {
+            throw new GradleException("Cannot compile - required mod jars are missing:\n  - " + problems.join("\n  - "))
+        }
+    }
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
