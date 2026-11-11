@@ -433,7 +433,7 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
 
     @Override
     public float calculateAddedStressCapacity() {
-        float capacity = appliedRpm == 0.0f ? 0.0f : FREE_SPIN_CAPACITY;
+        float capacity = appliedRpm == 0.0f ? 0.0f : FREE_SPIN_CAPACITY / Math.abs(appliedRpm);
         lastCapacityProvided = capacity;
         return capacity;
     }

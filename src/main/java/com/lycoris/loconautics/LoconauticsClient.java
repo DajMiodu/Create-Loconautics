@@ -268,11 +268,18 @@ public final class LoconauticsClient {
 
         com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlocks.CONTROLLER_ITEMS
                 .forEach((color, item) -> registerTooltip(item.get(), "block.loconautics.analog_controller"));
-        registerTooltip(LoconauticsRegistries.BEARING_AXLE_ITEM.get(), "block.loconautics.bearing_axle");
+        registerTooltip(LoconauticsRegistries.BEARING_AXLE_ITEM.get(), "block.loconautics.bearing_axle",
+                new com.lycoris.loconautics.client.VariableStressTooltip(false, "tooltip.stress.variable",
+                        "tooltip.stress.bearing_axle_note"));
         registerTooltip(LoconauticsRegistries.TRANSMISSION_ITEM.get(), "block.loconautics.transmission");
         registerTooltip(LoconauticsRegistries.TURNTABLE_BEARING_ITEM.get(), "block.loconautics.turntable_bearing");
-        registerKineticTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.STEAM_TAKEOFF_ITEM.get());
-        registerKineticTooltip(LoconauticsRegistries.HOSE_WINCH_ITEM.get());
+        registerExtraTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.STEAM_TAKEOFF_ITEM.get(),
+                new com.lycoris.loconautics.client.VariableStressTooltip(true, "tooltip.stress.variable",
+                        "tooltip.stress.takeoff_note"));
+        registerExtraTooltip(LoconauticsRegistries.HOSE_WINCH_ITEM.get(),
+                new com.lycoris.loconautics.client.VariableStressTooltip(true, "tooltip.stress.up_to",
+                        "tooltip.stress.winch_note",
+                        (int) com.lycoris.loconautics.content.hose.winch.HoseWinchBlockEntity.FREE_SPIN_CAPACITY));
         registerTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.LOCOMOTIVE_GAUGE_ITEM.get(),
                 "block.loconautics.locomotive_gauge");
         registerTooltip(com.lycoris.loconautics.content.boiler.BoilerBlocks.SMART_SAFETY_VALVE_ITEM.get(),
@@ -297,6 +304,17 @@ public final class LoconauticsClient {
     private static void registerTooltip(net.minecraft.world.item.Item item, String key) {
         ItemDescription.useKey(item, key);
         registerKineticTooltip(item);
+    }
+
+    private static void registerTooltip(net.minecraft.world.item.Item item, String key, TooltipModifier extra) {
+        ItemDescription.useKey(item, key);
+        registerExtraTooltip(item, extra);
+    }
+
+    private static void registerExtraTooltip(net.minecraft.world.item.Item item, TooltipModifier extra) {
+        TooltipModifier.REGISTRY.register(item,
+                new ItemDescription.Modifier(item,
+                        net.createmod.catnip.lang.FontHelper.Palette.STANDARD_CREATE).andThen(extra));
     }
 
     private static void registerKineticTooltip(net.minecraft.world.item.Item item) {
