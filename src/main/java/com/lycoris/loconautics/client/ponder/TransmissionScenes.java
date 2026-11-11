@@ -141,7 +141,7 @@ public class TransmissionScenes {
         scene.world().setKineticSpeed(util.select().position(TRANSMISSION).add(input(util)), INPUT_RPM);
         scene.idle(20);
 
-        GuiPonder.Panel panel = GuiPonder.open(scene,
+        GuiPonder.Panel panel = GuiPonder.open(scene, GuiPonder.TWO_ROWS,
                 Component.translatable(TransmissionMenu.SPEED_KEY),
                 Component.translatable(TransmissionMenu.DIRECTION_KEY));
 

@@ -33,6 +33,12 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
 
     private static final int COUNTER_TICKS = RAISE_TICKS / 2;
 
+    private static final int MANUAL_RAISE_TICKS = 6;
+
+    private static final int MANUAL_RELEASE_TICKS = 4;
+
+    private static final int MANUAL_COUNTER_TICKS = 3;
+
     private static final int MAX_POWER = 15;
 
     private static final int HORN_HOLD_TICKS = 4;
@@ -69,6 +75,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
     private boolean scheduleControlled;
     private Integer scheduleTargetPower;
     private int scheduleRampCounter;
+    private int manualRampCounter;
 
     private int maxPower = MAX_POWER;
 
@@ -126,7 +133,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
             animSteer.chase(steerInput, 0.2, LerpedFloat.Chaser.EXP);
             animEquip.chase(1.0, 0.2, LerpedFloat.Chaser.EXP);
         } else {
-            animSpeed.chase(0.0, 0.0, LerpedFloat.Chaser.EXP);
+            animSpeed.chase(AnalogControllerClientHandler.idleRatio(this), 0.5, LerpedFloat.Chaser.EXP);
             animSteer.chase(0.0, 0.0, LerpedFloat.Chaser.EXP);
             animEquip.chase(0.0, 0.2, LerpedFloat.Chaser.EXP);
         }
@@ -164,6 +171,14 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
             if (--scheduleRampCounter <= 0) {
                 scheduleRampCounter = interval;
                 currentPower += Integer.signum(scheduleTargetPower - currentPower);
+            }
+        }
+
+        if (!scheduleControlled && (currentUser != null || locked) && currentPower != manualTarget()) {
+            int step = Integer.signum(manualTarget() - currentPower);
+            if (--manualRampCounter <= 0) {
+                manualRampCounter = manualInterval(step);
+                currentPower += step;
             }
         }
 
@@ -205,7 +220,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
 
     public void resumeUser(ServerPlayer player) {
         connectUser(player);
-        if (!locked) applyDriveInput();
+        if (!locked) restartRamp();
     }
 
     // only the current driver can release, unlike toggleuser which would connect a stranger
@@ -353,13 +368,20 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
         if (held != 0 || !locked) {
             driveInput = held;
         }
-        applyDriveInput();
+        restartRamp();
     }
 
-    private void applyDriveInput() {
-        if (scheduleControlled) return;
-        int power = driveInput > 0 ? maxPower : driveInput < 0 ? -Math.min(maxPower, getNegativeCap()) : 0;
-        setCurrentPower(power);
+    private void restartRamp() {
+        manualRampCounter = 0;
+    }
+
+    private int manualTarget() {
+        return driveInput > 0 ? maxPower : driveInput < 0 ? -Math.min(maxPower, getNegativeCap()) : 0;
+    }
+
+    private int manualInterval(int step) {
+        if (heldInput() == 0) return MANUAL_RELEASE_TICKS;
+        return currentPower != 0 && Integer.signum(currentPower) != step ? MANUAL_COUNTER_TICKS : MANUAL_RAISE_TICKS;
     }
 
     public int heldInput() {
@@ -438,7 +460,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
         scheduleControlled = false;
         scheduleTargetPower = null;
         setSteerInput(0);
-        applyDriveInput();
+        restartRamp();
     }
 
     public boolean isScheduleControlled() {
@@ -644,7 +666,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
     public void onScroll(UUID user, int delta) {
         if (!user.equals(currentUser)) return;
         maxPower = Math.max(0, Math.min(MAX_POWER, maxPower + delta));
-        if (driveInput != 0) applyDriveInput();
+        if (driveInput != 0) restartRamp();
         setChanged();
         sendData();
     }

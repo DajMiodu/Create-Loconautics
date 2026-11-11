@@ -1,11 +1,9 @@
 package com.lycoris.loconautics.content.analogcontroller;
 
 import com.lycoris.loconautics.LoconauticsConstants;
-import com.lycoris.loconautics.trainphysics.state.SableTrainClientRegistry;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import dev.ryanhcode.sable.Sable;
-import dev.ryanhcode.sable.sublevel.ClientSubLevel;
 import net.createmod.catnip.animation.LerpedFloat;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -57,11 +55,6 @@ public class AnalogControllerHUD {
         displayedPromptSize.tickChaser();
     }
 
-    private static SableTrainClientRegistry.TrainMarker mountedTrain() {
-        ClientSubLevel sub = Sable.HELPER.getContainingClient(AnalogControllerClientHandler.getMountedPos());
-        return sub == null ? null : SableTrainClientRegistry.get(sub.getUniqueId());
-    }
-
     private static void render(GuiGraphics graphics, DeltaTracker deltaTracker) {
         Minecraft mc = Minecraft.getInstance();
 
@@ -78,8 +71,7 @@ public class AnalogControllerHUD {
         int maxPower = ace.getMaxPower();
 
         float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
-        SableTrainClientRegistry.TrainMarker marker = mountedTrain();
-        double ratio = marker == null ? 0.0 : AnalogControllerClientHandler.speedFraction(marker.speed(), marker);
+        double ratio = AnalogControllerClientHandler.speedBarRatio(ace);
         displayedSpeed.chase((int) (ratio * 18) / 18.0, 0.5, LerpedFloat.Chaser.EXP);
         displayedSpeed.tickChaser();
         displayedThrottle.chase(maxPower / 15.0, 0.2, LerpedFloat.Chaser.EXP);

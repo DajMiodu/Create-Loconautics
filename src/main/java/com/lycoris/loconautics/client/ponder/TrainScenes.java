@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.client.ponder;
 
+import com.lycoris.loconautics.content.analogcontroller.AnalogControllerMenu;
 import com.lycoris.loconautics.content.bearingaxle.BearingAxleMenu;
 import com.lycoris.loconautics.content.transmission.TransmissionBlock;
 import com.lycoris.loconautics.content.transmission.TransmissionBlockEntity;
@@ -24,12 +25,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class TrainScenes {
 
     private static final float ENGINE_RPM = 32f;
     private static final float AXLE_RPM = 256f;
+    private static final double SHIFT = 1.5;
 
     private static final BlockPos STATION = new BlockPos(4, 1, 1);
     private static final BlockPos BOGEY = new BlockPos(3, 2, 4);
@@ -37,33 +40,33 @@ public class TrainScenes {
     private static final BlockPos TRANSMISSION = new BlockPos(5, 2, 4);
     private static final BlockPos ENGINE = new BlockPos(6, 2, 4);
     private static final BlockPos BOGEY_FAR = new BlockPos(7, 2, 4);
-    private static final BlockPos CONTROLLER = new BlockPos(5, 3, 4);
+    private static final BlockPos CONTROLLER = new BlockPos(3, 3, 4);
 
     public static void wheels(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = open(builder, "locomotive_wheels", "Setting up Bearing Axles");
         showTrack(scene, util);
 
-        scene.world().showSection(util.select().position(BOGEY), Direction.DOWN);
+        centered(scene, util, util.select().position(BOGEY));
         scene.idle(15);
-        scene.overlay().showControls(util.vector().blockSurface(BOGEY, Direction.EAST), Pointing.RIGHT, 40)
+        scene.overlay().showControls(util.vector().blockSurface(BOGEY, Direction.EAST).add(SHIFT, 0, 0), Pointing.RIGHT, 40)
                 .rightClick()
                 .withItem(new ItemStack(LoconauticsRegistries.BEARING_AXLE_ITEM.get()));
         scene.idle(25);
-        scene.world().showSection(util.select().position(AXLE), Direction.DOWN);
+        centered(scene, util, util.select().position(AXLE));
         scene.idle(10);
         scene.overlay().showText(70)
                 .text("Bearing Axles drive the wheels of the bogey they sit beside")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(AXLE));
+                .pointAt(util.vector().topOf(AXLE).add(SHIFT, 0, 0));
         scene.idle(80);
 
-        scene.overlay().showOutline(PonderPalette.GREEN, "bogey", util.select().position(BOGEY), 60);
+        scene.overlay().chaseBoundingBoxOutline(PonderPalette.GREEN, "bogey", new AABB(BOGEY).move(SHIFT, 0, 0), 60);
         scene.overlay().showText(70)
                 .text("They have to touch the bogey on its rail line, never above or below")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().centerOf(BOGEY));
+                .pointAt(util.vector().centerOf(BOGEY).add(SHIFT, 0, 0));
         scene.idle(80);
 
         scene.overlay().showText(60)
@@ -71,10 +74,10 @@ public class TrainScenes {
                 .attachKeyFrame()
                 .colored(PonderPalette.RED)
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(AXLE));
+                .pointAt(util.vector().topOf(AXLE).add(SHIFT, 0, 0));
         scene.idle(70);
 
-        scene.overlay().showControls(util.vector().topOf(AXLE), Pointing.DOWN, 40)
+        scene.overlay().showControls(util.vector().topOf(AXLE).add(SHIFT, 0, 0), Pointing.DOWN, 40)
                 .rightClick()
                 .withItem(AllItems.GOGGLES.asStack());
         scene.idle(25);
@@ -82,7 +85,7 @@ public class TrainScenes {
                 .text("Engineer's Goggles show whether an axle is valid")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(AXLE));
+                .pointAt(util.vector().topOf(AXLE).add(SHIFT, 0, 0));
         scene.idle(80);
     }
 
@@ -90,9 +93,12 @@ public class TrainScenes {
         CreateSceneBuilder scene = open(builder, "locomotive_drive", "Powering Locomotives with Transmissions");
         showTrack(scene, util);
 
-        scene.world().showSection(util.select().position(BOGEY), Direction.DOWN);
-        scene.world().showSection(util.select().position(AXLE), Direction.DOWN);
-        scene.idle(20);
+        ElementLink<WorldSectionElement> pair = centered(scene, util, util.select().fromTo(BOGEY, AXLE));
+        scene.idle(30);
+
+        scene.world().moveSection(pair, util.vector().of(-SHIFT, 0, 0), 25);
+        scene.world().animateBogey(BOGEY, (float) SHIFT, 25);
+        scene.idle(35);
 
         scene.world().showSection(util.select().position(TRANSMISSION), Direction.DOWN);
         scene.idle(10);
@@ -141,21 +147,20 @@ public class TrainScenes {
         CreateSceneBuilder scene = open(builder, "locomotive_frequency", "Binding Bearing Axles to Redstone Links");
         showTrack(scene, util);
 
-        scene.world().showSection(util.select().position(BOGEY), Direction.DOWN);
-        scene.world().showSection(util.select().position(AXLE), Direction.DOWN);
+        centered(scene, util, util.select().fromTo(BOGEY, AXLE));
         scene.idle(20);
 
-        GuiPonder.Panel panel = GuiPonder.open(scene,
+        GuiPonder.Panel panel = GuiPonder.open(scene, GuiPonder.TWO_ROWS,
                 Component.translatable(BearingAxleMenu.LEFT_KEY),
                 Component.translatable(BearingAxleMenu.RIGHT_KEY));
 
-        scene.overlay().showControls(util.vector().topOf(AXLE), Pointing.DOWN, 30).rightClick();
+        scene.overlay().showControls(util.vector().topOf(AXLE).add(SHIFT, 0, 0), Pointing.DOWN, 30).rightClick();
         scene.idle(10);
         scene.overlay().showText(50)
                 .text("Right click it with empty hands to open its Interface")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(AXLE));
+                .pointAt(util.vector().topOf(AXLE).add(SHIFT, 0, 0));
         scene.idle(55);
 
         panel.show(scene);
@@ -205,6 +210,13 @@ public class TrainScenes {
         scene.world().setKineticSpeed(util.select().fromTo(ENGINE, TRANSMISSION), ENGINE_RPM);
         scene.world().showSection(util.select().position(CONTROLLER), Direction.DOWN);
         scene.idle(15);
+
+        GuiPonder.Panel panel = GuiPonder.open(scene, GuiPonder.FOUR_ROWS,
+                Component.translatable(AnalogControllerMenu.FORWARD_KEY),
+                Component.translatable(AnalogControllerMenu.BACKWARD_KEY),
+                Component.translatable(AnalogControllerMenu.LEFT_KEY),
+                Component.translatable(AnalogControllerMenu.RIGHT_KEY));
+
         scene.overlay().showText(70)
                 .text("Analog Controllers send the signals that drive a locomotive")
                 .attachKeyFrame()
@@ -212,32 +224,65 @@ public class TrainScenes {
                 .pointAt(util.vector().topOf(CONTROLLER));
         scene.idle(80);
 
+        scene.overlay().showControls(util.vector().topOf(CONTROLLER), Pointing.DOWN, 30)
+                .rightClick()
+                .whileSneaking();
+        scene.idle(10);
+        scene.overlay().showText(50)
+                .text("Sneak and Right click it to open its Interface")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(CONTROLLER));
+        scene.idle(55);
+
+        panel.show(scene);
+        scene.idle(20);
+        panel.mark(scene, 0);
+        scene.overlay().showText(80)
+                .text("Speed and Direction are the frequencies the Transmission listens to")
+                .attachKeyFrame()
+                .colored(PonderPalette.INPUT)
+                .placeNearTarget();
+        scene.idle(20);
+        panel.put(scene, 0, new ItemStack(Items.GOLD_INGOT));
+        panel.put(scene, 1, new ItemStack(Items.REDSTONE));
+        scene.idle(15);
+        panel.mark(scene, 1);
+        panel.put(scene, 2, new ItemStack(Items.IRON_INGOT));
+        panel.put(scene, 3, new ItemStack(Items.LAPIS_LAZULI));
+        scene.idle(60);
+
+        panel.mark(scene, 2);
+        scene.overlay().showText(80)
+                .text("Left and Right are the frequencies the Bearing Axle listens to")
+                .attachKeyFrame()
+                .colored(PonderPalette.OUTPUT)
+                .placeNearTarget();
+        scene.idle(20);
+        panel.put(scene, 4, new ItemStack(Items.COPPER_INGOT));
+        panel.put(scene, 5, new ItemStack(Items.EMERALD));
+        scene.idle(15);
+        panel.mark(scene, 3);
+        panel.put(scene, 6, new ItemStack(Items.QUARTZ));
+        panel.put(scene, 7, new ItemStack(Items.AMETHYST_SHARD));
+        scene.idle(60);
+
+        panel.mark(scene, -1);
+        panel.hide(scene);
+        scene.idle(15);
+
         scene.overlay().showControls(util.vector().topOf(CONTROLLER), Pointing.DOWN, 40)
                 .rightClick()
                 .whileSneaking()
                 .withItem(new ItemStack(LoconauticsRegistries.TRANSMISSION_ITEM.get()));
         scene.idle(25);
         scene.effects().indicateSuccess(TRANSMISSION);
-        scene.overlay().showText(70)
-                .text("Right click a Controller while Sneaking to copy Speed and Direction")
-                .attachKeyFrame()
-                .colored(PonderPalette.INPUT)
-                .placeNearTarget()
-                .pointAt(util.vector().topOf(CONTROLLER));
-        scene.idle(80);
-
-        scene.overlay().showControls(util.vector().topOf(CONTROLLER), Pointing.DOWN, 40)
-                .rightClick()
-                .whileSneaking()
-                .withItem(new ItemStack(LoconauticsRegistries.BEARING_AXLE_ITEM.get()));
-        scene.idle(25);
         scene.effects().indicateSuccess(AXLE);
         scene.overlay().showText(70)
-                .text("A Bearing Axle copies the Left and Right steering instead")
+                .text("Right click a Controller while Sneaking to copy them onto a block")
                 .attachKeyFrame()
-                .colored(PonderPalette.OUTPUT)
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(AXLE));
+                .pointAt(util.vector().topOf(CONTROLLER));
         scene.idle(80);
 
         scene.overlay().showControls(util.vector().topOf(CONTROLLER).add(0, 1, 0), Pointing.DOWN, 40)
@@ -311,6 +356,12 @@ public class TrainScenes {
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(STATION));
         scene.idle(80);
+    }
+
+    private static ElementLink<WorldSectionElement> centered(CreateSceneBuilder scene, SceneBuildingUtil util, Selection selection) {
+        ElementLink<WorldSectionElement> link = scene.world().showIndependentSection(selection, Direction.DOWN);
+        scene.world().moveSection(link, util.vector().of(SHIFT, 0, 0), 0);
+        return link;
     }
 
     private static Selection drivetrain(SceneBuildingUtil util) {

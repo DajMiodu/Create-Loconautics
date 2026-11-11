@@ -92,12 +92,24 @@ public class AnalogControllerClientHandler {
         return null;
     }
 
-    public static double speedBarRatio(AnalogControllerBlockEntity be) {
+    private static com.lycoris.loconautics.trainphysics.state.SableTrainClientRegistry.TrainMarker trainOf(
+            AnalogControllerBlockEntity be) {
         dev.ryanhcode.sable.sublevel.ClientSubLevel sub =
                 dev.ryanhcode.sable.Sable.HELPER.getContainingClient(be.getBlockPos());
-        if (sub == null) return 0.0;
-        var marker = com.lycoris.loconautics.trainphysics.state.SableTrainClientRegistry.get(sub.getUniqueId());
-        return marker == null ? 0.0 : (int) (speedFraction(marker.speed(), marker) * 18) / 18.0;
+        return sub == null ? null : com.lycoris.loconautics.trainphysics.state.SableTrainClientRegistry.get(sub.getUniqueId());
+    }
+
+    private static double powerRatio(AnalogControllerBlockEntity be) {
+        return Math.max(0, be.getCurrentPower()) / 15.0;
+    }
+
+    public static double speedBarRatio(AnalogControllerBlockEntity be) {
+        var marker = trainOf(be);
+        return marker == null ? powerRatio(be) : (int) (speedFraction(marker.speed(), marker) * 18) / 18.0;
+    }
+
+    public static double idleRatio(AnalogControllerBlockEntity be) {
+        return trainOf(be) == null ? powerRatio(be) : 0.0;
     }
 
     public static double speedFraction(double speed,

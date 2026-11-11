@@ -17,13 +17,16 @@ import java.util.Arrays;
 
 public final class GuiPonder {
 
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
-            "loconautics", "textures/gui/frequency/frequency_bind.png");
+    public record Layout(ResourceLocation texture, int panelHeight, int textureHeight) {
+    }
+
+    public static final Layout TWO_ROWS = new Layout(
+            ResourceLocation.fromNamespaceAndPath("loconautics", "textures/gui/frequency/frequency_bind.png"), 95, 127);
+
+    public static final Layout FOUR_ROWS = new Layout(
+            ResourceLocation.fromNamespaceAndPath("loconautics", "textures/gui/frequency/frequency_bind_4.png"), 153, 153);
 
     private static final int PANEL_W = 214;
-    private static final int PANEL_H = 95;
-    private static final int TEXTURE_W = 214;
-    private static final int TEXTURE_H = 127;
 
     private static final int LABEL_CENTER_X = 54;
     private static final int LABEL_Y0 = 40;
@@ -44,17 +47,19 @@ public final class GuiPonder {
         return System.nanoTime() - blurStamp < BLUR_WINDOW_NANOS;
     }
 
-    public static Panel open(CreateSceneBuilder scene, Component... rows) {
-        return new Panel(rows);
+    public static Panel open(CreateSceneBuilder scene, Layout layout, Component... rows) {
+        return new Panel(layout, rows);
     }
 
     public static final class Panel extends AnimatedOverlayElementBase {
 
+        private final Layout layout;
         private final Component[] rows;
         private final ItemStack[] slots;
         private int marked = -1;
 
-        private Panel(Component[] rows) {
+        private Panel(Layout layout, Component[] rows) {
+            this.layout = layout;
             this.rows = rows;
             this.slots = new ItemStack[rows.length * 2];
             Arrays.fill(slots, ItemStack.EMPTY);
@@ -104,7 +109,7 @@ public final class GuiPonder {
             blurStamp = System.nanoTime();
 
             int x = screen.width * 2 / 5 - PANEL_W / 2;
-            int y = (screen.height - PANEL_H) / 2 - 10;
+            int y = (screen.height - layout.panelHeight()) / 2 - 10;
             Font font = Minecraft.getInstance().font;
             int alpha = (int) (fade * 255f) << 24;
 
@@ -112,7 +117,7 @@ public final class GuiPonder {
             graphics.pose().translate(0, 0, 50);
             RenderSystem.enableBlend();
             graphics.setColor(1f, 1f, 1f, fade);
-            graphics.blit(TEXTURE, x, y, 0, 0, PANEL_W, PANEL_H, TEXTURE_W, TEXTURE_H);
+            graphics.blit(layout.texture(), x, y, 0, 0, PANEL_W, layout.panelHeight(), PANEL_W, layout.textureHeight());
             graphics.setColor(1f, 1f, 1f, 1f);
 
             for (int row = 0; row < rows.length; row++) {
