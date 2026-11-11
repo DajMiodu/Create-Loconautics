@@ -200,6 +200,7 @@ public final class LoconauticsClient {
         PonderIndex.addPlugin(new com.lycoris.loconautics.client.ponder.BoilerPonderPlugin());
         PonderIndex.addPlugin(new com.lycoris.loconautics.client.ponder.HosePonderPlugin());
         PonderIndex.addPlugin(new com.lycoris.loconautics.client.ponder.SmallEnginePonderPlugin());
+        PonderIndex.addPlugin(new com.lycoris.loconautics.client.ponder.TrainPonderPlugin());
 
         SimpleBlockEntityVisualizer
                 .builder(com.lycoris.loconautics.content.boiler.BoilerBlocks.FIREBOX_BE.get())
