@@ -89,8 +89,16 @@ public final class GuiPonder {
         }
 
         @Override
+        public void reset(PonderScene scene) {
+            Arrays.fill(slots, ItemStack.EMPTY);
+            marked = -1;
+            fade.startWithValue(0);
+            fade.chase(0, 0.4, LerpedFloat.Chaser.EXP);
+        }
+
+        @Override
         public void render(PonderScene scene, PonderUI screen, GuiGraphics graphics, float partialTicks, float fade) {
-            if (fade < 0.0625f) {
+            if (fade < 0.0625f || screen.getActiveScene() != scene) {
                 return;
             }
             blurStamp = System.nanoTime();

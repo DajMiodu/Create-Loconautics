@@ -56,7 +56,8 @@ public class BearingAxleBlockEntity extends KineticBlockEntity
     private boolean rightRedstone;
 
 
-    private boolean drivingBogey;
+    // starts true because validity starts valid, so a first sync to invalid has to redraw the bogey
+    private boolean drivingBogey = true;
 
     private long placedTime;
     private BearingAxleValidity.Status validity = BearingAxleValidity.Status.VALID;

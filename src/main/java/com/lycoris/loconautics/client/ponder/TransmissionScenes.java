@@ -145,14 +145,14 @@ public class TransmissionScenes {
                 Component.translatable(TransmissionMenu.SPEED_KEY),
                 Component.translatable(TransmissionMenu.DIRECTION_KEY));
 
-        scene.overlay().showControls(util.vector().topOf(TRANSMISSION), Pointing.DOWN, 40).rightClick();
-        scene.idle(25);
-        scene.overlay().showText(80)
+        scene.overlay().showControls(util.vector().topOf(TRANSMISSION), Pointing.DOWN, 30).rightClick();
+        scene.idle(10);
+        scene.overlay().showText(50)
                 .text("Right click it with empty hands to open its Interface")
                 .attachKeyFrame()
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(TRANSMISSION));
-        scene.idle(110);
+        scene.idle(55);
 
         panel.show(scene);
         scene.idle(20);

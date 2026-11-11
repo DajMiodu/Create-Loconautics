@@ -1,7 +1,6 @@
 package com.lycoris.loconautics.content.bearingaxle;
 
 import com.lycoris.loconautics.common.sable.SubLevelBlocks;
-import com.simibubi.create.content.trains.bogey.AbstractBogeyBlock;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -41,7 +40,7 @@ public final class BearingAxleValidity {
     public static BlockPos driverBogey(BlockGetter level, BlockPos axlePos) {
         for (Direction dir : BOGEY_DIRS) {
             BlockPos pos = axlePos.relative(dir);
-            if (level.getBlockState(pos).getBlock() instanceof AbstractBogeyBlock) {
+            if (BogeyFacing.axisOf(level.getBlockState(pos)) == dir.getAxis()) {
                 return pos.immutable();
             }
         }
