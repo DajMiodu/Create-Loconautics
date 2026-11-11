@@ -91,6 +91,7 @@
   ],
   "client": [
     "client.gui.SubMenuConfigScreenAccessor",
+    "client.ponder.PonderUiBlurMixin",
     "client.whistle.WhistleHornMixin",
     "client.grab.GrabHandPoseMixin",
     "client.trainmap.TrainMapSkipStaleEntryMixin",

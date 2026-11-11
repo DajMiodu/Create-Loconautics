@@ -7,6 +7,7 @@ import com.lycoris.loconautics.content.controls.panel.PanelSlot;
 import com.lycoris.loconautics.content.controls.panellever.LeverPart;
 import com.lycoris.loconautics.content.controls.panelswitch.SwitchPart;
 import com.lycoris.loconautics.content.transmission.TransmissionBlock;
+import com.lycoris.loconautics.content.transmission.TransmissionMenu;
 import com.lycoris.loconautics.content.transmission.TransmissionBlockEntity;
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
@@ -18,7 +19,9 @@ import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class TransmissionScenes {
 
@@ -126,16 +129,64 @@ public class TransmissionScenes {
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(new BlockPos(2, 1, 1)));
         scene.idle(70);
+    }
+
+    public static void frequency(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = open(builder, "transmission_frequency", "Binding Transmissions to Redstone Links");
+
+        scene.world().showSection(util.select().position(TRANSMISSION), Direction.DOWN);
+        scene.world().showSection(input(util), Direction.NORTH);
+        scene.world().showSection(output(util), Direction.SOUTH);
+        feed(scene, util);
+        scene.world().setKineticSpeed(util.select().position(TRANSMISSION).add(input(util)), INPUT_RPM);
+        scene.idle(20);
+
+        GuiPonder.Panel panel = GuiPonder.open(scene,
+                Component.translatable(TransmissionMenu.SPEED_KEY),
+                Component.translatable(TransmissionMenu.DIRECTION_KEY));
 
         scene.overlay().showControls(util.vector().topOf(TRANSMISSION), Pointing.DOWN, 40).rightClick();
         scene.idle(25);
-        scene.overlay().showText(70)
-                .text("Right click it to set a Redstone Link frequency for each signal")
+        scene.overlay().showText(80)
+                .text("Right click it with empty hands to open its Interface")
                 .attachKeyFrame()
-                .colored(PonderPalette.BLUE)
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(TRANSMISSION));
-        scene.idle(80);
+        scene.idle(110);
+
+        panel.show(scene);
+        scene.idle(20);
+        panel.mark(scene, 0);
+        scene.overlay().showText(80)
+                .text("The Speed row is the frequency that sets the output speed")
+                .attachKeyFrame()
+                .placeNearTarget();
+        scene.idle(20);
+        panel.put(scene, 0, new ItemStack(Items.GOLD_INGOT));
+        scene.idle(20);
+        panel.put(scene, 1, new ItemStack(Items.REDSTONE));
+        scene.idle(70);
+
+        panel.mark(scene, 1);
+        scene.overlay().showText(80)
+                .text("The Direction row is the frequency that reverses it")
+                .attachKeyFrame()
+                .placeNearTarget();
+        scene.idle(20);
+        panel.put(scene, 2, new ItemStack(Items.IRON_INGOT));
+        scene.idle(20);
+        panel.put(scene, 3, new ItemStack(Items.LAPIS_LAZULI));
+        scene.idle(70);
+
+        panel.mark(scene, -1);
+        scene.overlay().showText(80)
+                .text("Redstone Links on the same frequencies now control the Transmission")
+                .attachKeyFrame()
+                .colored(PonderPalette.BLUE)
+                .placeNearTarget();
+        scene.idle(90);
+        panel.hide(scene);
+        scene.idle(15);
     }
 
     public static void panel(SceneBuilder builder, SceneBuildingUtil util) {

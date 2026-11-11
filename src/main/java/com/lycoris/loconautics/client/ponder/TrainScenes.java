@@ -1,12 +1,14 @@
 package com.lycoris.loconautics.client.ponder;
 
-import com.lycoris.loconautics.content.combustion.SmallEngineBlockEntity;
+import com.lycoris.loconautics.content.bearingaxle.BearingAxleMenu;
 import com.lycoris.loconautics.content.transmission.TransmissionBlock;
 import com.lycoris.loconautics.content.transmission.TransmissionBlockEntity;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.trains.station.StationBlock;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
+import dev.simulated_team.simulated.content.blocks.portable_engine.PortableEngineBlockEntity;
+import dev.simulated_team.simulated.service.SimItemService;
 import net.createmod.catnip.math.Pointing;
 import net.createmod.ponder.api.PonderPalette;
 import net.createmod.ponder.api.element.ElementLink;
@@ -16,51 +18,53 @@ import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.AbstractFurnaceBlock;
+import net.minecraft.world.phys.Vec3;
 
 public class TrainScenes {
 
-    private static final float ENGINE_RPM = 64f;
+    private static final float ENGINE_RPM = 32f;
     private static final float AXLE_RPM = 256f;
 
     private static final BlockPos STATION = new BlockPos(4, 1, 1);
-    private static final BlockPos BOGEY = new BlockPos(5, 2, 4);
-    private static final BlockPos ENGINE = new BlockPos(9, 2, 4);
-    private static final BlockPos LINK = new BlockPos(8, 2, 4);
-    private static final BlockPos TRANSMISSION = new BlockPos(7, 2, 4);
-    private static final BlockPos AXLE = new BlockPos(6, 2, 4);
-    private static final BlockPos CONTROLLER = new BlockPos(3, 3, 4);
+    private static final BlockPos BOGEY = new BlockPos(3, 2, 4);
+    private static final BlockPos AXLE = new BlockPos(4, 2, 4);
+    private static final BlockPos TRANSMISSION = new BlockPos(5, 2, 4);
+    private static final BlockPos ENGINE = new BlockPos(6, 2, 4);
+    private static final BlockPos BOGEY_FAR = new BlockPos(7, 2, 4);
+    private static final BlockPos CONTROLLER = new BlockPos(5, 3, 4);
 
     public static void wheels(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = open(builder, "locomotive_wheels", "Setting up Bearing Axles");
         showTrack(scene, util);
 
-        scene.world().showSection(floor(util), Direction.DOWN);
         scene.world().showSection(util.select().position(BOGEY), Direction.DOWN);
         scene.idle(15);
+        scene.overlay().showControls(util.vector().blockSurface(BOGEY, Direction.EAST), Pointing.RIGHT, 40)
+                .rightClick()
+                .withItem(new ItemStack(LoconauticsRegistries.BEARING_AXLE_ITEM.get()));
+        scene.idle(25);
         scene.world().showSection(util.select().position(AXLE), Direction.DOWN);
         scene.idle(10);
         scene.overlay().showText(70)
-                .text("Bearing Axles drive the wheels of the bogey they sit on")
+                .text("Bearing Axles drive the wheels of the bogey they sit beside")
                 .attachKeyFrame()
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(AXLE));
         scene.idle(80);
 
         scene.overlay().showOutline(PonderPalette.GREEN, "bogey", util.select().position(BOGEY), 60);
-        scene.overlay().showText(60)
-                .text("They have to sit right beside a bogey, never above or below it")
+        scene.overlay().showText(70)
+                .text("They have to touch the bogey on its rail line, never above or below")
                 .attachKeyFrame()
                 .placeNearTarget()
                 .pointAt(util.vector().centerOf(BOGEY));
-        scene.idle(70);
-
-        scene.overlay().showText(60)
-                .text("The axle has to run along the same line as the bogey")
-                .placeNearTarget()
-                .pointAt(util.vector().blockSurface(AXLE, Direction.NORTH));
-        scene.idle(70);
+        scene.idle(80);
 
         scene.overlay().showText(60)
                 .text("A bogey can only be driven by one Bearing Axle")
@@ -86,7 +90,6 @@ public class TrainScenes {
         CreateSceneBuilder scene = open(builder, "locomotive_drive", "Powering Locomotives with Transmissions");
         showTrack(scene, util);
 
-        scene.world().showSection(floor(util), Direction.DOWN);
         scene.world().showSection(util.select().position(BOGEY), Direction.DOWN);
         scene.world().showSection(util.select().position(AXLE), Direction.DOWN);
         scene.idle(20);
@@ -100,15 +103,24 @@ public class TrainScenes {
                 .pointAt(util.vector().topOf(TRANSMISSION));
         scene.idle(80);
 
-        scene.world().showSection(util.select().position(LINK), Direction.DOWN);
-        scene.idle(5);
+        openHatch(scene);
         scene.world().showSection(util.select().position(ENGINE), Direction.DOWN);
+        scene.idle(5);
+        scene.world().showSection(util.select().position(BOGEY_FAR), Direction.DOWN);
         scene.idle(10);
-        engine(scene, util, true);
-        feed(scene, util);
-        scene.world().setKineticSpeed(util.select().fromTo(LINK, TRANSMISSION), ENGINE_RPM);
         scene.overlay().showText(70)
-                .text("Rotational Force from an Engine enters on its other end")
+                .text("A Portable Engine provides the Rotational Force on the other side")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(ENGINE));
+        scene.idle(80);
+
+        scene.overlay().showControls(util.vector().centerOf(ENGINE), Pointing.DOWN, 30)
+                .withItem(Items.COAL.getDefaultInstance());
+        scene.idle(10);
+        ignite(scene, util);
+        scene.overlay().showText(70)
+                .text("Burning fuel in the engine starts the rotation")
                 .attachKeyFrame()
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(ENGINE));
@@ -123,26 +135,74 @@ public class TrainScenes {
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(AXLE));
         scene.idle(80);
+    }
 
-        scene.overlay().showOutline(PonderPalette.GREEN, "line", util.select().fromTo(ENGINE, AXLE), 60);
-        scene.overlay().showText(60)
-                .text("All of them have to sit in one straight line")
+    public static void frequency(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = open(builder, "locomotive_frequency", "Binding Bearing Axles to Redstone Links");
+        showTrack(scene, util);
+
+        scene.world().showSection(util.select().position(BOGEY), Direction.DOWN);
+        scene.world().showSection(util.select().position(AXLE), Direction.DOWN);
+        scene.idle(20);
+
+        GuiPonder.Panel panel = GuiPonder.open(scene,
+                Component.translatable(BearingAxleMenu.LEFT_KEY),
+                Component.translatable(BearingAxleMenu.RIGHT_KEY));
+
+        scene.overlay().showControls(util.vector().topOf(AXLE), Pointing.DOWN, 40).rightClick();
+        scene.idle(25);
+        scene.overlay().showText(80)
+                .text("Right click it with empty hands to open its Interface")
+                .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(LINK));
+                .pointAt(util.vector().topOf(AXLE));
+        scene.idle(110);
+
+        panel.show(scene);
+        scene.idle(20);
+        panel.mark(scene, 0);
+        scene.overlay().showText(80)
+                .text("The Left row is the frequency that steers the train left")
+                .attachKeyFrame()
+                .placeNearTarget();
+        scene.idle(20);
+        panel.put(scene, 0, new ItemStack(Items.COPPER_INGOT));
+        scene.idle(20);
+        panel.put(scene, 1, new ItemStack(Items.EMERALD));
         scene.idle(70);
+
+        panel.mark(scene, 1);
+        scene.overlay().showText(80)
+                .text("The Right row is the frequency that steers it right")
+                .attachKeyFrame()
+                .placeNearTarget();
+        scene.idle(20);
+        panel.put(scene, 2, new ItemStack(Items.QUARTZ));
+        scene.idle(20);
+        panel.put(scene, 3, new ItemStack(Items.AMETHYST_SHARD));
+        scene.idle(70);
+
+        panel.mark(scene, -1);
+        scene.overlay().showText(80)
+                .text("Each frequency is made of two Items, like a Redstone Link")
+                .attachKeyFrame()
+                .placeNearTarget();
+        scene.idle(90);
+        panel.hide(scene);
+        scene.idle(15);
     }
 
     public static void controls(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = open(builder, "locomotive_controls", "Controlling Locomotives with Analog Controllers");
         showTrack(scene, util);
 
-        scene.world().showSection(floor(util), Direction.DOWN);
         scene.world().showSection(util.select().position(BOGEY), Direction.DOWN);
         scene.world().showSection(drivetrain(util), Direction.DOWN);
+        scene.world().showSection(util.select().position(BOGEY_FAR), Direction.DOWN);
         scene.idle(15);
-        engine(scene, util, true);
+        lit(scene, util);
         feed(scene, util);
-        scene.world().setKineticSpeed(util.select().fromTo(LINK, TRANSMISSION), ENGINE_RPM);
+        scene.world().setKineticSpeed(util.select().fromTo(ENGINE, TRANSMISSION), ENGINE_RPM);
         scene.world().showSection(util.select().position(CONTROLLER), Direction.DOWN);
         scene.idle(15);
         scene.overlay().showText(70)
@@ -158,13 +218,13 @@ public class TrainScenes {
                 .withItem(new ItemStack(LoconauticsRegistries.TRANSMISSION_ITEM.get()));
         scene.idle(25);
         scene.effects().indicateSuccess(TRANSMISSION);
-        scene.overlay().showText(80)
+        scene.overlay().showText(70)
                 .text("Right click a Controller while Sneaking to copy Speed and Direction")
                 .attachKeyFrame()
                 .colored(PonderPalette.INPUT)
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(CONTROLLER));
-        scene.idle(90);
+        scene.idle(80);
 
         scene.overlay().showControls(util.vector().topOf(CONTROLLER), Pointing.DOWN, 40)
                 .rightClick()
@@ -199,11 +259,11 @@ public class TrainScenes {
 
         scene.world().showSection(util.select().position(STATION), Direction.DOWN);
         scene.idle(20);
-        Selection locomotive = floor(util).add(util.select().position(BOGEY)).add(drivetrain(util))
-                .add(util.select().position(CONTROLLER));
-        ElementLink<WorldSectionElement> train = scene.world().showIndependentSection(locomotive, Direction.DOWN);
+        Selection locomotive = util.select().fromTo(BOGEY, BOGEY_FAR).add(util.select().position(CONTROLLER));
+        lit(scene, util);
         feed(scene, util);
-        scene.world().setKineticSpeed(util.select().fromTo(LINK, TRANSMISSION), ENGINE_RPM);
+        ElementLink<WorldSectionElement> train = scene.world().showIndependentSection(locomotive, Direction.DOWN);
+        scene.world().setKineticSpeed(util.select().fromTo(ENGINE, TRANSMISSION), ENGINE_RPM);
         scene.world().cycleBlockProperty(STATION, StationBlock.ASSEMBLING);
         scene.idle(15);
 
@@ -228,19 +288,21 @@ public class TrainScenes {
         scene.world().animateTrainStation(STATION, true);
         scene.idle(20);
 
-        scene.world().moveSection(train, util.vector().of(4, 0, 0), 30);
-        scene.world().animateBogey(BOGEY, -4f, 30);
+        scene.world().moveSection(train, util.vector().of(3, 0, 0), 30);
+        scene.world().animateBogey(BOGEY, -3f, 30);
+        scene.world().animateBogey(BOGEY_FAR, -3f, 30);
         scene.world().animateTrainStation(STATION, false);
         scene.idle(40);
         scene.overlay().showText(70)
                 .text("The Analog Controller then drives the assembled train")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(CONTROLLER).add(4, 0, 0));
+                .pointAt(util.vector().topOf(CONTROLLER).add(3, 0, 0));
         scene.idle(80);
 
-        scene.world().moveSection(train, util.vector().of(-4, 0, 0), 30);
-        scene.world().animateBogey(BOGEY, 4f, 30);
+        scene.world().moveSection(train, util.vector().of(-3, 0, 0), 30);
+        scene.world().animateBogey(BOGEY, 3f, 30);
+        scene.world().animateBogey(BOGEY_FAR, 3f, 30);
         scene.idle(40);
         scene.world().animateTrainStation(STATION, true);
         scene.overlay().showText(70)
@@ -251,17 +313,13 @@ public class TrainScenes {
         scene.idle(80);
     }
 
-    private static Selection floor(SceneBuildingUtil util) {
-        return util.select().fromTo(2, 2, 4, 4, 2, 4);
-    }
-
     private static Selection drivetrain(SceneBuildingUtil util) {
-        return util.select().fromTo(ENGINE, AXLE);
+        return util.select().fromTo(AXLE, ENGINE);
     }
 
     private static void feed(CreateSceneBuilder scene, SceneBuildingUtil util) {
         scene.world().modifyBlockEntityNBT(util.select().position(TRANSMISSION), TransmissionBlockEntity.class,
-                tag -> tag.put("Source", NbtUtils.writeBlockPos(LINK)));
+                tag -> tag.put("Source", NbtUtils.writeBlockPos(ENGINE)));
     }
 
     private static void signal(CreateSceneBuilder scene, SceneBuildingUtil util, int power) {
@@ -271,17 +329,33 @@ public class TrainScenes {
                 state -> state.setValue(TransmissionBlock.POWERED, power > 0), false);
     }
 
-    private static void engine(CreateSceneBuilder scene, SceneBuildingUtil util, boolean running) {
-        scene.world().modifyBlockEntityNBT(util.select().position(ENGINE), SmallEngineBlockEntity.class, tag -> {
-            tag.putBoolean("Head", true);
-            tag.putBoolean("Running", running);
-            tag.putInt("Signal", 0);
-            tag.putInt("Fuel", 0);
-            tag.putFloat("OwnRpm", ENGINE_RPM);
-            tag.putInt("Active", running ? 1 : 0);
-            tag.putFloat("RowRpm", running ? ENGINE_RPM : 0f);
+    private static void openHatch(CreateSceneBuilder scene) {
+        scene.world().modifyBlockEntity(ENGINE, PortableEngineBlockEntity.class, be -> {
+            be.openHatchOverride = true;
+            be.hatchOpenTime = 1.0f;
+            be.lastHatchOpenTime = 1.0f;
         });
-        scene.world().setKineticSpeed(util.select().position(ENGINE), running ? ENGINE_RPM : 0f);
+    }
+
+    private static void ignite(CreateSceneBuilder scene, SceneBuildingUtil util) {
+        scene.world().cycleBlockProperty(ENGINE, AbstractFurnaceBlock.LIT);
+        scene.world().modifyBlockEntity(ENGINE, PortableEngineBlockEntity.class, be -> {
+            be.setCurrentBurnTime(SimItemService.INSTANCE.getBurnTime(Items.COAL.getDefaultInstance()));
+            be.openHatchOverride = false;
+        });
+        feed(scene, util);
+        scene.world().setKineticSpeed(util.select().fromTo(ENGINE, TRANSMISSION), ENGINE_RPM);
+        scene.effects().emitParticles(util.vector().of(6.9, 2.2, 4.5),
+                scene.effects().simpleParticleEmitter(ParticleTypes.LAVA, Vec3.ZERO), 3.0f, 1);
+    }
+
+    private static void lit(CreateSceneBuilder scene, SceneBuildingUtil util) {
+        scene.world().modifyBlocks(util.select().position(ENGINE),
+                state -> state.setValue(AbstractFurnaceBlock.LIT, true), false);
+        scene.world().modifyBlockEntity(ENGINE, PortableEngineBlockEntity.class, be -> {
+            be.setCurrentBurnTime(SimItemService.INSTANCE.getBurnTime(Items.COAL.getDefaultInstance()));
+            be.openHatchOverride = false;
+        });
     }
 
     private static CreateSceneBuilder open(SceneBuilder builder, String id, String title) {

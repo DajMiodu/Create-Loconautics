@@ -18,6 +18,7 @@ public class TrainPonderPlugin implements PonderPlugin {
         helper.forComponents(LoconauticsRegistries.TRANSMISSION.getId())
                 .addStoryBoard("transmission/transmission", TransmissionScenes::single)
                 .addStoryBoard("transmission/transmission", TransmissionScenes::direction)
+                .addStoryBoard("transmission/transmission", TransmissionScenes::frequency)
                 .addStoryBoard("transmission/transmission", TransmissionScenes::panel)
                 .addStoryBoard("train/train", TrainScenes::drivetrain)
                 .addStoryBoard("train/train", TrainScenes::controls)
@@ -25,6 +26,7 @@ public class TrainPonderPlugin implements PonderPlugin {
 
         helper.forComponents(LoconauticsRegistries.BEARING_AXLE.getId())
                 .addStoryBoard("train/train", TrainScenes::wheels)
+                .addStoryBoard("train/train", TrainScenes::frequency)
                 .addStoryBoard("train/train", TrainScenes::drivetrain)
                 .addStoryBoard("train/train", TrainScenes::controls)
                 .addStoryBoard("train/train", TrainScenes::assembly);
