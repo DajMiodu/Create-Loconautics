@@ -33,11 +33,11 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
 
     private static final int COUNTER_TICKS = RAISE_TICKS / 2;
 
-    private static final int MANUAL_RAISE_TICKS = 6;
+    private static final int MANUAL_RAISE_TICKS = 20;
 
-    private static final int MANUAL_RELEASE_TICKS = 4;
+    private static final int MANUAL_RELEASE_TICKS = 16;
 
-    private static final int MANUAL_COUNTER_TICKS = 3;
+    private static final int MANUAL_COUNTER_TICKS = 10;
 
     private static final int MAX_POWER = 15;
 
@@ -285,7 +285,6 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
         horn           = null;
         if (!locked) {
             driveInput = 0;
-            if (!scheduleControlled) currentPower = 0;
         }
         updateNetwork(level);
         updateBlockState(level, getBlockState());
@@ -376,6 +375,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
     }
 
     private int manualTarget() {
+        if (locked && heldInput() == 0) return currentPower;
         return driveInput > 0 ? maxPower : driveInput < 0 ? -Math.min(maxPower, getNegativeCap()) : 0;
     }
 

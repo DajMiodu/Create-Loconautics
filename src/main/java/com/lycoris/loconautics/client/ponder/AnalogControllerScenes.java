@@ -15,8 +15,8 @@ import net.minecraft.world.item.Items;
 public class AnalogControllerScenes {
 
     private static final int TOP_LEVEL = 15;
-    private static final int RAISE_TICKS = 6;
-    private static final int RELEASE_TICKS = 4;
+    private static final int RAISE_TICKS = 20;
+    private static final int RELEASE_TICKS = 16;
 
     private static final BlockPos CONTROLLER = new BlockPos(2, 1, 2);
 
