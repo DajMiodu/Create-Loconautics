@@ -8,7 +8,6 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
@@ -91,9 +90,8 @@ public class BindFrequencyScreen<T, M extends BindFrequencyMenu<T>>
     }
 
     private void clearAllFrequencies() {
-        for (int i = 0; i < menu.rowLabels.length * 2; i++) {
-            menu.ghostInventory.setStackInSlot(i, ItemStack.EMPTY);
-        }
+        menu.clearContents();
+        menu.sendClearPacket();
     }
 
     @Override
