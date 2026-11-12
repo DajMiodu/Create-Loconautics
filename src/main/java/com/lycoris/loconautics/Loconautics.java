@@ -35,6 +35,7 @@ public final class Loconautics {
         com.lycoris.loconautics.content.buffer.BufferBlocks.init();
         com.lycoris.loconautics.content.combustion.SmallEngineBlocks.init();
         com.lycoris.loconautics.content.conductorshat.ConductorsHats.init();
+        com.lycoris.loconautics.content.conductorshat.ConductorsGoggles.init();
         com.lycoris.loconautics.registry.LoconauticsSounds.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
@@ -106,6 +107,7 @@ public final class Loconautics {
         LoconauticsConstants.LOGGER.info("Loconautics common setup");
         com.lycoris.loconautics.content.bearingaxle.BogeyShaftPlacement.init();
         com.lycoris.loconautics.foundation.LoconauticsStress.register();
+        event.enqueueWork(com.lycoris.loconautics.content.conductorshat.ConductorsGoggles::registerWearing);
         if (net.neoforged.fml.ModList.get().isLoaded("hullsteel")) {
             com.lycoris.loconautics.content.hatch.HullsteelSocketBridge.install();
         }

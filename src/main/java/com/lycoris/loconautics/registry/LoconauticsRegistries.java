@@ -584,6 +584,12 @@ public final class LoconauticsRegistries {
                                                 ? net.minecraft.world.item.CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS
                                                 : net.minecraft.world.item.CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
 
+                        com.lycoris.loconautics.content.conductorshat.ConductorsGoggles.GOGGLES
+                                .forEach((color, item) -> output.accept(new net.minecraft.world.item.ItemStack(item.get()),
+                                        color == com.lycoris.loconautics.content.conductorshat.ConductorsHats.TAB_COLOR
+                                                ? net.minecraft.world.item.CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS
+                                                : net.minecraft.world.item.CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
+
                         output.accept(INDUSTRIAL_IRON_SHEET.get());
                         output.accept(INDUSTRIAL_IRON_ROD.get());
                         output.accept(com.lycoris.loconautics.content.industrial.IndustrialBlocks.PIPE_ITEM.get());
