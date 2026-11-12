@@ -795,7 +795,7 @@
   "loconautics.configuration.compat.createbigcannons.recoil.recoilEnabled": "Recoil Enabled",
   "loconautics.configuration.compat.createbigcannons.recoil.recoilMomentumScale": "Recoil Momentum Scale",
   "loconautics.configuration.couplers.knuckle.scanInterval": "Scan Interval (ticks)",
-  "loconautics.configuration.debug.disableAll": "Disable All",
+  "loconautics.configuration.debug.debugOutput": "Debug Output",
   "loconautics.configuration.debug.force": "Force",
   "loconautics.configuration.debug.forceLines": "Force Lines",
   "loconautics.configuration.explosions.demolition_charge.basePower": "Base Charge Power",
