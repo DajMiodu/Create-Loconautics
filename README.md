@@ -5,13 +5,8 @@
 <h1 align="center">Create: Loconautics</h1>
 
 <p align="center">
-  <a href="https://ko-fi.com/createloconautics"><img src="https://img.shields.io/static/v1?label=Kofi&message=Support&color=FF5E5B&logo=kofi&logoColor=white" alt="Ko-fi"></a>
-  <a href="https://www.curseforge.com/minecraft/mc-mods/createloconautics"><img src="https://img.shields.io/static/v1?label=CurseForge&message=Download&color=F16436&logo=curseforge&logoColor=white" alt="CurseForge"></a>
-  <a href="https://modrinth.com/mod/loconautics"><img src="https://img.shields.io/static/v1?label=Modrinth&message=Download&color=1BD96A&logo=modrinth&logoColor=white" alt="Modrinth"></a>
-<p align="center">
-  <a href="https://discord.gg/zBqu9Utret"><img src="https://img.shields.io/static/v1?label=Discord&message=Join&color=5865F2&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://www.youtube.com/@Loconautics"><img src="https://img.shields.io/static/v1?label=YouTube&message=Subscribe&color=FF0000&logo=youtube&logoColor=white" alt="YouTube"></a>
-  <a href="https://www.instagram.com/loconauticsmod/"><img src="https://img.shields.io/static/v1?label=Instagram&message=Follow&color=E4405F&logo=instagram&logoColor=white" alt="Instagram"></a>
+  <a href="https://discord.gg/zBqu9Utret"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
+</p>
 
 Create: Loconautics is a Create addon for NeoForge 1.21.1 that makes Create trains work with Sable. Instead of Create's carriage contraption entities, every train car is a Sable sub level, so a train is a real physics body. It can bump into things, derail, cross portals and carry other sub levels.
 
@@ -39,9 +34,10 @@ English is the main language. The other languages are community work, and more h
 | Language | Translated |
 | --- | --- |
 | English (en_us) | 100% |
-| German (de_de) | 100% |
-| Spanish (es_es) | 65% |
-| Russian (ru_ru) | 57% |
+| German (de_de) | 54% |
+| Spanish (es_es) | 63% |
+| Portuguese, Brazil (pt_br) | 26% |
+| Russian (ru_ru) | 98% |
 
 Want to add a language or finish one? Copy `src/main/resources/assets/loconautics/lang/en_us.json`, name it for your language (for example `fr_fr.json`), translate the values and leave the keys as they are. Then open a pull request, or ask on Discord. A partial translation is fine, any missing text shows in English.
 
