@@ -344,7 +344,6 @@ public class PanelScenes {
         scene.world().showSection(util.select().fromTo(CASING_LOW, CASING_HIGH), Direction.DOWN);
         scene.idle(10);
         scene.world().showSection(util.select().position(PANEL), Direction.SOUTH);
-        scene.world().showSection(util.select().fromTo(LEFT_LAMP, LEFT_LINK), Direction.DOWN);
         putCentered(scene, PanelSlot.TOP_LEFT, new ButtonPart(0L, LEFT_LINK, ButtonPart.DEFAULT_BODY,
                 ButtonPart.DEFAULT_CAP_COLOR, ButtonPart.DEFAULT_STYLE, ButtonPart.DEFAULT_OPTIONS));
         scene.idle(20);
