@@ -102,7 +102,7 @@ public final class GrabClientHandler {
             event.setCanceled(true);
             return;
         }
-        if (!player.getItemInHand(event.getHand()).isEmpty()) {
+        if (!player.getMainHandItem().isEmpty() || !player.getOffhandItem().isEmpty()) {
             return;
         }
         // damn you maxwell

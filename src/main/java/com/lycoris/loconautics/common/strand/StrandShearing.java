@@ -5,6 +5,7 @@ import com.lycoris.loconautics.content.hose.HoseStrandManager;
 import com.lycoris.loconautics.content.hose.rope.HoseRopeManager;
 import com.lycoris.loconautics.content.hose.winch.HoseWinchBlockEntity;
 import com.lycoris.loconautics.content.steelcable.SteelCableStrandDriver;
+import com.lycoris.loconautics.content.steelcable.SteelCableWrench;
 import com.lycoris.loconautics.content.steelcable.SteelCableStrandManager;
 import com.lycoris.loconautics.content.steelcable.rope.SteelCableRopeManager;
 import com.lycoris.loconautics.network.PacketTargets;
@@ -26,6 +27,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import org.joml.Quaterniond;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 
 import java.util.List;
@@ -56,9 +58,10 @@ public final class StrandShearing {
     }
 
     private static boolean cut(ServerPlayer player, InteractionHand hand) {
+        boolean wrench = player.isShiftKeyDown() && SteelCableWrench.isWrench(player.getItemInHand(hand));
         if (player.isSpectator() || !player.mayBuild()
                 || player.getCooldowns().isOnCooldown(player.getItemInHand(hand).getItem())
-                || !player.getItemInHand(hand).canPerformAction(ItemAbilities.SHEARS_CARVE)) return false;
+                || !wrench && !player.getItemInHand(hand).canPerformAction(ItemAbilities.SHEARS_CARVE)) return false;
         ServerLevel level = player.serverLevel();
         Vec3 eye = player.getEyePosition();
         double reach = player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
@@ -83,14 +86,15 @@ public final class StrandShearing {
                 }
             }
         }
-        if (nearest == null || !remove(level, nearest)) return false;
+        if (nearest == null || !remove(level, nearest, wrench ? player : null)) return false;
         player.getCooldowns().addCooldown(player.getItemInHand(hand).getItem(), 4);
-        if (!player.isCreative()) {
+        if (!wrench && !player.isCreative()) {
             player.getItemInHand(hand).hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
         }
         player.swing(hand, true);
         Vec3 at = eye.add(player.getViewVector(1).scale(Math.sqrt(nearest.distanceSquared())));
-        level.playSound(null, at.x, at.y, at.z, SoundEvents.SHEEP_SHEAR, SoundSource.PLAYERS, 1, 1);
+        level.playSound(null, at.x, at.y, at.z, wrench ? SoundEvents.CHAIN_BREAK : SoundEvents.SHEEP_SHEAR,
+                SoundSource.PLAYERS, 1, 1);
         return true;
     }
 
@@ -113,14 +117,14 @@ public final class StrandShearing {
         return best;
     }
 
-    private static boolean remove(ServerLevel level, Hit hit) {
+    private static boolean remove(ServerLevel level, Hit hit, @Nullable ServerPlayer receiver) {
         // delegate to the normal break paths they remove physics, saved data, and both endpoint bindings.
         if (hit.kind() == 0) {
             var strands = SteelCableStrandManager.get(level);
             var ropes = SteelCableRopeManager.get(level);
             var strand = strands == null ? null : strands.get(hit.id());
             if (strand == null || ropes == null) return false;
-            SteelCableStrandDriver.breakStrand(level, strands, ropes, strand, null);
+            SteelCableStrandDriver.breakStrand(level, strands, ropes, strand, receiver);
             return true;
         }
         if (hit.kind() == 1) {
@@ -129,7 +133,7 @@ public final class StrandShearing {
             if (strand == null) return false;
             var winch = PacketTargets.blockEntity(level, strand.winchPos, HoseWinchBlockEntity.class);
             if (winch == null || winch.getAttachedStrand() != strand) return false;
-            winch.onWinchBroken();
+            winch.pullHose(receiver);
             return strands.get(hit.id()) == null;
         }
         return false;

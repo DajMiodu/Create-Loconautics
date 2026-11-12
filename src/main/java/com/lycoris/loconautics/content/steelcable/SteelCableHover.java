@@ -3,6 +3,7 @@ package com.lycoris.loconautics.content.steelcable;
 import com.lycoris.loconautics.common.strand.ClientStrands;
 import com.lycoris.loconautics.common.strand.StrandKind;
 import com.lycoris.loconautics.common.strand.StrandRenderer;
+import com.lycoris.loconautics.content.hose.winch.HoseWinchKnotSource;
 import com.lycoris.loconautics.network.packets.attachment.SteelCableBreakPacket;
 import com.simibubi.create.foundation.utility.RaycastHelper;
 import dev.ryanhcode.sable.Sable;
@@ -35,14 +36,21 @@ public final class SteelCableHover {
     @Nullable
     public static UUID hovered;
 
+    @Nullable
+    public static UUID hoveredWinchHose;
+
+    private record Pick(@Nullable UUID id, double distSqr) {}
+
     private SteelCableHover() {
     }
 
     public static void tick() {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
-        if (player == null || mc.level == null || !SteelCableWrench.isWrench(player.getMainHandItem())) {
+        if (player == null || mc.level == null || !player.isShiftKeyDown()
+                || !SteelCableWrench.isWrench(player.getMainHandItem())) {
             hovered = null;
+            hoveredWinchHose = null;
             return;
         }
         double reach = player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 1.0;
@@ -51,20 +59,42 @@ public final class SteelCableHover {
         HitResult hit = mc.hitResult;
         double bestSqr = hit == null ? Double.MAX_VALUE
                 : Sable.HELPER.projectOutOfSubLevel(mc.level, hit.getLocation()).distanceToSqr(eye);
-        hovered = raycast(new Vector3d(eye.x, eye.y, eye.z), new Vector3d(target.x, target.y, target.z), bestSqr);
+        Vector3d from = new Vector3d(eye.x, eye.y, eye.z);
+        Vector3d to = new Vector3d(target.x, target.y, target.z);
+        Pick strand = raycast(from, to, bestSqr, strandLines());
+        Pick winch = raycast(from, to, strand.distSqr(), winchHoseLines());
+        hovered = winch.id() == null ? strand.id() : null;
+        hoveredWinchHose = winch.id();
     }
 
-    @Nullable
-    private static UUID raycast(Vector3dc from, Vector3dc to, double bestSqr) {
+    private static Map<UUID, List<Vector3d>> strandLines() {
+        Map<UUID, List<Vector3d>> lines = new java.util.HashMap<>();
+        for (Map.Entry<UUID, ClientStrands.Strand> entry : entries()) {
+            List<Vector3d> points = new ArrayList<>();
+            for (var point : entry.getValue().points()) {
+                points.add(point.position);
+            }
+            lines.put(entry.getKey(), points);
+        }
+        return lines;
+    }
+
+    private static Map<UUID, List<Vector3d>> winchHoseLines() {
+        Map<UUID, List<Vector3d>> lines = new java.util.HashMap<>();
+        new HoseWinchKnotSource().collect(lines::put);
+        return lines;
+    }
+
+    private static Pick raycast(Vector3dc from, Vector3dc to, double bestSqr, Map<UUID, List<Vector3d>> lines) {
         Vector3d localFrom = new Vector3d();
         Vector3d localTo = new Vector3d();
         Vector3d normal = new Vector3d();
         UUID best = null;
-        for (Map.Entry<UUID, ClientStrands.Strand> entry : entries()) {
-            var points = entry.getValue().points();
+        for (Map.Entry<UUID, List<Vector3d>> entry : lines.entrySet()) {
+            List<Vector3d> points = entry.getValue();
             for (int i = 0; i < points.size() - 1; i++) {
-                Vector3d a = points.get(i).position;
-                Vector3d b = points.get(i + 1).position;
+                Vector3d a = points.get(i);
+                Vector3d b = points.get(i + 1);
                 double length = a.distance(b);
                 if (length < 1.0e-6) {
                     continue;
@@ -88,14 +118,15 @@ public final class SteelCableHover {
                 best = entry.getKey();
             }
         }
-        return best;
+        return new Pick(best, bestSqr);
     }
 
     private static final Vector3d UP = new Vector3d(0.0, 1.0, 0.0);
 
     public static boolean onUse() {
         Minecraft mc = Minecraft.getInstance();
-        if (hovered == null || mc.player == null || !SteelCableWrench.isWrench(mc.player.getMainHandItem())) {
+        if (hovered == null || mc.player == null || !mc.player.isShiftKeyDown()
+                || !SteelCableWrench.isWrench(mc.player.getMainHandItem())) {
             return false;
         }
         CatnipServices.NETWORK.sendToServer(new SteelCableBreakPacket(hovered));

@@ -2,6 +2,8 @@ package com.lycoris.loconautics.content.hose.winch;
 
 import com.lycoris.loconautics.client.LoconauticsPartialModels;
 import com.lycoris.loconautics.client.RopeRendering;
+import com.lycoris.loconautics.common.strand.StrandRenderer;
+import com.lycoris.loconautics.content.steelcable.SteelCableHover;
 import com.lycoris.loconautics.common.strand.StrandAnchors;
 import com.lycoris.loconautics.content.hose.HoseSwell;
 import com.lycoris.loconautics.content.hose.rope.HoseRope;
@@ -162,6 +164,8 @@ public class HoseWinchRenderer implements BlockEntityRenderer<HoseWinchBlockEnti
 
         if (holdingHoseItem()) {
             RopeRendering.renderHitbox(ps, buffer, points, ownerPos, (float) HoseRope.COLLISION_RADIUS);
+        } else if (be.clientStrandId() != null && be.clientStrandId().equals(SteelCableHover.hoveredWinchHose)) {
+            RopeRendering.renderHitbox(ps, buffer, points, ownerPos, StrandRenderer.OUTLINE_RADIUS);
         }
     }
 

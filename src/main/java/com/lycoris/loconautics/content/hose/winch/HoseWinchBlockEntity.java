@@ -130,12 +130,16 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
     }
 
     public void onWinchBroken() {
+        pullHose(null);
+    }
+
+    public void pullHose(@Nullable net.minecraft.server.level.ServerPlayer receiver) {
         if (level == null || level.isClientSide || isPortalTwin()) {
             return;
         }
         HoseStrand strand = getAttachedStrand();
         if (strand != null) {
-            snapAt(strand, false);
+            snapAt(strand, false, receiver);
         }
     }
 
@@ -750,6 +754,10 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
     }
 
     private void snapAt(HoseStrand strand, boolean farEnd) {
+        snapAt(strand, farEnd, null);
+    }
+
+    private void snapAt(HoseStrand strand, boolean farEnd, @Nullable net.minecraft.server.level.ServerPlayer receiver) {
         if (!(level instanceof ServerLevel slevel)) {
             return;
         }
@@ -762,8 +770,13 @@ public class HoseWinchBlockEntity extends GeneratingKineticBlockEntity implement
             fallback = fallback != null ? fallback : Vec3.atCenterOf(getBlockPos());
             at = new Vector3d(fallback.x, fallback.y, fallback.z);
         }
-        StrandSnap.snap(slevel, new net.minecraft.world.item.ItemStack(
-                com.lycoris.loconautics.registry.LoconauticsRegistries.HOSE.get()), pts, at);
+        net.minecraft.world.item.ItemStack hose = new net.minecraft.world.item.ItemStack(
+                com.lycoris.loconautics.registry.LoconauticsRegistries.HOSE.get());
+        if (receiver == null) {
+            StrandSnap.snap(slevel, hose, pts, at);
+        } else if (!receiver.getInventory().add(hose)) {
+            receiver.drop(hose, false);
+        }
         HoseNozzleBlockEntity nozzle = resolveNozzle(strand);
         if (nozzle != null) {
             nozzle.onStrandDetached();
