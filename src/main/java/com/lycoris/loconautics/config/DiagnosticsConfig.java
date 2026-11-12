@@ -3,6 +3,7 @@ package com.lycoris.loconautics.config;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class DiagnosticsConfig {
+    private static final String TRANSLATION_PREFIX = LoconauticsConfig.TRANSLATION_PREFIX + "debug.";
 
     private DiagnosticsConfig() {
     }
@@ -23,7 +24,7 @@ public final class DiagnosticsConfig {
         }
 
         private void define(ModConfigSpec.Builder builder) {
-            value = builder.define(key, alwaysOn);
+            value = builder.translation(TRANSLATION_PREFIX + key).define(key, alwaysOn);
         }
 
         public boolean enabled() {
@@ -40,6 +41,7 @@ public final class DiagnosticsConfig {
     public static void define(ModConfigSpec.Builder builder) {
         DISABLE_ALL = builder
                 .comment("Turn off every diagnostics channel below at once")
+                .translation(TRANSLATION_PREFIX + "disableAll")
                 .define("disableAll", false);
 
         for (Channel channel : Channel.values()) {
