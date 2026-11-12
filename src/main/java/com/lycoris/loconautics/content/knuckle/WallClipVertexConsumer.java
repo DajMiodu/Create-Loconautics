@@ -4,7 +4,10 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public final class WallClipVertexConsumer implements VertexConsumer {
 
     private static final float KEEP_EPSILON = 1.0e-4f;

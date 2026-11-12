@@ -29,7 +29,10 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 
 import java.util.UUID;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public final class HoseInteractionHandler {
 
     @Nullable private static BlockPos pendingWinchPos;

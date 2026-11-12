@@ -29,7 +29,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class IndustrialPipeAttachmentModel extends BakedModelWrapperWithData {
 
     private static final ModelProperty<PipeModelData> PIPE_PROPERTY = new ModelProperty<>();

@@ -28,7 +28,10 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class DrivenBogeyModel extends BakedModelWrapper<BakedModel> {
 
     public static final ModelProperty<Boolean> DRIVEN = new ModelProperty<>();

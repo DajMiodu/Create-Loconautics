@@ -15,9 +15,7 @@ import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.sublevel.SubLevel;
-import net.createmod.ponder.api.level.PonderLevel;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -99,7 +97,6 @@ public class SmallEngineBlockEntity extends GeneratingKineticBlockEntity impleme
     private float rowRpm;
 
     private @Nullable SmokeEmitter smoke;
-    private @Nullable SmallEngineSound sound;
     private float pistonPhase;
     private float pistonPhasePrev;
     private float shownSpin;
@@ -448,12 +445,7 @@ public class SmallEngineBlockEntity extends GeneratingKineticBlockEntity impleme
     }
 
     private void clientTick() {
-        if (running && !(level instanceof PonderLevel) && (sound == null || sound.isStopped())) {
-            sound = new SmallEngineSound(this);
-            Minecraft.getInstance().getSoundManager().play(sound);
-        } else if (!running && sound != null && sound.isStopped()) {
-            sound = null;
-        }
+        SmallEngineSounds.tick(this, running);
         pistonPhasePrev = pistonPhase;
         if (running != spinLoggedRunning) {
             spinLoggedRunning = running;

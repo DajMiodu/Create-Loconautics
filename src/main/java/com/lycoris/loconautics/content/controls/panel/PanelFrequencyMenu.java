@@ -3,7 +3,7 @@ package com.lycoris.loconautics.content.controls.panel;
 import com.lycoris.loconautics.content.frequency.BindFrequencyMenu;
 import com.lycoris.loconautics.network.PacketTargets;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
-import net.minecraft.client.Minecraft;
+import com.lycoris.loconautics.client.ClientAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -101,7 +101,7 @@ public class PanelFrequencyMenu extends BindFrequencyMenu<PanelSlotTarget> {
             clientPart = types[typeOrdinal].read(partTag);
         }
         PanelBlockEntity panel = PacketTargets.blockEntity(
-                Minecraft.getInstance().level, pos, PanelBlockEntity.class);
+                ClientAccess.level(), pos, PanelBlockEntity.class);
         return panel == null ? null : new PanelSlotTarget(panel, clientSlot);
     }
 

@@ -11,7 +11,10 @@ import net.minecraft.world.inventory.Slot;
 
 import java.util.Map;
 import java.util.WeakHashMap;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public final class ScheduleEditorArt {
 
     public static final int EXTRA = 20;

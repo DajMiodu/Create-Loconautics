@@ -3,7 +3,10 @@ package com.lycoris.loconautics.foundation.smoke;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.foundation.particle.LateParticles;
 import net.minecraft.client.Minecraft;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public final class SmokeGovernor {
 
     private static final long STEP_NANOS = 1_000_000_000L;

@@ -1,7 +1,7 @@
 package com.lycoris.loconautics.content.bearingaxle;
 
 import com.lycoris.loconautics.content.frequency.BindFrequencyMenu;
-import net.minecraft.client.Minecraft;
+import com.lycoris.loconautics.client.ClientAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -36,7 +36,7 @@ public class BearingAxleMenu extends BindFrequencyMenu<BearingAxleBlockEntity> {
 
     @Override
     protected BearingAxleBlockEntity createOnClient(RegistryFriendlyByteBuf extraData) {
-        BlockEntity be = Minecraft.getInstance().level.getBlockEntity(extraData.readBlockPos());
+        BlockEntity be = ClientAccess.level().getBlockEntity(extraData.readBlockPos());
         if (be instanceof BearingAxleBlockEntity axle) {
             axle.readClient(extraData.readNbt(), extraData.registryAccess());
             return axle;

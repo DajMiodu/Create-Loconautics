@@ -2,7 +2,7 @@ package com.lycoris.loconautics.content.hose.link;
 
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.content.steelcable.SteelCableHolder;
-import com.lycoris.loconautics.content.steelcable.SteelCableHover;
+import com.lycoris.loconautics.content.steelcable.SteelCableWrench;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -20,7 +20,7 @@ public final class HoseLinkWrench {
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         if (!(event.getLevel() instanceof ServerLevel level) || event.getEntity().isShiftKeyDown()
-                || !SteelCableHover.isWrench(event.getItemStack())) {
+                || !SteelCableWrench.isWrench(event.getItemStack())) {
             return;
         }
         BlockEntity be = level.getBlockEntity(event.getPos());

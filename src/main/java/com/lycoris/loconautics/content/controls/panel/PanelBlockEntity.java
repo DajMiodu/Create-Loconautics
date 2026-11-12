@@ -369,7 +369,7 @@ public class PanelBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         if (parts.isEmpty()) return false;
-        if (net.minecraft.client.Minecraft.getInstance().screen != null) return false;
+        if (com.lycoris.loconautics.client.ClientAccess.hasScreen()) return false;
         if (com.lycoris.loconautics.content.controls.panellever.LeverHoldInteraction.gripped()) return false;
 
         PanelSlot looked = lookedAtSlot();
@@ -397,7 +397,7 @@ public class PanelBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 
     @Nullable
     private PanelSlot lookedAtSlot() {
-        if (!(net.minecraft.client.Minecraft.getInstance().hitResult
+        if (!(com.lycoris.loconautics.client.ClientAccess.hitResult()
                 instanceof net.minecraft.world.phys.BlockHitResult hit)) {
             return null;
         }

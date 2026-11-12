@@ -5,7 +5,10 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import java.util.Map;
 import java.util.WeakHashMap;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public final class SmokeSpriteBounds {
 
     private static final int FILTER_PAD = 2;

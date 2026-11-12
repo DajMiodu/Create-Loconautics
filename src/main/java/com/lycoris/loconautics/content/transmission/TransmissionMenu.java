@@ -1,7 +1,7 @@
 package com.lycoris.loconautics.content.transmission;
 
 import com.lycoris.loconautics.content.frequency.BindFrequencyMenu;
-import net.minecraft.client.Minecraft;
+import com.lycoris.loconautics.client.ClientAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -36,7 +36,7 @@ public class TransmissionMenu extends BindFrequencyMenu<TransmissionBlockEntity>
 
     @Override
     protected TransmissionBlockEntity createOnClient(RegistryFriendlyByteBuf extraData) {
-        BlockEntity be = Minecraft.getInstance().level.getBlockEntity(extraData.readBlockPos());
+        BlockEntity be = ClientAccess.level().getBlockEntity(extraData.readBlockPos());
         if (be instanceof TransmissionBlockEntity tbe) {
             tbe.readClient(extraData.readNbt(), extraData.registryAccess());
             return tbe;

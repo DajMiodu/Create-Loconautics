@@ -1,7 +1,7 @@
 package com.lycoris.loconautics.content.analogcontroller;
 
 import com.lycoris.loconautics.content.frequency.BindFrequencyMenu;
-import net.minecraft.client.Minecraft;
+import com.lycoris.loconautics.client.ClientAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
@@ -42,7 +42,7 @@ public class AnalogControllerMenu extends BindFrequencyMenu<AnalogControllerBloc
 
     @Override
     protected AnalogControllerBlockEntity createOnClient(RegistryFriendlyByteBuf extraData) {
-        BlockEntity be = Minecraft.getInstance().level.getBlockEntity(extraData.readBlockPos());
+        BlockEntity be = ClientAccess.level().getBlockEntity(extraData.readBlockPos());
         if (be instanceof AnalogControllerBlockEntity ace) {
             ace.readClient(extraData.readNbt(), extraData.registryAccess());
             return ace;

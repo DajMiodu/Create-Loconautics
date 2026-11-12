@@ -4,15 +4,15 @@ import com.lycoris.loconautics.common.strand.ClientStrands;
 import com.lycoris.loconautics.common.strand.StrandKind;
 import com.lycoris.loconautics.common.strand.StrandRenderer;
 import com.lycoris.loconautics.network.packets.attachment.SteelCableBreakPacket;
-import com.simibubi.create.AllItems;
 import com.simibubi.create.foundation.utility.RaycastHelper;
 import dev.ryanhcode.sable.Sable;
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.client.Minecraft;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+@OnlyIn(Dist.CLIENT)
 public final class SteelCableHover {
 
     private static final double HALF_THICKNESS = 0.25;
@@ -40,7 +41,7 @@ public final class SteelCableHover {
     public static void tick() {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
-        if (player == null || mc.level == null || !isWrench(player.getMainHandItem())) {
+        if (player == null || mc.level == null || !SteelCableWrench.isWrench(player.getMainHandItem())) {
             hovered = null;
             return;
         }
@@ -92,13 +93,9 @@ public final class SteelCableHover {
 
     private static final Vector3d UP = new Vector3d(0.0, 1.0, 0.0);
 
-    public static boolean isWrench(ItemStack stack) {
-        return AllItems.WRENCH.isIn(stack);
-    }
-
     public static boolean onUse() {
         Minecraft mc = Minecraft.getInstance();
-        if (hovered == null || mc.player == null || !isWrench(mc.player.getMainHandItem())) {
+        if (hovered == null || mc.player == null || !SteelCableWrench.isWrench(mc.player.getMainHandItem())) {
             return false;
         }
         CatnipServices.NETWORK.sendToServer(new SteelCableBreakPacket(hovered));

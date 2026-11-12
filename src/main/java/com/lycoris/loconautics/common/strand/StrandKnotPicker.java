@@ -18,7 +18,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.IntFunction;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public final class StrandKnotPicker {
 
     private static final double KNOT_HALF_EXTENT = 0.2;

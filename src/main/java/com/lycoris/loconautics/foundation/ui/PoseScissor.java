@@ -3,7 +3,10 @@ package com.lycoris.loconautics.foundation.ui;
 import net.minecraft.client.gui.GuiGraphics;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public final class PoseScissor {
 
     private PoseScissor() {}

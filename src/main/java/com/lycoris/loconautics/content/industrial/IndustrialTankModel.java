@@ -29,7 +29,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class IndustrialTankModel implements IDynamicBakedModel {
 
     private static final ModelProperty<Neighbors> NEIGHBORS = new ModelProperty<>();

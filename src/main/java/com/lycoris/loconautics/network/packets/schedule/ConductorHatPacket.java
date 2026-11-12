@@ -1,7 +1,8 @@
 package com.lycoris.loconautics.network.packets.schedule;
 
 import com.lycoris.loconautics.LoconauticsConstants;
-import net.minecraft.client.Minecraft;
+import com.lycoris.loconautics.client.ClientAccess;
+import net.minecraft.world.level.Level;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -28,8 +29,9 @@ public record ConductorHatPacket(int entityId, boolean conductor) implements Cus
 
     public static void handle(ConductorHatPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (Minecraft.getInstance().level == null) return;
-            Entity entity = Minecraft.getInstance().level.getEntity(packet.entityId());
+            Level level = ClientAccess.level();
+            if (level == null) return;
+            Entity entity = level.getEntity(packet.entityId());
             if (entity == null) return;
             if (packet.conductor()) {
                 entity.getPersistentData().putBoolean("TrainHat", true);

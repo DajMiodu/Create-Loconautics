@@ -5,7 +5,10 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
 import java.util.Map;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class BoilerCTShiftEntry extends CTSpriteShiftEntry {
 
     private static final Map<String, BoilerCTShiftEntry> CACHE = new HashMap<>();
