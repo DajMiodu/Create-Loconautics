@@ -35,7 +35,8 @@ English is the main language. The other languages are community work, and more h
 | --- | --- |
 | English (en_us) | 100% |
 | German (de_de) | 100% |
-| Spanish (es_es) | 27% |
+| Spanish (es_es) | 65% |
+| Russian (ru_ru) | 57% |
 
 Want to add a language or finish one? Copy `src/main/resources/assets/loconautics/lang/en_us.json`, name it for your language (for example `fr_fr.json`), translate the values and leave the keys as they are. Then open a pull request, or ask on Discord. A partial translation is fine, any missing text shows in English.
 
