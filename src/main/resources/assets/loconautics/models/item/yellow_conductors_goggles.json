@@ -1,0 +1,8 @@
+{
+    "parent": "loconautics:item/conductors_goggles/base",
+    "textures": {
+        "0": "loconautics:item/conductors_hat/yellow",
+        "1": "loconautics:item/conductors_goggles",
+        "particle": "loconautics:item/conductors_goggles"
+    }
+}
