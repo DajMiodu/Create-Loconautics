@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "loconautics:experimental",
+      "feature": "industrialFluids"
+    }
+  ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [

@@ -2,7 +2,9 @@ package com.lycoris.loconautics.common.experimental;
 
 import com.lycoris.loconautics.config.ExperimentalConfig;
 import com.lycoris.loconautics.content.boiler.BoilerBlocks;
+import com.lycoris.loconautics.content.cerisene.CeriseneBlocks;
 import com.lycoris.loconautics.content.combustion.SmallEngineBlocks;
+import com.lycoris.loconautics.content.industrial.IndustrialBlocks;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -23,7 +25,18 @@ public enum ExperimentalFeature {
             LoconauticsRegistries.SMOKESTACK_ITEM.get(),
             LoconauticsRegistries.BOILER_TUBES.get(),
             LoconauticsRegistries.VALVE_GEAR.get())),
-    DIESELWORKS("dieselworks", () -> new ArrayList<>(SmallEngineBlocks.ENGINE_ITEMS.values().stream().map(DeferredHolder::get).toList()));
+    DIESELWORKS("dieselworks", () -> new ArrayList<>(SmallEngineBlocks.ENGINE_ITEMS.values().stream().map(DeferredHolder::get).toList())),
+    INDUSTRIAL_FLUIDS("industrialFluids", () -> List.of(
+            LoconauticsRegistries.INDUSTRIAL_IRON_SHEET.get(),
+            LoconauticsRegistries.INDUSTRIAL_IRON_ROD.get(),
+            IndustrialBlocks.PIPE_ITEM.get(),
+            IndustrialBlocks.SMART_PIPE_ITEM.get(),
+            IndustrialBlocks.PUMP_ITEM.get(),
+            IndustrialBlocks.VALVE_ITEM.get(),
+            IndustrialBlocks.TANK_ITEM.get(),
+            CeriseneBlocks.RAW_CERISENE.get(),
+            CeriseneBlocks.CERISENE_BLOCK_ITEM.get(),
+            CeriseneBlocks.CERISENE_BUCKET.get()));
 
     private static Map<Item, ExperimentalFeature> byItem;
 
