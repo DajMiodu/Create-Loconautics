@@ -4,8 +4,6 @@ import com.lycoris.loconautics.trainphysics.debug.force.ForceSource;
 import com.lycoris.loconautics.trainphysics.debug.force.ForceTrace;
 import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.content.brakes.HandbrakeBlock;
-import com.lycoris.loconautics.content.brakes.pull.PullBrakeBlock;
-import com.lycoris.loconautics.content.brakes.pull.PullBrakeBlockEntity;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.common.sable.SubLevelBlocks;
 import dev.ryanhcode.sable.api.physics.force.ForceTotal;
@@ -102,7 +100,7 @@ public final class TrainBrakes {
         if (scan == null || now - scan.tick() >= BRAKE_SCAN_TICKS || now < scan.tick()) {
             List<BlockPos> found = new ArrayList<>();
             SubLevelBlocks.forEachBlock(sub, (pos, state) -> {
-                if (state.getBlock() instanceof PullBrakeBlock || state.getBlock() instanceof HandbrakeBlock) {
+                if (state.getBlock() instanceof HandbrakeBlock) {
                     found.add(pos.immutable());
                 }
                 return true;
@@ -113,9 +111,7 @@ public final class TrainBrakes {
         int best = 0;
         for (BlockPos pos : scan.positions()) {
             BlockState state = subLevel.getBlockState(pos);
-            if (state.getBlock() instanceof PullBrakeBlock && subLevel.getBlockEntity(pos) instanceof PullBrakeBlockEntity brake) {
-                best = Math.max(best, brake.power());
-            } else if (state.getBlock() instanceof HandbrakeBlock && state.getValue(HandbrakeBlock.POWERED)) {
+            if (state.getBlock() instanceof HandbrakeBlock && state.getValue(HandbrakeBlock.POWERED)) {
                 best = Math.max(best, subLevel.getBestNeighborSignal(pos));
             }
             if (best >= 15) {

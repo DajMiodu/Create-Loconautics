@@ -99,9 +99,6 @@ public final class LoconauticsNetwork {
         r.playToServer(com.lycoris.loconautics.network.packets.controls.LeverSetPacket.TYPE,
                 com.lycoris.loconautics.network.packets.controls.LeverSetPacket.STREAM_CODEC,
                 com.lycoris.loconautics.network.packets.controls.LeverSetPacket::handle);
-        r.playToServer(com.lycoris.loconautics.network.packets.pullbrake.PullBrakeSetPacket.TYPE,
-                com.lycoris.loconautics.network.packets.pullbrake.PullBrakeSetPacket.STREAM_CODEC,
-                com.lycoris.loconautics.network.packets.pullbrake.PullBrakeSetPacket::handle);
         r.playToServer(AnalogControllerInputPacket.TYPE, AnalogControllerInputPacket.STREAM_CODEC,
                 AnalogControllerInputPacket::handle);
         r.playToServer(AnalogControllerScrollPacket.TYPE, AnalogControllerScrollPacket.STREAM_CODEC,

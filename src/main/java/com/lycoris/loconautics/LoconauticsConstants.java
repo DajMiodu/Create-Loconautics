@@ -13,7 +13,7 @@ public final class LoconauticsConstants {
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final int NETWORK_VERSION = 82;
+    public static final int NETWORK_VERSION = 83;
 
     public static final String CARRIAGE_NAME_INFIX = " Carriage ";
 

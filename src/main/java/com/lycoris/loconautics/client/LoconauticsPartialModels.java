@@ -4,13 +4,10 @@ import com.lycoris.loconautics.content.controls.panel.PanelGlass;
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.content.controls.panel.style.PanelStyle;
 import com.lycoris.loconautics.content.controls.panel.style.PanelStyles;
-import com.lycoris.loconautics.content.brakes.pull.PullBrakeBlock;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.minecraft.world.item.DyeColor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class LoconauticsPartialModels {
@@ -235,22 +232,6 @@ public class LoconauticsPartialModels {
         for (net.minecraft.world.item.DyeColor color : net.minecraft.world.item.DyeColor.values()) {
             CONDUCTORS_HATS.put(color, PartialModel.of(
                     LoconauticsConstants.id("entity/conductors_hat/" + color.getSerializedName())));
-        }
-    }
-
-    public static final Map<String, PartialModel> PULL_BRAKE_WHEELS = new HashMap<>();
-
-    public static final Map<String, PartialModel> PULL_BRAKE_CHAINS = new HashMap<>();
-
-    static {
-        List<String> names = new ArrayList<>(List.of(PullBrakeBlock.BASE_COLOR));
-        for (DyeColor color : DyeColor.values()) {
-            names.add(color.getSerializedName());
-        }
-        for (String name : names) {
-            String folder = "block/brakes/pull/" + name + "/";
-            PULL_BRAKE_WHEELS.put(name, PartialModel.of(LoconauticsConstants.id(folder + "wheel")));
-            PULL_BRAKE_CHAINS.put(name, PartialModel.of(LoconauticsConstants.id(folder + "chain")));
         }
     }
 

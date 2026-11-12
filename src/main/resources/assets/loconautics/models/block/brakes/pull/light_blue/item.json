@@ -1,8 +1,0 @@
-{
-    "parent": "loconautics:block/brakes/pull/item",
-    "render_type": "minecraft:cutout",
-    "textures": {
-        "0": "loconautics:block/brakes/pull/light_blue/sheet",
-        "particle": "loconautics:block/brakes/pull/light_blue/sheet"
-    }
-}

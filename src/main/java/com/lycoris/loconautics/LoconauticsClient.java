@@ -183,7 +183,6 @@ public final class LoconauticsClient {
 
     private void onClientSetup(FMLClientSetupEvent event) {
         com.lycoris.loconautics.content.controls.panellever.LeverHoldInteraction.registered();
-        com.lycoris.loconautics.content.brakes.pull.PullBrakeHold.registered();
         LoconauticsConstants.LOGGER.info("Loconautics client setup");
         LoconauticsPartialModels.init();
         LoconauticsSpriteShifts.init();
@@ -221,11 +220,6 @@ public final class LoconauticsClient {
         SimpleBlockEntityVisualizer
                 .builder(com.lycoris.loconautics.content.combustion.SmallEngineBlocks.ENGINE_BE.get())
                 .factory(com.lycoris.loconautics.content.combustion.SmallEngineVisual::new)
-                .apply();
-
-        SimpleBlockEntityVisualizer
-                .builder(LoconauticsRegistries.PULL_BRAKE_BE.get())
-                .factory(com.lycoris.loconautics.content.brakes.pull.PullBrakeVisual::new)
                 .apply();
 
         SimpleBlockEntityVisualizer
@@ -333,10 +327,6 @@ public final class LoconauticsClient {
         event.registerBlockEntityRenderer(
                 com.lycoris.loconautics.content.combustion.SmallEngineBlocks.ENGINE_BE.get(),
                 com.lycoris.loconautics.content.combustion.SmallEngineRenderer::new
-        );
-        event.registerBlockEntityRenderer(
-                LoconauticsRegistries.PULL_BRAKE_BE.get(),
-                com.lycoris.loconautics.content.brakes.pull.PullBrakeRenderer::new
         );
         event.registerBlockEntityRenderer(
                 LoconauticsRegistries.TURNTABLE_BEARING_BE.get(),
