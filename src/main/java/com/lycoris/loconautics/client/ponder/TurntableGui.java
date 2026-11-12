@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class TurntableGui extends AnimatedOverlayElementBase {
+public final class TurntableGui extends AnimatedOverlayElementBase implements DeferredGui {
 
     public record Row(TurntableInstructionType type, int value, TurntableSpeedModifier modifier) {
     }
@@ -117,6 +117,10 @@ public final class TurntableGui extends AnimatedOverlayElementBase {
 
     @Override
     public void render(PonderScene scene, PonderUI ui, GuiGraphics graphics, float partialTicks, float fade) {
+    }
+
+    @Override
+    public void drawDeferred(PonderScene scene, PonderUI ui, GuiGraphics graphics, float partialTicks, float fade) {
         if (fade < 0.0625f || ui.getActiveScene() != scene) {
             return;
         }

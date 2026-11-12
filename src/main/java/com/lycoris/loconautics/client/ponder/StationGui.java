@@ -17,7 +17,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
-public final class StationGui extends AnimatedOverlayElementBase {
+public final class StationGui extends AnimatedOverlayElementBase implements DeferredGui {
 
     private static final int IDLE = 0;
     private static final int ASSEMBLY = 1;
@@ -79,6 +79,10 @@ public final class StationGui extends AnimatedOverlayElementBase {
 
     @Override
     public void render(PonderScene scene, PonderUI ui, GuiGraphics graphics, float partialTicks, float fade) {
+    }
+
+    @Override
+    public void drawDeferred(PonderScene scene, PonderUI ui, GuiGraphics graphics, float partialTicks, float fade) {
         if (fade < 0.0625f || ui.getActiveScene() != scene) {
             return;
         }

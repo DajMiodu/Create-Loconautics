@@ -55,7 +55,7 @@ public final class GuiPonder {
         return new Panel(layout, rows);
     }
 
-    public static final class Panel extends AnimatedOverlayElementBase {
+    public static final class Panel extends AnimatedOverlayElementBase implements DeferredGui {
 
         private final Layout layout;
         private final Component[] rows;
@@ -107,6 +107,10 @@ public final class GuiPonder {
 
         @Override
         public void render(PonderScene scene, PonderUI screen, GuiGraphics graphics, float partialTicks, float fade) {
+        }
+
+        @Override
+        public void drawDeferred(PonderScene scene, PonderUI screen, GuiGraphics graphics, float partialTicks, float fade) {
             if (fade < 0.0625f || screen.getActiveScene() != scene) {
                 return;
             }

@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
-public final class ScrollMenuPonder extends AnimatedOverlayElementBase {
+public final class ScrollMenuPonder extends AnimatedOverlayElementBase implements DeferredGui {
 
     private final ScrollMenu menu;
 
@@ -60,6 +60,10 @@ public final class ScrollMenuPonder extends AnimatedOverlayElementBase {
 
     @Override
     public void render(PonderScene scene, PonderUI screen, GuiGraphics graphics, float partialTicks, float fade) {
+    }
+
+    @Override
+    public void drawDeferred(PonderScene scene, PonderUI screen, GuiGraphics graphics, float partialTicks, float fade) {
         if (fade < 0.0625f || screen.getActiveScene() != scene) {
             return;
         }
