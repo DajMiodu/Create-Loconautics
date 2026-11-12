@@ -30,9 +30,17 @@ repositories {
         }
     }
 
-    maven {
-        name = "RyanHCode Maven"
-        url = "https://maven.ryanhcode.dev/releases"
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "RyanHCode Maven"
+                url = "https://maven.ryanhcode.dev/releases"
+            }
+        }
+        filter {
+            includeGroup("dev.ryanhcode.sable")
+            includeGroup("dev.ryanhcode.sable-companion")
+        }
     }
 }
 
