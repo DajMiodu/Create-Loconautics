@@ -362,6 +362,10 @@ public final class TrainPortalCrossing {
         return frame;
     }
 
+    public static void cancel(SableTrain train) {
+        end(train, true);
+    }
+
     private static void end(SableTrain train, boolean clearRails) {
         SableTrain.Car car = train.car();
         UUID id = car.subLevelId();
