@@ -1,12 +1,14 @@
 package com.lycoris.loconautics.network.packets.train;
 
 import com.lycoris.loconautics.LoconauticsConstants;
+import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import com.lycoris.loconautics.trainphysics.rail.RailPick;
 import com.lycoris.loconautics.trainphysics.spawn.SableTrainSpawner;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -41,6 +43,10 @@ public record SableTrainRelocatePacket(UUID subLevelId, RailPick pick, Vec3 look
     public static void handle(SableTrainRelocatePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+            Item relocator = LoconauticsRegistries.CREATIVE_TRAIN_RELOCATOR.get();
+            if (!player.getMainHandItem().is(relocator) && !player.getOffhandItem().is(relocator)) {
                 return;
             }
             SableTrainSpawner.relocate(player, packet.subLevelId(), packet.pick(), packet.lookAngle());
