@@ -26,6 +26,7 @@ public final class Loconautics {
     public Loconautics(IEventBus modEventBus, ModContainer modContainer) {
         com.lycoris.loconautics.foundation.debug.DebugLogFilter.install();
         LoconauticsRegistries.register(modEventBus);
+        com.lycoris.loconautics.common.experimental.ExperimentalCondition.register(modEventBus);
         BoilerBlocks.register(modEventBus);
         com.lycoris.loconautics.content.cerisene.CeriseneBlocks.register(modEventBus);
         HoseSprayEntities.register(modEventBus);
@@ -44,6 +45,7 @@ public final class Loconautics {
                 com.lycoris.loconautics.trainphysics.state.StationChunkTickets::register);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, LoconauticsConfig.SERVER_SPEC);
+        modContainer.registerConfig(ModConfig.Type.COMMON, com.lycoris.loconautics.config.ExperimentalConfig.SPEC, "loconautics-experimental.toml");
 
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
         NeoForge.EVENT_BUS.addListener(this::onServerStopped);

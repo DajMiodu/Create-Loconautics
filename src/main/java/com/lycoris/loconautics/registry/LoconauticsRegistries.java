@@ -520,7 +520,12 @@ public final class LoconauticsRegistries {
                             com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlocks
                                     .CONTROLLER_ITEMS.get(com.lycoris.loconautics.content.analogcontroller
                                             .AnalogControllerBlocks.TAB_COLOR).get()))
-                    .displayItems((params, output) -> {
+                    .displayItems((params, rawOutput) -> {
+                        net.minecraft.world.item.CreativeModeTab.Output output = (stack, visibility) -> {
+                            if (!com.lycoris.loconautics.common.experimental.ExperimentalFeature.disabled(stack.getItem())) {
+                                rawOutput.accept(stack, visibility);
+                            }
+                        };
                         com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlocks.CONTROLLER_ITEMS
                                 .forEach((color, item) -> output.accept(new net.minecraft.world.item.ItemStack(item.get()),
                                         color == com.lycoris.loconautics.content.analogcontroller
