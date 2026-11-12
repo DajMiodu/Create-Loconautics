@@ -28,7 +28,6 @@ public final class LoconauticsConfig {
     public static ModConfigSpec.DoubleValue DYNAMICS_ROLLING_RESISTANCE;
     public static ModConfigSpec.BooleanValue SLOPE_EFFECTS_ENABLED;
 
-    public static ModConfigSpec.BooleanValue BOGEY_PHYSICS_PIVOT;
 
     public static ModConfigSpec.BooleanValue WRENCH_RELOCATION_ENABLED;
     public static ModConfigSpec.BooleanValue WRENCH_RELOCATION_DERAILED_ONLY;
@@ -203,14 +202,6 @@ public final class LoconauticsConfig {
                 .comment("Turn off to climb any grade at flat track stress.")
                 .translation(TRANSLATION_PREFIX + "train.dynamics.slopeEffects")
                 .define("slopeEffects", true);
-
-        BUILDER.pop();
-
-        BUILDER.translation(TRANSLATION_PREFIX + "train.visual").push("visual");
-
-        BOGEY_PHYSICS_PIVOT = BUILDER
-                .translation(TRANSLATION_PREFIX + "train.visual.bogeyPhysicsPivot")
-                .define("bogeyPhysicsPivot", true);
 
         BUILDER.pop();
 

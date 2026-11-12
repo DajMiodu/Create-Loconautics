@@ -124,7 +124,6 @@ public final class Loconautics {
         event.enqueueWork(com.lycoris.loconautics.content.turntablebearing.TurntableCogPlacement::register);
         event.enqueueWork(com.lycoris.loconautics.compat.create.ManeuverEditorInstruction::register);
         SableTrainDriver.register();
-        com.lycoris.loconautics.trainphysics.visual.pivot.BogeyPivotManager.register();
         com.lycoris.loconautics.common.strand.RopeManager.register(HoseRopeManager::get);
         com.lycoris.loconautics.common.strand.RopeManager.register(
                 com.lycoris.loconautics.content.steelcable.rope.SteelCableRopeManager::get);
@@ -231,7 +230,6 @@ public final class Loconautics {
         runStopHook("GhostWheelBodies", com.lycoris.loconautics.trainphysics.wheels.GhostWheelBodies::clear);
         runStopHook("KnuckleJoint", com.lycoris.loconautics.content.knuckle.KnuckleJoint::clear);
         runStopHook("SubLevelContacts",com.lycoris.loconautics.trainphysics.sublevel.SubLevelContacts::clear);
-        runStopHook("BogeyPivotManager", com.lycoris.loconautics.trainphysics.visual.pivot.BogeyPivotManager::clear);
         runStopHook("CarriageCollisions", com.lycoris.loconautics.trainphysics.drive.CarriageCollisions::clear);
         runStopHook("CreateTrainShadow", com.lycoris.loconautics.trainphysics.state.CreateTrainShadow::clear);
         runStopHook("SableTrainDriver", com.lycoris.loconautics.trainphysics.drive.SableTrainDriver::clearAll);
