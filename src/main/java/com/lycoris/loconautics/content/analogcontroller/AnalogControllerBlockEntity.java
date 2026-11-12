@@ -2,11 +2,14 @@ package com.lycoris.loconautics.content.analogcontroller;
 
 import com.lycoris.loconautics.common.LinkHolder;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
+import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.redstone.link.IRedstoneLinkable;
 import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import dev.ryanhcode.sable.Sable;
+import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import net.createmod.catnip.animation.LerpedFloat;
 import net.createmod.catnip.data.Couple;
 import net.minecraft.core.BlockPos;
@@ -133,7 +136,8 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
             animSteer.chase(steerInput, 0.2, LerpedFloat.Chaser.EXP);
             animEquip.chase(1.0, 0.2, LerpedFloat.Chaser.EXP);
         } else {
-            animSpeed.chase(AnalogControllerClientHandler.idleRatio(this), 0.5, LerpedFloat.Chaser.EXP);
+            animSpeed.chase(AnalogControllerClientHandler.idleRatio(this),
+                    AnalogControllerClientHandler.onTrain(this) ? 0.0 : 0.5, LerpedFloat.Chaser.EXP);
             animSteer.chase(0.0, 0.0, LerpedFloat.Chaser.EXP);
             animEquip.chase(0.0, 0.2, LerpedFloat.Chaser.EXP);
         }
@@ -157,7 +161,9 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
 
         int previousPower = currentPower;
 
-        if (currentUser == null && !locked && !scheduleControlled && currentPower != 0) {
+        if (currentUser == null && !locked && !scheduleControlled && currentPower != 0 && onTrain()) {
+            currentPower = 0;
+        } else if (currentUser == null && !locked && !scheduleControlled && currentPower != 0) {
             if (--decayCounter <= 0) {
                 decayCounter = getDecayTicks();
                 currentPower -= Integer.signum(currentPower);
@@ -174,7 +180,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
             }
         }
 
-        if (!scheduleControlled && (currentUser != null || locked) && currentPower != manualTarget()) {
+        if (!scheduleControlled && (currentUser != null || locked) && currentPower != manualTarget() && !onTrain()) {
             int step = Integer.signum(manualTarget() - currentPower);
             if (--manualRampCounter <= 0) {
                 manualRampCounter = manualInterval(step);
@@ -217,7 +223,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
 
     public void resumeUser(ServerPlayer player) {
         connectUser(player);
-        if (!locked) restartRamp();
+        if (!locked) driveToTarget();
     }
 
     // only the current driver can release, unlike toggleuser which would connect a stranger
@@ -282,6 +288,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
         horn           = null;
         if (!locked) {
             driveInput = 0;
+            if (!scheduleControlled && onTrain()) currentPower = 0;
         }
         updateNetwork(level);
         updateBlockState(level, getBlockState());
@@ -364,11 +371,29 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
         if (held != 0 || !locked) {
             driveInput = held;
         }
-        restartRamp();
+        driveToTarget();
     }
 
     private void restartRamp() {
         manualRampCounter = 0;
+    }
+
+    private void driveToTarget() {
+        if (onTrain()) {
+            applyDriveInput();
+            return;
+        }
+        restartRamp();
+    }
+
+    private void applyDriveInput() {
+        if (scheduleControlled) return;
+        setCurrentPower(driveInput > 0 ? maxPower : driveInput < 0 ? -Math.min(maxPower, NEGATIVE_CAP) : 0);
+    }
+
+    private boolean onTrain() {
+        return level != null && Sable.HELPER.getContaining(level, worldPosition) instanceof ServerSubLevel sub
+                && SableTrainRegistry.bySubLevel(sub.getUniqueId()) != null;
     }
 
     private int manualTarget() {
@@ -457,7 +482,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
         scheduleControlled = false;
         scheduleTargetPower = null;
         setSteerInput(0);
-        restartRamp();
+        driveToTarget();
     }
 
     public boolean isScheduleControlled() {
@@ -663,7 +688,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
     public void onScroll(UUID user, int delta) {
         if (!user.equals(currentUser)) return;
         maxPower = Math.max(0, Math.min(MAX_POWER, maxPower + delta));
-        if (driveInput != 0) restartRamp();
+        if (driveInput != 0) driveToTarget();
         setChanged();
         sendData();
     }

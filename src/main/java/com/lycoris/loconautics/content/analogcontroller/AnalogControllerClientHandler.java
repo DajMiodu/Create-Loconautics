@@ -108,6 +108,10 @@ public class AnalogControllerClientHandler {
         return marker == null ? powerRatio(be) : (int) (speedFraction(marker.speed(), marker) * 18) / 18.0;
     }
 
+    public static boolean onTrain(AnalogControllerBlockEntity be) {
+        return trainOf(be) != null;
+    }
+
     public static double idleRatio(AnalogControllerBlockEntity be) {
         return trainOf(be) == null ? powerRatio(be) : 0.0;
     }
