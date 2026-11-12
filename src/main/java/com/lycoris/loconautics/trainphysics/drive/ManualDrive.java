@@ -131,7 +131,7 @@ public final class ManualDrive {
         double top = onCurve ? Math.min(rpmTop, curveTop(gearedTop)) : rpmTop;
         int direction = input * (along < 0.0 ? -1 : 1) * flip;
         // the slow direction from create, a hand driven train backs up at a quarter of its top speed
-        return direction < 0 ? top / REVERSE_DIVISOR * direction : top * direction;
+        return input < 0 ? top / REVERSE_DIVISOR * direction : top * direction;
     }
 
     // creates turning top speed, scaled up with the gearing the same way the straight top speed is
