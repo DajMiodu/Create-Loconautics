@@ -1,0 +1,49 @@
+name: Indev build
+
+on:
+  push:
+    branches: [ "indev" ]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+  workflow_dispatch:
+
+concurrency:
+  group: indev-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v5
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@11d4d83c63a6ce61b32d8a9c4faddbdb04fe9917 # v6
+
+    - name: Build with Gradle Wrapper
+      run: ./gradlew build
+
+    - name: Publish indev-latest
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        SHORT=$(git rev-parse --short HEAD)
+        gh release delete indev-latest --cleanup-tag --yes || true
+        gh release create indev-latest build/libs/*.jar \
+          --target "$GITHUB_SHA" \
+          --prerelease \
+          --title "Indev build $SHORT" \
+          --notes "Automatic build of indev at $SHORT. Unstable, back up your worlds."
