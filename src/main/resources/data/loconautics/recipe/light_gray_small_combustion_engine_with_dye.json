@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "loconautics:experimental",
+      "feature": "dieselworks"
+    }
+  ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [

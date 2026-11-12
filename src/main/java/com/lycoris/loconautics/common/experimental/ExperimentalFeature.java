@@ -2,8 +2,10 @@ package com.lycoris.loconautics.common.experimental;
 
 import com.lycoris.loconautics.config.ExperimentalConfig;
 import com.lycoris.loconautics.content.boiler.BoilerBlocks;
+import com.lycoris.loconautics.content.combustion.SmallEngineBlocks;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import net.minecraft.world.item.Item;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +22,8 @@ public enum ExperimentalFeature {
             BoilerBlocks.FIREBOX_STOCKER_ITEM.get(),
             LoconauticsRegistries.SMOKESTACK_ITEM.get(),
             LoconauticsRegistries.BOILER_TUBES.get(),
-            LoconauticsRegistries.VALVE_GEAR.get()));
+            LoconauticsRegistries.VALVE_GEAR.get())),
+    DIESELWORKS("dieselworks", () -> new ArrayList<>(SmallEngineBlocks.ENGINE_ITEMS.values().stream().map(DeferredHolder::get).toList()));
 
     private static Map<Item, ExperimentalFeature> byItem;
 
