@@ -17,6 +17,7 @@ repositories {
     maven { url = "https://maven.createmod.net" }
     maven { url = "https://maven.ithundxr.dev/snapshots" }
     maven { url = "https://maven.blamejared.com" }
+    maven { url = "https://maven.theillusivec4.top/" }
 
     maven {
         name = "TerraformersMC"
@@ -144,6 +145,7 @@ dependencies {
     }
     compileOnly("maven.modrinth:GWp4jCJj:5.11.7") { transitive = false }
     compileOnly("maven.modrinth:ApkoHNO9:1.1.4") { transitive = false }
+    compileOnly("top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1") { transitive = false }
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") {
         transitive = false
     }
