@@ -14,6 +14,7 @@ import com.lycoris.loconautics.content.dashboard.DashboardBlock;
 import com.lycoris.loconautics.content.dashboard.DashboardRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.engine_room.flywheel.api.instance.Instance;
+import dev.ryanhcode.sable.Sable;
 import dev.engine_room.flywheel.api.visual.DynamicVisual;
 import dev.engine_room.flywheel.api.visualization.VisualizationContext;
 import dev.engine_room.flywheel.lib.visual.AbstractBlockEntityVisual;
@@ -50,7 +51,9 @@ public class PanelVisual extends AbstractBlockEntityVisual<PanelBlockEntity> imp
             delete();
             return;
         }
-        if (doDistanceLimitThisFrame(ctx) || !isVisible(ctx.frustum())) return;
+        // plot position against world camera, both guards are wrong inside a sub level
+        boolean inSubLevel = Sable.HELPER.getContainingClient(blockEntity) != null;
+        if (!inSubLevel && (doDistanceLimitThisFrame(ctx) || !isVisible(ctx.frustum()))) return;
         refresh(ctx.partialTick());
     }
 
