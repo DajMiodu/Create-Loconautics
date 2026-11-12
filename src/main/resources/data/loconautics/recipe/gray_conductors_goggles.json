@@ -1,0 +1,16 @@
+{
+    "type": "minecraft:crafting_shapeless",
+    "category": "equipment",
+    "ingredients": [
+        {
+            "item": "loconautics:gray_conductors_hat"
+        },
+        {
+            "item": "create:goggles"
+        }
+    ],
+    "result": {
+        "id": "loconautics:gray_conductors_goggles",
+        "count": 1
+    }
+}
