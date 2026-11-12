@@ -191,7 +191,7 @@
   "item.loconautics.black_conductors_hat": "Gorra de maquinista negra",
   "item.loconautics.blue_conductors_hat": "Gorra de maquinista azul",
   "item.loconautics.brown_conductors_hat": "Gorra de maquinista marrón",
-  "block.create.railway_casing.tooltip.condition1": "Mantener Tab",
+  "block.create.railway_casing.tooltip.condition1": "Mantener C",
   "block.create.railway_casing.tooltip.behaviour1": "Desplaza para alternar entre el _Cubrimiento para trenes_ y el _Bogie_ que coloca.",
   "item.loconautics.bogey": "Bogie",
   "item.loconautics.creative_train_relocator": "Reubicador de trenes creativo",

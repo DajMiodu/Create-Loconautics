@@ -201,7 +201,7 @@
   "item.loconautics.black_conductors_hat": "Чёрная фуражка машиниста",
   "item.loconautics.blue_conductors_hat": "Синяя фуражка машиниста",
   "item.loconautics.brown_conductors_hat": "Коричневая фуражка машиниста",
-  "block.create.railway_casing.tooltip.condition1": "При удерживании Tab",
+  "block.create.railway_casing.tooltip.condition1": "При удерживании C",
   "block.create.railway_casing.tooltip.behaviour1": "Колесом мыши выберите, что установить: _железнодорожный корпус_ или _вагонную тележку_.",
   "item.loconautics.bogey": "Вагонная тележка",
   "item.loconautics.creative_train_relocator": "Творческий переместитель поездов",

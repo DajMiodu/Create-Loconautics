@@ -201,7 +201,7 @@
   "item.loconautics.black_conductors_hat": "Schwarze Schaffnermütze",
   "item.loconautics.blue_conductors_hat": "Blaue Schaffnermütze",
   "item.loconautics.brown_conductors_hat": "Braune Schaffnermütze",
-  "block.create.railway_casing.tooltip.condition1": "Halte Tab gedrückt",
+  "block.create.railway_casing.tooltip.condition1": "Halte C gedrückt",
   "block.create.railway_casing.tooltip.behaviour1": "Scrolle, um zwischen dem _Zugrahmen_ und dem _Drehgestell_ zu wechseln, das er platziert.",
   "item.loconautics.bogey": "Drehgestell",
   "item.loconautics.creative_train_relocator": "Zugversetzer (Kreativmodus)",

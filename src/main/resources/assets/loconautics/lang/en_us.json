@@ -232,7 +232,7 @@
   "item.loconautics.brown_conductors_hat": "Brown Conductor's Hat",
   "item.loconautics.compression_chamber": "Compression Chamber",
   "item.loconautics.crankshaft": "Crankshaft",
-  "block.create.railway_casing.tooltip.condition1": "Holding Tab",
+  "block.create.railway_casing.tooltip.condition1": "Holding C",
   "block.create.railway_casing.tooltip.behaviour1": "Scroll to swap between the _Train Casing_ and the _Bogey_ it places.",
   "item.loconautics.bogey": "Bogey",
   "item.loconautics.creative_train_relocator": "Creative Train Relocator",
