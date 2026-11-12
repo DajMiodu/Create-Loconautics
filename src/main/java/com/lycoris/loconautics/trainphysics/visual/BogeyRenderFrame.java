@@ -1,5 +1,6 @@
 package com.lycoris.loconautics.trainphysics.visual;
 
+import com.lycoris.loconautics.config.BogeyRenderConfig;
 import com.lycoris.loconautics.trainphysics.state.SableTrainClientRegistry;
 import com.simibubi.create.content.trains.bogey.AbstractBogeyBlock;
 import com.simibubi.create.content.trains.bogey.AbstractBogeyBlockEntity;
@@ -80,6 +81,9 @@ public final class BogeyRenderFrame {
 
     // the rail frame has no roll, so the bogey keeps the roll of the car instead of staying level with the rail
     private static void dropTwist(Quaternionf localFrame) {
+        if (!BogeyRenderConfig.rolling()) {
+            return;
+        }
         Quaternionf twist = new Quaternionf(0.0f, 0.0f, localFrame.z, localFrame.w);
         if (twist.lengthSquared() < 1.0e-12f) {
             return;

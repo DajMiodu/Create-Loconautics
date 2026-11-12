@@ -161,6 +161,7 @@ public final class LoconauticsConfig {
 
         ModConfigSpec.Builder client = new ModConfigSpec.Builder();
         defineClient(client);
+        BogeyRenderConfig.define(client);
         CLIENT_SPEC = client.build();
     }
 
