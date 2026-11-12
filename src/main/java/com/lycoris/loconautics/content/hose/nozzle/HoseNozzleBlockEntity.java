@@ -59,7 +59,7 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
     private static final int UNDOCK_SAFETY_TICKS = 10;
     private static final int REDOCK_COOLDOWN_TICKS = 10;
     private static final java.util.Set<HoseNozzleBlockEntity> CLIENT_NOZZLES = new java.util.HashSet<>();
-    private static final int LINK_SPRAY_FLOW = 64;
+    private static final int LINK_SPRAY_FLOW = 16;
     private static final int LINK_FLOW_LINGER_TICKS = 3;
     private static final float LINK_SPRAY_STRENGTH = 0.5f;
 
@@ -827,7 +827,7 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
 
     @Override
     public boolean canAttachStrand() {
-        return holder != null && holder.getAttachedStrandId() == null
+        return holder != null && holder.isFree()
                 && StrandAttachments.isFree(this, SteelCableHolderBehaviour.TYPE);
     }
 

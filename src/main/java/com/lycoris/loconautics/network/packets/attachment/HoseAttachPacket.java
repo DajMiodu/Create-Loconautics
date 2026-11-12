@@ -64,28 +64,39 @@ public record HoseAttachPacket(BlockPos winchPos, @Nullable UUID farSubLevelId, 
                     || !(player.level() instanceof ServerLevel level)) {
                 return;
             }
+            ItemStack hoseStack = heldHose(player);
+            if (hoseStack == null) {
+                reject(player, "no_hose", "no hose in hand");
+                return;
+            }
             if (Sable.HELPER.distanceSquaredWithSubLevels(level, player.getEyePosition(),
                     Vec3.atCenterOf(packet.winchPos())) > 64.0) {
+                reject(player, "too_far", "winch " + packet.winchPos() + " is out of reach");
                 return;
             }
             if (!(level.getBlockEntity(packet.winchPos()) instanceof HoseWinchBlockEntity winch)
                     || !winch.canAttachStrand()) {
+                reject(player, "winch_busy", "winch " + packet.winchPos() + " is missing or already has a hose");
                 return;
             }
             SubLevelContainer container = SubLevelContainer.getContainer(level);
             BlockEntity far = StrandEndpoints.blockEntity(level, container, packet.farSubLevelId(),
                     packet.farLocalPos());
             if (!canTakeWinchHose(far, packet.farSubLevelId())) {
+                reject(player, "far_busy", "far end " + packet.farLocalPos() + " sub " + packet.farSubLevelId()
+                        + " is " + (far == null ? "missing" : far.getClass().getSimpleName() + " and not free"));
                 return;
             }
             Vector3d farPoint = StrandEndpoints.worldPoint(level, container, packet.farSubLevelId(),
                     packet.farLocalPos());
             if (farPoint == null) {
+                reject(player, "far_busy", "far end has no world point");
                 return;
             }
             double span = winch.spanTo(
                     new net.minecraft.world.phys.Vec3(farPoint.x, farPoint.y, farPoint.z));
             if (span > HoseType.DEFAULT.maxLength()) {
+                reject(player, "too_long", "span " + span + " is longer than " + HoseType.DEFAULT.maxLength());
                 return;
             }
 
@@ -104,7 +115,26 @@ public record HoseAttachPacket(BlockPos winchPos, @Nullable UUID farSubLevelId, 
             level.playSound(null, BlockPos.containing(farPoint.x, farPoint.y, farPoint.z), SoundEvents.CHAIN_PLACE,
                     SoundSource.BLOCKS, 0.5f, 1.0f);
             clearFirstConnection(player);
+            if (!player.isCreative()) {
+                hoseStack.shrink(1);
+            }
         });
+    }
+
+    private static ItemStack heldHose(ServerPlayer player) {
+        for (InteractionHand hand : InteractionHand.values()) {
+            ItemStack stack = player.getItemInHand(hand);
+            if (stack.getItem() instanceof HoseItem) {
+                return stack;
+            }
+        }
+        return null;
+    }
+
+    private static void reject(ServerPlayer player, String reason, String detail) {
+        LoconauticsConstants.LOGGER.warn("[hoseattach] refused, {}", detail);
+        player.displayClientMessage(
+                net.minecraft.network.chat.Component.translatable("message.loconautics.hose.failed." + reason), true);
     }
 
     private static boolean canTakeWinchHose(@Nullable BlockEntity far, @Nullable UUID farSub) {
