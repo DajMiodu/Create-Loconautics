@@ -2,7 +2,10 @@ package com.lycoris.loconautics.content.variantpicker;
 
 import com.lycoris.loconautics.client.scrollmenu.ScrollMenu;
 import com.lycoris.loconautics.client.scrollmenu.ScrollMenuHandler;
+import com.lycoris.loconautics.content.conductorshat.ConductorsHatItem;
+import com.lycoris.loconautics.content.conductorshat.ConductorsHats;
 import com.lycoris.loconautics.network.packets.variantpicker.BlockVariantApplyPacket;
+import com.lycoris.loconautics.network.packets.variantpicker.HatColorApplyPacket;
 import com.mojang.blaze3d.platform.InputConstants;
 
 import net.createmod.catnip.platform.CatnipServices;
@@ -11,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.api.distmarker.Dist;
@@ -34,6 +38,9 @@ public final class ScrollPickerHandler {
         if (ScrollMenuHandler.isOpen()) return false;
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return false;
+        if (mc.player.getMainHandItem().getItem() instanceof ConductorsHatItem hat) {
+            return openHatColors(hat);
+        }
         Block held = Block.byItem(mc.player.getMainHandItem().getItem());
         BlockVariantRegistry.Location loc = BlockVariantRegistry.locate(held);
         if (loc == null) return false;
@@ -56,6 +63,19 @@ public final class ScrollPickerHandler {
                         InteractionHand.MAIN_HAND, BuiltInRegistries.BLOCK.getKey(chosen)));
             }
         }, false, OPEN_KEY.getKey().getValue());
+        return ScrollMenuHandler.open(menu);
+    }
+
+    private static boolean openHatColors(ConductorsHatItem current) {
+        DyeColor[] colors = DyeColor.values();
+        List<ScrollMenu.Entry> entries = new ArrayList<>();
+        for (DyeColor color : colors) {
+            ConductorsHatItem hat = ConductorsHats.HATS.get(color).get();
+            entries.add(new ScrollMenu.Entry(new ItemStack(hat), hat.getDescription()));
+        }
+        ScrollMenu menu = new ScrollMenu(entries, current.getColor().getId(), idx ->
+                CatnipServices.NETWORK.sendToServer(new HatColorApplyPacket(InteractionHand.MAIN_HAND, idx)),
+                false, OPEN_KEY.getKey().getValue());
         return ScrollMenuHandler.open(menu);
     }
 

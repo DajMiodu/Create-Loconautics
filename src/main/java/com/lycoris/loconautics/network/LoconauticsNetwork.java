@@ -50,6 +50,9 @@ public final class LoconauticsNetwork {
         r.playToServer(com.lycoris.loconautics.network.packets.variantpicker.BlockVariantApplyPacket.TYPE,
                 com.lycoris.loconautics.network.packets.variantpicker.BlockVariantApplyPacket.STREAM_CODEC,
                 com.lycoris.loconautics.network.packets.variantpicker.BlockVariantApplyPacket::handle);
+        r.playToServer(com.lycoris.loconautics.network.packets.variantpicker.HatColorApplyPacket.TYPE,
+                com.lycoris.loconautics.network.packets.variantpicker.HatColorApplyPacket.STREAM_CODEC,
+                com.lycoris.loconautics.network.packets.variantpicker.HatColorApplyPacket::handle);
         r.playToServer(com.lycoris.loconautics.network.packets.casingpicker.CasingSwapPacket.TYPE,
                 com.lycoris.loconautics.network.packets.casingpicker.CasingSwapPacket.STREAM_CODEC,
                 com.lycoris.loconautics.network.packets.casingpicker.CasingSwapPacket::handle);
