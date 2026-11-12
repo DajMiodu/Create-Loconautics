@@ -1,6 +1,8 @@
 package com.lycoris.loconautics.common.experimental;
 
 import com.lycoris.loconautics.config.ExperimentalConfig;
+import com.lycoris.loconautics.content.boiler.BoilerBlocks;
+import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import net.minecraft.world.item.Item;
 
 import java.util.ArrayList;
@@ -10,7 +12,15 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public enum ExperimentalFeature {
-    ;
+    BOILERWORKS("boilerworks", () -> List.of(
+            BoilerBlocks.FIREBOX_ITEM.get(),
+            BoilerBlocks.BOILER_BODY_ITEM.get(),
+            BoilerBlocks.STEAM_TAKEOFF_ITEM.get(),
+            BoilerBlocks.SMART_SAFETY_VALVE_ITEM.get(),
+            BoilerBlocks.FIREBOX_STOCKER_ITEM.get(),
+            LoconauticsRegistries.SMOKESTACK_ITEM.get(),
+            LoconauticsRegistries.BOILER_TUBES.get(),
+            LoconauticsRegistries.VALVE_GEAR.get()));
 
     private static Map<Item, ExperimentalFeature> byItem;
 
