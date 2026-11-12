@@ -49,6 +49,7 @@ public record BlockVariantApplyPacket(InteractionHand hand, ResourceLocation blo
 
             Block chosen = BuiltInRegistries.BLOCK.getOptional(packet.blockId()).orElse(null);
             if (chosen == null || !BlockVariantRegistry.isKnownVariant(chosen)) return;
+            if (BlockVariantRegistry.locate(current).family() != BlockVariantRegistry.locate(chosen).family()) return;
 
             Item chosenItem = chosen.asItem();
             if (chosenItem == Items.AIR || chosenItem == held.getItem()) return;
