@@ -16,6 +16,22 @@
     "loconautics:brown_conductors_hat",
     "loconautics:green_conductors_hat",
     "loconautics:red_conductors_hat",
-    "loconautics:black_conductors_hat"
+    "loconautics:black_conductors_hat",
+    "loconautics:white_conductors_goggles",
+    "loconautics:orange_conductors_goggles",
+    "loconautics:magenta_conductors_goggles",
+    "loconautics:light_blue_conductors_goggles",
+    "loconautics:yellow_conductors_goggles",
+    "loconautics:lime_conductors_goggles",
+    "loconautics:pink_conductors_goggles",
+    "loconautics:gray_conductors_goggles",
+    "loconautics:light_gray_conductors_goggles",
+    "loconautics:cyan_conductors_goggles",
+    "loconautics:purple_conductors_goggles",
+    "loconautics:blue_conductors_goggles",
+    "loconautics:brown_conductors_goggles",
+    "loconautics:green_conductors_goggles",
+    "loconautics:red_conductors_goggles",
+    "loconautics:black_conductors_goggles"
   ]
 }
