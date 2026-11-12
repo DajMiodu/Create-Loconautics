@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "loconautics:experimental",
+      "feature": "handbrake"
+    }
+  ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
