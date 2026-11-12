@@ -540,15 +540,25 @@ public class BearingAxleBlockEntity extends KineticBlockEntity
 
         tag.putBoolean("LeftActive", leftActive);
         tag.putBoolean("RightActive", rightActive);
+        writeFrequencies(tag, registries);
+
+        tag.putLong("PlacedTime", placedTime);
+        tag.putByte("Validity", (byte) validity.ordinal());
+    }
+
+    @Override
+    public void writeSafe(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeSafe(tag, registries);
+        writeFrequencies(tag, registries);
+    }
+
+    private void writeFrequencies(CompoundTag tag, HolderLookup.Provider registries) {
         CompoundTag freq = new CompoundTag();
         freq.put("LeftFirst",   links.getFirstFreqA().saveOptional(registries));
         freq.put("LeftSecond",  links.getFirstFreqB().saveOptional(registries));
         freq.put("RightFirst",  links.getSecondFreqA().saveOptional(registries));
         freq.put("RightSecond", links.getSecondFreqB().saveOptional(registries));
         tag.put("Frequency", freq);
-
-        tag.putLong("PlacedTime", placedTime);
-        tag.putByte("Validity", (byte) validity.ordinal());
     }
 
     @Override

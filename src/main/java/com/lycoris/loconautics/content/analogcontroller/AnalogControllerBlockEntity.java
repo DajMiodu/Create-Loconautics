@@ -703,6 +703,16 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
             tag.putInt("Steer", steerInput);
         }
 
+        writeFrequencies(tag, registries);
+    }
+
+    @Override
+    public void writeSafe(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeSafe(tag, registries);
+        writeFrequencies(tag, registries);
+    }
+
+    private void writeFrequencies(CompoundTag tag, HolderLookup.Provider registries) {
         CompoundTag freq = new CompoundTag();
         freq.put("First",       frequencyFirst.saveOptional(registries));
         freq.put("Second",      frequencySecond.saveOptional(registries));

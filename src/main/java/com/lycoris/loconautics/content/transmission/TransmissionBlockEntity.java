@@ -301,6 +301,16 @@ public class TransmissionBlockEntity extends SplitShaftBlockEntity implements Me
         tag.putBoolean("DirectionActive", directionActive);
         if (!clientPacket && reattachPending) tag.putBoolean("ReattachPending", true);
 
+        writeFrequencies(tag, registries);
+    }
+
+    @Override
+    public void writeSafe(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeSafe(tag, registries);
+        writeFrequencies(tag, registries);
+    }
+
+    private void writeFrequencies(CompoundTag tag, HolderLookup.Provider registries) {
         CompoundTag freq = new CompoundTag();
         freq.put("SpeedFirst",  links.getFirstFreqA().saveOptional(registries));
         freq.put("SpeedSecond", links.getFirstFreqB().saveOptional(registries));
