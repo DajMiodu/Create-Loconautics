@@ -57,7 +57,7 @@ public final class GhostConsistTrace {
     private static final double ARC_STEP = 0.5;
     private static final double ARC_REACH = 40.0;
     private static final double ARC_MATCH = 0.3;
-    private static boolean enabled = true;
+    private static boolean enabled;
 
     private record Snap(Residency residency, Vector3d rail) {}
 

@@ -22,7 +22,7 @@ public final class TickMeterHud {
 
     private static void render(GuiGraphics g, DeltaTracker delta) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || mc.getSingleplayerServer() == null || mc.options.hideGui) {
+        if (!com.lycoris.loconautics.config.DiagnosticsConfig.debugOutput() || mc.level == null || mc.getSingleplayerServer() == null || mc.options.hideGui) {
             return;
         }
         double gap = TickMeter.gapMs();

@@ -24,6 +24,7 @@ import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 public final class Loconautics {
 
     public Loconautics(IEventBus modEventBus, ModContainer modContainer) {
+        com.lycoris.loconautics.foundation.debug.DebugLogFilter.install();
         LoconauticsRegistries.register(modEventBus);
         BoilerBlocks.register(modEventBus);
         com.lycoris.loconautics.content.cerisene.CeriseneBlocks.register(modEventBus);

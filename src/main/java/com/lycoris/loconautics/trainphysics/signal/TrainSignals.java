@@ -327,7 +327,7 @@ public final class TrainSignals {
 
     private static void announce(SableTrain train, String text) {
         String name = train.id().toString().substring(0, 8);
-        if (train.level() == null) {
+        if (train.level() == null || !com.lycoris.loconautics.config.DiagnosticsConfig.debugOutput()) {
             return;
         }
         Component line = Component.literal("[loco] train " + name + ": " + text);

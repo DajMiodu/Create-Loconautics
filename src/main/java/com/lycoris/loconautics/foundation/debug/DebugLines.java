@@ -26,7 +26,8 @@ public final class DebugLines {
 
     public static void line(ServerLevel level, String slot, Vec3 start, Vec3 end, int color,
                             float width, int ttl) {
-        if (level == null || slot == null || start == null || end == null) {
+        if (level == null || slot == null || start == null || end == null
+                || !com.lycoris.loconautics.config.DiagnosticsConfig.debugOutput()) {
             return;
         }
         PacketDistributor.sendToPlayersNear(level, null, start.x, start.y, start.z, SEND_RANGE,

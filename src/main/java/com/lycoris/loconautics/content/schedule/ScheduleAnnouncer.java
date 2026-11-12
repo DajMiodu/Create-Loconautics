@@ -133,7 +133,7 @@ public final class ScheduleAnnouncer {
                 .literal("[loco] " + residency + "Entry " + (runtime.currentEntry + 1) + letter + "/" + total + ": ")
                 .append(body);
         LoconauticsConstants.LOGGER.info(line.getString());
-        if (train == null || train.level() == null || train.level().getServer() == null) {
+        if (!com.lycoris.loconautics.config.DiagnosticsConfig.debugOutput() || train == null || train.level() == null || train.level().getServer() == null) {
             return;
         }
         Vec3 at = train.isTrackless() ? null : runtime.leadRail().leadingPos();

@@ -1,34 +1,15 @@
 package com.lycoris.loconautics.config;
 
 import com.lycoris.loconautics.LoconauticsConstants;
-import net.minecraft.network.chat.Component;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.common.TranslatableEnum;
-
-import java.util.Locale;
 
 public final class LoconauticsConfig {
 
-    static final String TRANSLATION_PREFIX = LoconauticsConstants.MOD_ID + ".configuration.";
+    private static final String TRANSLATION_PREFIX = LoconauticsConstants.MOD_ID + ".configuration.";
 
-    public enum Realism implements TranslatableEnum {
-        REALISTIC, ARCADE;
-
-        @Override
-        public Component getTranslatedName() {
-            return Component.translatable(TRANSLATION_PREFIX + "boiler.boilerRealism." + name().toLowerCase(Locale.ROOT));
-        }
-    }
-
-    public enum TemperatureUnit implements TranslatableEnum {
-        CELSIUS, FAHRENHEIT, KELVIN;
-
-        @Override
-        public Component getTranslatedName() {
-            return Component.translatable(TRANSLATION_PREFIX + "gauges.temperatureUnit." + name().toLowerCase(Locale.ROOT));
-        }
-    }
+    public enum Realism { REALISTIC, ARCADE }
+    public enum TemperatureUnit { CELSIUS, FAHRENHEIT, KELVIN }
 
     public static ModConfigSpec.BooleanValue ENABLE_SABLE_TRAINS;
     public static ModConfigSpec.BooleanValue ENABLE_CREATE_TRAINS;
@@ -376,38 +357,31 @@ public final class LoconauticsConfig {
 
         DERAIL_ROLL_UNGLUE_DEGREES = BUILDER
                 .comment("Roll angle a fast Carriage can lean before it comes off the rail.")
-                .translation(TRANSLATION_PREFIX + "track.derailment.rollUnglueDegrees")
                 .defineInRange("rollUnglueDegrees", 12.0, 1.0, 90.0);
 
         DERAIL_ROLL_SLOW_SPEED = BUILDER
                 .comment("Speed in blocks per second at and below which a leaning Carriage only comes off once it is really falling over.")
-                .translation(TRANSLATION_PREFIX + "track.derailment.rollSlowSpeed")
                 .defineInRange("rollSlowSpeed", 2.0, 0.0, 1000.0);
 
         DERAIL_ROLL_FAST_SPEED = BUILDER
                 .comment("Speed in blocks per second at and above which a leaning Carriage comes off at rollUnglueDegrees.",
                         "Between the two speeds the angle blends smoothly.")
-                .translation(TRANSLATION_PREFIX + "track.derailment.rollFastSpeed")
                 .defineInRange("rollFastSpeed", 10.0, 0.1, 1000.0);
 
         DERAIL_WHEEL_LIFT_DEGREES = BUILDER
                 .comment("How far the wheels lift for an overturning push twice as strong as gravity can hold. Higher lifts more.")
-                .translation(TRANSLATION_PREFIX + "track.derailment.wheelLiftDegrees")
                 .defineInRange("wheelLiftDegrees", 8.0, 1.0, 45.0);
 
         DERAIL_WHEEL_LIFT_MAX_DEGREES = BUILDER
                 .comment("The most the wheel hinge holds a lean. A load that needs more than this tips the Carriage over.")
-                .translation(TRANSLATION_PREFIX + "track.derailment.wheelLiftMaxDegrees")
                 .defineInRange("wheelLiftMaxDegrees", 20.0, 1.0, 60.0);
 
         DERAIL_WHEEL_LIFT_DAMPING = BUILDER
                 .comment("How much a leaning Carriage wobbles before it settles. 1 settles with no bounce, lower rocks longer.")
-                .translation(TRANSLATION_PREFIX + "track.derailment.wheelLiftDamping")
                 .defineInRange("wheelLiftDamping", 0.35, 0.05, 1.0);
 
         SUSPENSION_LEAN_DEGREES = BUILDER
                 .comment("How far a Carriage body leans on its springs when the load sits right over one rail. The wheels stay on the rail, 0 keeps the body level.")
-                .translation(TRANSLATION_PREFIX + "track.derailment.suspensionLeanDegrees")
                 .defineInRange("suspensionLeanDegrees", 2.0, 0.0, 10.0);
 
         DERAIL_ON_EXTERNAL_FORCE = BUILDER
@@ -418,17 +392,14 @@ public final class LoconauticsConfig {
         DERAIL_EXTERNAL_LIFT_RATIO = BUILDER
                 .comment("Upward push that lets go of the rail on a Carriage that can lean, as a share of its own weight. 0 leaves it to the wheel lift alone.",
                         "Holding a Train up already costs 1.0, so keep this well above it or a staff drag throws it off.")
-                .translation(TRANSLATION_PREFIX + "track.derailment.externalLiftRatio")
                 .defineInRange("externalLiftRatio", 25.0, 0.0, 1000.0);
 
         DERAIL_ON_CURVE = BUILDER
                 .comment("Off, a fast curve only lifts the wheels on the outside a little. On, curves are full physics and a car taken too fast tips off.")
-                .translation(TRANSLATION_PREFIX + "track.derailment.derailOnCurve")
                 .define("derailOnCurve", false);
 
         DERAIL_CURVE_LIFT_MAX_DEGREES = BUILDER
                 .comment("The most a curve lifts the outside wheels while derailOnCurve is off.")
-                .translation(TRANSLATION_PREFIX + "track.derailment.curveLiftMaxDegrees")
                 .defineInRange("curveLiftMaxDegrees", 3.0, 0.0, 30.0);
 
         DERAIL_AT_TRACK_END = BUILDER
@@ -470,130 +441,102 @@ public final class LoconauticsConfig {
 
         BUILDER.pop();
 
-        BUILDER.translation(TRANSLATION_PREFIX + "boiler").push("boiler");
+        BUILDER.push("boiler");
 
         BOILER_REALISM = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.boilerRealism")
                 .defineEnum("boilerRealism", Realism.REALISTIC);
 
         AMBIENT_TEMPERATURE_C = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.ambientTemperatureC")
                 .defineInRange("ambientTemperatureC", 20.0, -100.0, 1000.0);
 
         WORKING_TEMPERATURE_C = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.workingTemperatureC")
                 .defineInRange("workingTemperatureC", 200.0, 0.0, 2000.0);
 
         TEMPERATURE_JITTER_C = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.temperatureJitterC")
                 .defineInRange("temperatureJitterC", 10.0, 0.0, 200.0);
 
         WATER_JITTER_MB = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.waterJitterMb")
                 .defineInRange("waterJitterMb", 120.0, 0.0, 10000.0);
 
         WARMUP_TICKS = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.warmupTicks")
                 .defineInRange("warmupTicks", 1800, 20, 72000);
 
         SU_PER_BODY_BLOCK = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.suPerBodyBlock")
                 .defineInRange("suPerBodyBlock", 83.0, 0.0, 100000.0);
 
         TAKEOFF_MIN_RPM = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.takeoffMinRpm")
                 .defineInRange("takeoffMinRpm", 4.0, 0.0, 256.0);
 
         TAKEOFF_MAX_RPM = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.takeoffMaxRpm")
                 .defineInRange("takeoffMaxRpm", 128.0, 0.0, 256.0);
 
         BURN_STRESS_FACTOR = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.burnStressFactor")
                 .defineInRange("burnStressFactor", 1.0, 0.0, 100.0);
 
         BURN_MASS_DIVISOR = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.burnMassDivisor")
                 .defineInRange("burnMassDivisor", 20000.0, 1.0, 10000000.0);
 
         BURN_RATE_SCALE = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.burnRateScale")
                 .defineInRange("burnRateScale", 1.0, 0.01, 100.0);
 
         WATER_PER_BODY_PER_TICK = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.waterPerBodyPerTick")
                 .defineInRange("waterPerBodyPerTick", 2.0, 0.0, 1000.0);
 
         WATER_RECYCLE_FRACTION = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.waterRecycleFraction")
                 .defineInRange("waterRecycleFraction", 0.65, 0.0, 0.99);
 
         BOILER_MAX_LENGTH = BUILDER
                 .comment("Most body blocks a boiler may span along its length before it stops working.",
                         "Longer boilers burn more fuel and draw more water.")
-                .translation(TRANSLATION_PREFIX + "boiler.maxLength")
                 .defineInRange("maxLength", 8, 1, 256);
 
         BODY_WATER_CAPACITY = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.bodyWaterCapacity")
                 .defineInRange("bodyWaterCapacity", 8000, 1, 1000000);
 
         INJECTOR_TANK_CAPACITY = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.injectorTankCapacity")
                 .defineInRange("injectorTankCapacity", 8000, 1000, 1000000);
 
-        BUILDER.translation(TRANSLATION_PREFIX + "boiler.pressure").push("pressure");
+        BUILDER.push("pressure");
 
         PRESSURE_RISE_PER_TICK = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.pressure.pressureRisePerTick")
                 .defineInRange("pressureRisePerTick", 0.0015, 0.0, 1.0);
 
         PRESSURE_VENT_PER_TICK = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.pressure.pressureVentPerTick")
                 .defineInRange("pressureVentPerTick", 0.004, 0.0, 1.0);
 
         PRESSURE_IDLE_BLEED_PER_TICK = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.pressure.pressureIdleBleedPerTick")
                 .defineInRange("pressureIdleBleedPerTick", 0.002, 0.0, 1.0);
 
         BURST_PRESSURE = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.pressure.burstPressure")
                 .defineInRange("burstPressure", 1.6, 1.0, 10.0);
 
         DRAFT_CHOKE_TICKS = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.pressure.draftChokeTicks")
                 .defineInRange("draftChokeTicks", 900, 20, 72000);
 
         BUILDER.pop();
 
-        BUILDER.translation(TRANSLATION_PREFIX + "boiler.failure").push("failure");
+        BUILDER.push("failure");
 
         CROWN_SHEET_TICKS = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.failure.crownSheetTicks")
                 .defineInRange("crownSheetTicks", 600, 20, 72000);
 
         FAILURE_EXPLOSION_BASE = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.failure.failureExplosionBase")
                 .defineInRange("failureExplosionBase", 3.0, 0.0, 100.0);
 
         FAILURE_EXPLOSION_MAX = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.failure.failureExplosionMax")
                 .defineInRange("failureExplosionMax", 9.0, 0.0, 100.0);
 
         BUILDER.pop();
 
-        BUILDER.translation(TRANSLATION_PREFIX + "boiler.crash").push("crash");
+        BUILDER.push("crash");
 
         CRASH_EXPLODE_ENABLED = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.crash.explodeOnCrash")
                 .define("explodeOnCrash", true);
 
         CRASH_IMPACT_THRESHOLD = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.crash.crashImpactThreshold")
                 .defineInRange("crashImpactThreshold", 4.0, 0.0, 1000.0);
 
         CRASH_EXPLOSION_POWER = BUILDER
-                .translation(TRANSLATION_PREFIX + "boiler.crash.explosionPower")
                 .defineInRange("explosionPower", 4.0, 0.0, 100.0);
 
         BUILDER.pop();
@@ -670,16 +613,14 @@ public final class LoconauticsConfig {
                 .defineInRange("scanInterval", 5, 1, 100);
 
         BUILDER.pop();
-        BUILDER.translation(TRANSLATION_PREFIX + "couplers.twist").push("twist");
+        BUILDER.push("twist");
 
         COUPLER_TWIST_STIFFNESS = BUILDER
                 .comment("How hard a coupler resists two Carriages leaning apart, as a share of the lighter one's wheel hinge. 0 turns it off.")
-                .translation(TRANSLATION_PREFIX + "couplers.twist.twistStiffness")
                 .defineInRange("twistStiffness", 2.0, 0.0, 8.0);
 
         COUPLER_TWIST_SLACK_DEGREES = BUILDER
                 .comment("Free twist in a coupler before it starts passing lean to the next Carriage.")
-                .translation(TRANSLATION_PREFIX + "couplers.twist.twistSlackDegrees")
                 .defineInRange("twistSlackDegrees", 3.0, 0.0, 15.0);
 
         BUILDER.pop();
@@ -749,52 +690,44 @@ public final class LoconauticsConfig {
 
         if (ModList.get().isLoaded("createbigcannons")) {
             BUILDER.translation(TRANSLATION_PREFIX + "compat").push("compat");
-            BUILDER.translation(TRANSLATION_PREFIX + "compat.createbigcannons").push("createbigcannons");
-            BUILDER.translation(TRANSLATION_PREFIX + "compat.createbigcannons.derailment").push("derailment");
+            BUILDER.push("createbigcannons");
+            BUILDER.push("derailment");
 
             CBC_DERAIL_ENABLED = BUILDER
-                    .translation(TRANSLATION_PREFIX + "compat.createbigcannons.derailment.derailEnabled")
                     .define("derailEnabled", true);
 
             CBC_KNOCKBACK_MOMENTUM_SCALE = BUILDER
-                    .translation(TRANSLATION_PREFIX + "compat.createbigcannons.derailment.knockbackMomentumScale")
                     .defineInRange("knockbackMomentumScale", 1.0, 0.0, 1000.0);
 
             CBC_KNOCKBACK_BASE_SPEED = BUILDER
-                    .translation(TRANSLATION_PREFIX + "compat.createbigcannons.derailment.knockbackBaseSpeed")
                     .defineInRange("knockbackBaseSpeed", 15.0, 0.0, 1.0e6);
 
             CBC_KNOCKBACK_UPWARD = BUILDER
-                    .translation(TRANSLATION_PREFIX + "compat.createbigcannons.derailment.knockbackUpward")
                     .defineInRange("knockbackUpward", 0.6, 0.0, 10.0);
 
             CBC_GHOST_WHEEL_HIDE_TICKS = BUILDER
-                    .translation(TRANSLATION_PREFIX + "compat.createbigcannons.derailment.ghostWheelHideTicks")
                     .defineInRange("ghostWheelHideTicks", 20, 1, 1200);
 
             BUILDER.pop();
 
-            BUILDER.translation(TRANSLATION_PREFIX + "compat.createbigcannons.recoil").push("recoil");
+            BUILDER.push("recoil");
 
             CBC_RECOIL_ENABLED = BUILDER
-                    .translation(TRANSLATION_PREFIX + "compat.createbigcannons.recoil.recoilEnabled")
                     .define("recoilEnabled", true);
 
             CBC_RECOIL_MOMENTUM_SCALE = BUILDER
-                    .translation(TRANSLATION_PREFIX + "compat.createbigcannons.recoil.recoilMomentumScale")
                     .defineInRange("recoilMomentumScale", 1.0, 0.0, 1000.0);
 
             BUILDER.pop();
 
             CBC_GLOBAL_KNOCKBACK_ENABLED = BUILDER
-                    .translation(TRANSLATION_PREFIX + "compat.createbigcannons.globalKnockbackEnabled")
                     .define("globalKnockbackEnabled", false);
 
             BUILDER.pop();
             BUILDER.pop();
         }
 
-        BUILDER.translation(TRANSLATION_PREFIX + "debug").push("debug");
+        BUILDER.push("debug");
 
         DiagnosticsConfig.define(BUILDER);
 
@@ -823,22 +756,19 @@ public final class LoconauticsConfig {
 
     private static void defineClient(ModConfigSpec.Builder BUILDER) {
         BUILDER.translation(TRANSLATION_PREFIX + "blocks").push("blocks");
-        BUILDER.translation(TRANSLATION_PREFIX + "blocks.smokestack").push("smokestack");
+        BUILDER.push("smokestack");
 
         SMOKESTACK_PARTICLES_PER_TICK = BUILDER
                 .comment("Smoke particles one smokestack spawns each tick at full power, lower power spawns less.",
                         "Higher is denser smoke and costs fps, most of all with a shader pack.")
-                .translation(TRANSLATION_PREFIX + "blocks.smokestack.particlesPerTick")
                 .defineInRange("particlesPerTick", 0.8, 0.1, 2.0);
 
         SMOKESTACK_ADAPTIVE = BUILDER
                 .comment("Spawns less smoke while the fps is under the target and brings it back when the fps recovers.")
-                .translation(TRANSLATION_PREFIX + "blocks.smokestack.adaptiveParticles")
                 .define("adaptiveParticles", true);
 
         SMOKESTACK_TARGET_FPS = BUILDER
                 .comment("The fps adaptive smoke tries to hold. Higher thins the smoke sooner.")
-                .translation(TRANSLATION_PREFIX + "blocks.smokestack.targetFps")
                 .defineInRange("targetFps", 60, 20, 240);
 
         BUILDER.pop();
@@ -847,7 +777,6 @@ public final class LoconauticsConfig {
         BUILDER.translation(TRANSLATION_PREFIX + "gauges").push("gauges");
 
         TEMPERATURE_UNIT = BUILDER
-                .translation(TRANSLATION_PREFIX + "gauges.temperatureUnit")
                 .defineEnum("temperatureUnit", TemperatureUnit.CELSIUS);
 
         DIAL_WOBBLE_DEGREES = BUILDER

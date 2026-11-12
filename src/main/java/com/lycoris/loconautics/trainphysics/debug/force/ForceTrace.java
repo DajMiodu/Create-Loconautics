@@ -365,7 +365,7 @@ public final class ForceTrace {
 
     private static void say(ServerSubLevel sub, String message) {
         ServerLevel level = sub.getLevel();
-        if (!chat || level == null) {
+        if (!chat || level == null || !DiagnosticsConfig.debugOutput()) {
             return;
         }
         Component text = Component.literal("[force] " + message);

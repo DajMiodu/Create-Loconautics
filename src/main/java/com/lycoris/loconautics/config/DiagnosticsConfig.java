@@ -3,15 +3,25 @@ package com.lycoris.loconautics.config;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class DiagnosticsConfig {
-    private static final String TRANSLATION_PREFIX = LoconauticsConfig.TRANSLATION_PREFIX + "debug.";
 
     private DiagnosticsConfig() {
     }
 
-    public static ModConfigSpec.BooleanValue DISABLE_ALL;
+    public static ModConfigSpec.BooleanValue DEBUG_OUTPUT;
+
+    public static boolean debugOutput() {
+        if (DEBUG_OUTPUT == null) {
+            return false;
+        }
+        try {
+            return DEBUG_OUTPUT.get();
+        } catch (IllegalStateException notLoaded) {
+            return false;
+        }
+    }
 
     public enum Channel {
-        FORCE("force", true),
+        FORCE("force", false),
         FORCE_LINES("forceLines", false);
 
         private final String key;
@@ -24,11 +34,11 @@ public final class DiagnosticsConfig {
         }
 
         private void define(ModConfigSpec.Builder builder) {
-            value = builder.translation(TRANSLATION_PREFIX + key).define(key, alwaysOn);
+            value = builder.define(key, alwaysOn);
         }
 
         public boolean enabled() {
-            return (alwaysOn || value.get()) && !DISABLE_ALL.get();
+            return (alwaysOn || value.get()) && debugOutput();
         }
 
         public boolean toggle() {
@@ -39,10 +49,10 @@ public final class DiagnosticsConfig {
     }
 
     public static void define(ModConfigSpec.Builder builder) {
-        DISABLE_ALL = builder
-                .comment("Turn off every diagnostics channel below at once")
-                .translation(TRANSLATION_PREFIX + "disableAll")
-                .define("disableAll", false);
+        DEBUG_OUTPUT = builder
+                .comment("Master switch for developer output: log lines, debug chat messages, debug lines and the tick meter.",
+                        "Leave off unless you are chasing a bug, it also gates the channels below.")
+                .define("debugOutput", false);
 
         for (Channel channel : Channel.values()) {
             channel.define(builder);
