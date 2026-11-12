@@ -79,6 +79,9 @@ public final class PortalTwins {
 
     public record MasterBlock(ServerLevel level, BlockPos pos, ServerSubLevel master) {}
 
+    // moving flag, so copycats do not pop their item
+    private static final int TWIN_FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_MOVE_BY_PISTON;
+
     private static final Map<UUID, Twin> BY_MASTER = new HashMap<>();
     private static final Map<UUID, PortalFrame> FRAMES = new HashMap<>();
     private static final Set<UUID> TWIN_IDS = new HashSet<>();
@@ -751,7 +754,7 @@ public final class PortalTwins {
                     if (twinLevel.getBlockState(to) == want) {
                         continue;
                     }
-                    twinLevel.setBlock(to, want, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                    twinLevel.setBlock(to, want, TWIN_FLAGS);
                     BlockEntity source = masterLevel.getBlockEntity(from);
                     BlockEntity copy = twinLevel.getBlockEntity(to);
                     if (source != null && copy != null) {
@@ -882,8 +885,7 @@ public final class PortalTwins {
         for (int x = bounds.minX(); x <= bounds.maxX(); x++) {
             for (int y = bounds.minY(); y <= bounds.maxY(); y++) {
                 for (int z = bounds.minZ(); z <= bounds.maxZ(); z++) {
-                    level.setBlock(new BlockPos(x, y, z), Blocks.AIR.defaultBlockState(),
-                            Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                    level.setBlock(new BlockPos(x, y, z), Blocks.AIR.defaultBlockState(), TWIN_FLAGS);
                 }
             }
         }
