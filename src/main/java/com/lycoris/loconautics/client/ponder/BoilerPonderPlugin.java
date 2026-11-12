@@ -47,7 +47,10 @@ public class BoilerPonderPlugin implements PonderPlugin {
         helper.forComponents(BoilerBlocks.GAUGE_BUTTON_ITEM.getId(), BoilerBlocks.GAUGE_LEVER_ITEM.getId(),
                         BoilerBlocks.GAUGE_SWITCH_ITEM.getId())
                 .addStoryBoard("panel/panel", PanelScenes::parts)
-                .addStoryBoard("panel/panel", PanelScenes::controls);
+                .addStoryBoard("panel/panel", PanelScenes::controls)
+                .addStoryBoard("panel/panel", PanelScenes::gui)
+                .addStoryBoard("panel/panel", PanelScenes::look)
+                .addStoryBoard("panel/panel", PanelScenes::glass);
 
         helper.forComponents(DashboardBlocks.DASHBOARDS.values().stream().map(DeferredHolder::getId).toList())
                 .addStoryBoard("dashboard/dashboard", DashboardScenes::desk);
