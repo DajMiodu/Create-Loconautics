@@ -4,6 +4,7 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import dev.simulated_team.simulated.content.blocks.rope.RopeStrandHolderBehavior;
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.sable.SableTeleportation;
+import com.lycoris.loconautics.network.packets.train.SableTrainSyncPacket;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.common.sable.SubLevelBlocks;
 import com.lycoris.loconautics.trainphysics.sublevel.SubLevelContacts;
@@ -139,6 +140,16 @@ public final class PortalTwins {
         return TWIN_IDS.contains(subLevelId);
     }
 
+    public static UUID masterOf(UUID bodyId) {
+        for (Twin twin : BY_MASTER.values()) {
+            if (twin.twinId().equals(bodyId)) {
+                return twin.masterId();
+            }
+        }
+        Follower follower = FOLLOWERS.get(bodyId);
+        return follower == null ? null : follower.masterId();
+    }
+
     public static UUID twinOf(UUID masterId) {
         Twin twin = BY_MASTER.get(masterId);
         return twin == null ? null : twin.twinId();
@@ -177,6 +188,10 @@ public final class PortalTwins {
         }
         FRAMES.put(masterId, frame);
         RENEWED.put(masterId, tick);
+        SableTrain car = SableTrainRegistry.bySubLevel(masterId);
+        if (car != null) {
+            SableTrainSyncPacket.announceTwin(car);
+        }
         // the masters do not collide with each other in home, so their twins must not either
         for (Twin other : List.copyOf(BY_MASTER.values())) {
             if (other.masterId().equals(masterId) || !other.twinDim().equals(frame.farDim())
@@ -337,6 +352,7 @@ public final class PortalTwins {
         }
         PortalTrace.log("drop master={} twin={} by={}", PortalTrace.id(masterId), PortalTrace.id(twin.twinId()),
                 caller());
+        SableTrainSyncPacket.broadcastRemoval(twin.twinId());
         SubLevelContacts.releaseAll(twin.twinId());
         PortalColliders.clear(twin.twinId());
         clear(server.getLevel(twin.twinDim()), twin.twinId(), twin.slot(), twin.box());

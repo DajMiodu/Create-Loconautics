@@ -32,6 +32,7 @@ import com.simibubi.create.content.trains.graph.TrackGraphHelper;
 import com.simibubi.create.content.trains.graph.TrackGraphLocation;
 import com.lycoris.loconautics.trainphysics.station.StationLastStyle;
 import com.lycoris.loconautics.trainphysics.station.TrainStations;
+import com.lycoris.loconautics.trainphysics.portal.PortalTwins;
 import com.lycoris.loconautics.trainphysics.portal.TrainPortalCrossing;
 import com.simibubi.create.content.trains.station.GlobalStation;
 import com.simibubi.create.content.trains.station.StationBlockEntity;
@@ -746,6 +747,10 @@ public final class SableTrainSpawner {
         }
         BlockPos pos = pick.pos();
         ServerLevel level = player.serverLevel();
+        UUID masterId = PortalTwins.masterOf(subLevelId);
+        if (masterId != null) {
+            subLevelId = masterId;
+        }
         SableTrain train = SableTrainRegistry.bySubLevel(subLevelId);
         if (train == null) {
             refuseRelocation(speak, player, "train for sub-level " + subLevelId + " not found", null);

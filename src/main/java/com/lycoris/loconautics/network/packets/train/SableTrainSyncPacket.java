@@ -3,6 +3,7 @@ package com.lycoris.loconautics.network.packets.train;
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.drive.TrainSyncCache;
+import com.lycoris.loconautics.trainphysics.portal.PortalTwins;
 import com.lycoris.loconautics.trainphysics.state.SableTrainClientRegistry;
 import com.lycoris.loconautics.trainphysics.state.SableTrainRegistry;
 import net.minecraft.core.BlockPos;
@@ -132,6 +133,20 @@ public record SableTrainSyncPacket(UUID subLevelId, UUID trainId, boolean presen
             return;
         }
         PacketDistributor.sendToAllPlayers(add(train));
+        announceTwin(train);
+    }
+
+    public static void announceTwin(SableTrain train) {
+        UUID twinId = PortalTwins.twinOf(train.car().subLevelId());
+        if (twinId != null) {
+            PacketDistributor.sendToAllPlayers(asBody(add(train), twinId));
+        }
+    }
+
+    private static SableTrainSyncPacket asBody(SableTrainSyncPacket p, UUID bodyId) {
+        return new SableTrainSyncPacket(bodyId, p.trainId(), p.present(), p.bogeySpacing(), p.consistLength(),
+                p.derailed(), p.brakeHard(), p.speed(), p.wheelDrive(), p.offTrackBogeys(), p.drivenBogeys(),
+                p.slipFactor(), p.slippingBogeys(), p.topSpeed(), p.workingBogeys(), p.endOfTrack());
     }
 
     public static void broadcastRemoval(UUID subLevelId) {
@@ -145,6 +160,10 @@ public record SableTrainSyncPacket(UUID subLevelId, UUID trainId, boolean presen
         for (SableTrain train : SableTrainRegistry.all()) {
             if (train.car().subLevelId() != null) {
                 PacketDistributor.sendToPlayer(player, add(train));
+                UUID twinId = PortalTwins.twinOf(train.car().subLevelId());
+                if (twinId != null) {
+                    PacketDistributor.sendToPlayer(player, asBody(add(train), twinId));
+                }
             }
         }
     }
