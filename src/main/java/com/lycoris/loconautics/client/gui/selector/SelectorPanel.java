@@ -75,8 +75,8 @@ public final class SelectorPanel {
     private static final int ARROW_HOVER_OFFSET = 12;
     private static final int ARROW_GLYPH_U = 376;
 
-    private static final int ROW_W = 172;
-    private static final int ROW_H = 30;
+    public static final int ROW_W = 172;
+    public static final int ROW_H = 30;
     private static final int SIGNAL_ROW_U = 340;
     private static final int SIGNAL_ROW_V = 166;
     private static final int GAUGE_ROW_U = 340;
@@ -89,9 +89,9 @@ public final class SelectorPanel {
 
     private static final int STRIP_U = 352;
     private static final int STRIP_V = 64;
-    private static final int STRIP_W = 40;
-    private static final int STRIP_H = 82;
-    private static final int STRIP_Y = 72;
+    public static final int STRIP_W = 40;
+    public static final int STRIP_H = 82;
+    public static final int STRIP_Y = 72;
 
     private static final int SLOT_CENTER_X = 20;
     private static final int TOP_SLOT_Y = STRIP_Y + 14;
@@ -101,7 +101,7 @@ public final class SelectorPanel {
     private static final int CORNER_OVERHANG = 1;
 
     private static final int DOT_SIZE = 4;
-    private static final int DOT_STEP = 8;
+    public static final int DOT_STEP = 8;
     private static final int DOT_HIT_HEIGHT = 10;
 
     private SelectorPanel() {}

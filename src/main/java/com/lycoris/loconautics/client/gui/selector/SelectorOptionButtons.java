@@ -32,7 +32,7 @@ public final class SelectorOptionButtons {
         }
     }
 
-    private static AllIcons icon(String id) {
+    public static AllIcons icon(String id) {
         return switch (id) {
             case "plate" -> AllIcons.I_FX_SURFACE_ON;
             case "light" -> AllIcons.I_FX_FIELD_ON;
