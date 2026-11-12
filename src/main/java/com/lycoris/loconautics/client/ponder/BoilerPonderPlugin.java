@@ -2,9 +2,11 @@ package com.lycoris.loconautics.client.ponder;
 
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.content.boiler.BoilerBlocks;
+import com.lycoris.loconautics.content.dashboard.DashboardBlocks;
 import net.createmod.ponder.api.registration.PonderPlugin;
 import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class BoilerPonderPlugin implements PonderPlugin {
 
@@ -46,5 +48,8 @@ public class BoilerPonderPlugin implements PonderPlugin {
                         BoilerBlocks.GAUGE_SWITCH_ITEM.getId())
                 .addStoryBoard("panel/panel", PanelScenes::parts)
                 .addStoryBoard("panel/panel", PanelScenes::controls);
+
+        helper.forComponents(DashboardBlocks.DASHBOARDS.values().stream().map(DeferredHolder::getId).toList())
+                .addStoryBoard("dashboard/dashboard", DashboardScenes::desk);
     }
 }
