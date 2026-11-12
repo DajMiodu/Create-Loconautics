@@ -33,6 +33,8 @@ import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 import static com.lycoris.loconautics.foundation.math.VecMath.perpendicularUp;
 
 public final class ExternalForceDerail {
+    static final double ROLLING_LIFT_RATIO = 25.0;
+
 
     private ExternalForceDerail() {
     }
@@ -219,8 +221,7 @@ public final class ExternalForceDerail {
 
     // a rolling car leaves its height free, so while the staff drags it the guide holds it down and the lift guard has a force to read
     static boolean holdDownForStaff(ServerSubLevel sub) {
-        return LoconauticsConfig.DERAIL_ON_EXTERNAL_FORCE.get() && LoconauticsConfig.DERAIL_EXTERNAL_LIFT_RATIO.get() > 0.0
-                && staffDrags(sub);
+        return LoconauticsConfig.DERAIL_ON_EXTERNAL_FORCE.get() && staffDrags(sub);
     }
 
     static boolean staffDrags(ServerSubLevel sub) {
@@ -336,7 +337,7 @@ public final class ExternalForceDerail {
     }
 
     private static double liftRatio(ServerSubLevel sub) {
-        return CarriageRoll.isRolling(sub.getUniqueId()) ? LoconauticsConfig.DERAIL_EXTERNAL_LIFT_RATIO.get() : LIFT_RATIO;
+        return CarriageRoll.isRolling(sub.getUniqueId()) ? ROLLING_LIFT_RATIO : LIFT_RATIO;
     }
 
     private static boolean checkLift(SableTrain train, Push push, double limit) {

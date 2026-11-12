@@ -1,7 +1,6 @@
 package com.lycoris.loconautics.trainphysics.drive;
 
 import com.lycoris.loconautics.LoconauticsConstants;
-import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlock;
 import com.lycoris.loconautics.content.analogcontroller.AnalogControllerBlockEntity;
 import com.lycoris.loconautics.content.schedule.LocomotiveHardware;
@@ -22,6 +21,9 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 
 public final class ManualDrive {
+    static final double TWO_DRIVER_ACCELERATION = 1.5;
+    static final double THREE_DRIVER_ACCELERATION = 2.0;
+
 
     public static final double COUNTER_BRAKE = 2.0;
 
@@ -90,9 +92,9 @@ public final class ManualDrive {
 
     static double accelerationScale(int pushers) {
         if (pushers >= 3) {
-            return LoconauticsConfig.DYNAMICS_THREE_DRIVER_ACCELERATION.get();
+            return THREE_DRIVER_ACCELERATION;
         }
-        return pushers == 2 ? LoconauticsConfig.DYNAMICS_TWO_DRIVER_ACCELERATION.get() : 1.0;
+        return pushers == 2 ? TWO_DRIVER_ACCELERATION : 1.0;
     }
 
     static double seedTarget(Driver driver, SableTrain car, int flip, boolean engineTurning, double gearedTop,

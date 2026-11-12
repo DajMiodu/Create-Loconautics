@@ -3,7 +3,6 @@ package com.lycoris.loconautics.content.controls.panelgauge;
 import com.lycoris.loconautics.compat.gauge.AeronauticsGauges;
 import com.lycoris.loconautics.compat.gauge.DieselGauges;
 import com.lycoris.loconautics.compat.gauge.PropulsionGauges;
-import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.content.boiler.firebox.FireboxBlockEntity;
 import com.lycoris.loconautics.content.combustion.SmallEngineBlockEntity;
 import com.lycoris.loconautics.content.combustion.SmallEngineTuning;
@@ -46,7 +45,7 @@ public enum GaugeMetric implements StringRepresentable {
             be -> over(be.getDisplaySu(), be.getDisplayMaxSu()), ChatFormatting.AQUA, 15),
     SHAFT_RPM(FireboxBlockEntity.class,
             be -> String.format(Locale.US, "%,.0f RPM", be.getDisplayRpm()),
-            be -> over(be.getDisplayRpm(), (float) (double) LoconauticsConfig.TAKEOFF_MAX_RPM.get()),
+            be -> over(be.getDisplayRpm(), (float) FireboxBlockEntity.TAKEOFF_MAX_RPM),
             ChatFormatting.AQUA, 9),
     BURN_RATE(FireboxBlockEntity.class,
             be -> String.format(Locale.US, "%.2fx", be.getLastBurnRate()),

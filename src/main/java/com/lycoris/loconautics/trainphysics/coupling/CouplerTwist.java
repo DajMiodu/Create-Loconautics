@@ -3,7 +3,6 @@ package com.lycoris.loconautics.trainphysics.coupling;
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.sable.BodyRef;
 import com.lycoris.loconautics.common.sable.SubLevelData;
-import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.content.knuckle.KnuckleTuning;
 import com.lycoris.loconautics.foundation.debug.DebugLines;
 import com.lycoris.loconautics.trainphysics.SableTrain;
@@ -40,6 +39,9 @@ import static com.lycoris.loconautics.foundation.LogFormat.f;
 import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 
 public final class CouplerTwist {
+    static final double TWIST_STIFFNESS = 2.0;
+    static final double TWIST_SLACK_DEGREES = 3.0;
+
 
     // couplertwist is temporary, it goes with the fix confirmation
     public static final boolean TRACE = true;
@@ -280,14 +282,14 @@ public final class CouplerTwist {
     public static void solve(SubLevelPhysicsSystem system, double dt) {
         ServerLevel level = system.getLevel();
         Snapshot snapshot = SNAPSHOTS.get(level.dimension());
-        double kappa = LoconauticsConfig.COUPLER_TWIST_STIFFNESS.get();
+        double kappa = TWIST_STIFFNESS;
         if (snapshot == null || !(dt > 0.0)) {
             return;
         }
         long now = level.getGameTime();
         Map<UUID, Load> loads = new HashMap<>();
         if (kappa > 0.0) {
-            double slack = Math.toRadians(LoconauticsConfig.COUPLER_TWIST_SLACK_DEGREES.get());
+            double slack = Math.toRadians(TWIST_SLACK_DEGREES);
             for (Entry entry : snapshot.links()) {
                 solveLink(level, snapshot, entry, now, dt, kappa, slack, loads);
             }

@@ -1,6 +1,5 @@
 package com.lycoris.loconautics.trainphysics.rail;
 
-import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.simibubi.create.content.trains.graph.TrackGraph;
 import com.simibubi.create.content.trains.graph.TrackGraphHelper;
 import com.simibubi.create.content.trains.graph.TrackGraphLocation;
@@ -20,6 +19,8 @@ import net.minecraft.world.phys.Vec3;
 
 
 public final class SableRailHop {
+    static final double HOP_MAX_ANGLE_DEGREES = 72.5;
+
 
     public record Result(TrackGraph graph, TrackGraphLocation location, ServerSubLevel sub, Vec3 railPoint) {
     }
@@ -132,7 +133,7 @@ public final class SableRailHop {
     }
 
     private static double maxOrientScore() {
-        return 1.0 - Math.cos(Math.toRadians(LoconauticsConfig.RAIL_HOP_MAX_ANGLE.get()));
+        return 1.0 - Math.cos(Math.toRadians(HOP_MAX_ANGLE_DEGREES));
     }
 
     // all positionsdirections below are in the hosts plot frame world  identity, so world coords pass through

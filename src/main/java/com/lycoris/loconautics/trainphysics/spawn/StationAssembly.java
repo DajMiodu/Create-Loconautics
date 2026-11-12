@@ -49,6 +49,10 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 public final class StationAssembly {
+    static final int SCAN_WIDTH = 8;
+    static final int SCAN_HEIGHT = 24;
+    static final int SCAN_DEPTH = 3;
+
 
     public static void assembleFromStation(ServerPlayer player, BlockPos stationPos) {
         ServerLevel level = player.serverLevel();
@@ -78,9 +82,9 @@ public final class StationAssembly {
         BlockPos stationTrack = station.edgePoint.getGlobalPosition();
         int bogeyY = stationTrack.getY() + 1;
 
-        int width = LoconauticsConfig.STATION_SCAN_WIDTH.get();
-        int minY = bogeyY - LoconauticsConfig.STATION_SCAN_DEPTH.get();
-        int maxY = bogeyY + LoconauticsConfig.STATION_SCAN_HEIGHT.get();
+        int width = SCAN_WIDTH;
+        int minY = bogeyY - SCAN_DEPTH;
+        int maxY = bogeyY + SCAN_HEIGHT;
         AABB scan = new AABB(
                 area.minX() - width, minY, area.minZ() - width,
                 area.maxX() + 1 + width, maxY + 1, area.maxZ() + 1 + width);

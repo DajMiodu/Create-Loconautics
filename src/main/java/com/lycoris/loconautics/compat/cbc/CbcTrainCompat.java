@@ -19,6 +19,9 @@ import rbasamoyai.createbigcannons.munitions.AbstractCannonProjectile;
 import rbasamoyai.createbigcannons.munitions.ProjectileContext;
 
 public final class CbcTrainCompat {
+    static final double KNOCKBACK_BASE_SPEED = 15.0;
+    static final double KNOCKBACK_UPWARD = 0.6;
+
 
     private static final double MIN_SPEED = 1.0e-4;
 
@@ -75,7 +78,7 @@ public final class CbcTrainCompat {
         if (train == null) {
             return;
         }
-        double recoilSpeed = projectile.getProjectileMass() * speed * LoconauticsConfig.CBC_RECOIL_MOMENTUM_SCALE.get();
+        double recoilSpeed = projectile.getProjectileMass() * speed;
         Vec3 recoil = dir.scale(-recoilSpeed);
         TrainKnockback.applyRailRecoil(train, new Vector3d(recoil.x, recoil.y, recoil.z));
     }
@@ -86,9 +89,8 @@ public final class CbcTrainCompat {
     }
 
     private static Vector3d impactDeltaV(double momentum, Vec3 dir) {
-        double horizontal = Math.max(momentum * LoconauticsConfig.CBC_KNOCKBACK_MOMENTUM_SCALE.get(),
-                LoconauticsConfig.CBC_KNOCKBACK_BASE_SPEED.get());
-        return new Vector3d(dir.x * horizontal, dir.y * horizontal + horizontal * LoconauticsConfig.CBC_KNOCKBACK_UPWARD.get(),
+        double horizontal = Math.max(momentum, KNOCKBACK_BASE_SPEED);
+        return new Vector3d(dir.x * horizontal, dir.y * horizontal + horizontal * KNOCKBACK_UPWARD,
                 dir.z * horizontal);
     }
 }

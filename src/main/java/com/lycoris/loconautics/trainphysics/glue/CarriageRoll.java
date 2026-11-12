@@ -1,7 +1,6 @@
 package com.lycoris.loconautics.trainphysics.glue;
 
 import com.lycoris.loconautics.LoconauticsConstants;
-import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.trainphysics.PoseTweak;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.SableTrain.Car;
@@ -23,6 +22,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class CarriageRoll {
+    static final double WHEEL_LIFT_MAX_DEGREES = 20.0;
+    static final double ROLL_UNGLUE_DEGREES = 12.0;
+    static final double ROLL_SLOW_SPEED = 2.0;
+    static final double ROLL_FAST_SPEED = 10.0;
+    static final double SUSPENSION_LEAN_DEGREES = 2.0;
+
 
     private CarriageRoll() {
     }
@@ -326,7 +331,7 @@ public final class CarriageRoll {
 
     // the most the hinge holds, in radians
     public static double holdAngle() {
-        return Math.toRadians(LoconauticsConfig.DERAIL_WHEEL_LIFT_MAX_DEGREES.get());
+        return Math.toRadians(WHEEL_LIFT_MAX_DEGREES);
     }
 
     // steady curve lean is m v2 k h less the gravity hold, over the hinge stiffness, so mass cancels
@@ -336,8 +341,8 @@ public final class CarriageRoll {
         if (k < 1.0e-6 || roll.height < 0.05 || roll.half <= 0.0) {
             return Double.POSITIVE_INFINITY;
         }
-        double phiRef = Math.toRadians(LoconauticsConfig.DERAIL_WHEEL_LIFT_DEGREES.get());
-        double phiSafe = share * Math.min(Math.toRadians(LoconauticsConfig.DERAIL_ROLL_UNGLUE_DEGREES.get()),
+        double phiRef = Math.toRadians(RollDynamics.WHEEL_LIFT_DEGREES);
+        double phiSafe = share * Math.min(Math.toRadians(ROLL_UNGLUE_DEGREES),
                 holdAngle());
         double hold = Math.max(0.0, gN * (roll.half - Math.abs(roll.offset)));
         double hinge = gN * roll.half * phiSafe / phiRef;
@@ -346,8 +351,8 @@ public final class CarriageRoll {
 
     // 0 at the slow roll speed and below, 1 at the fast one and above, smooth between
     public static double speedBlend(double speed) {
-        double slow = LoconauticsConfig.DERAIL_ROLL_SLOW_SPEED.get();
-        double fast = Math.max(slow + 1.0e-3, LoconauticsConfig.DERAIL_ROLL_FAST_SPEED.get());
+        double slow = ROLL_SLOW_SPEED;
+        double fast = Math.max(slow + 1.0e-3, ROLL_FAST_SPEED);
         double t = Math.max(0.0, Math.min(1.0, (Math.abs(speed) - slow) / (fast - slow)));
         return t * t * (3.0 - 2.0 * t);
     }
@@ -356,7 +361,7 @@ public final class CarriageRoll {
     public static double unglueAngle(double speed) {
         double blend = speedBlend(speed);
         double slowLimit = holdAngle() + FALL_MARGIN;
-        double fastLimit = Math.toRadians(LoconauticsConfig.DERAIL_ROLL_UNGLUE_DEGREES.get());
+        double fastLimit = Math.toRadians(ROLL_UNGLUE_DEGREES);
         return slowLimit + blend * (fastLimit - slowLimit);
     }
 
@@ -375,7 +380,7 @@ public final class CarriageRoll {
     public static double predictedLift(Vector3d gravity, Vector3d up, Vector3d lateral, double halfGauge,
                                        double offset, double height) {
         double gN = -gravity.dot(up);
-        double phiRef = Math.toRadians(LoconauticsConfig.DERAIL_WHEEL_LIFT_DEGREES.get());
+        double phiRef = Math.toRadians(RollDynamics.WHEEL_LIFT_DEGREES);
         double worst = 0.0;
         for (int side = -1; side <= 1; side += 2) {
             worst = Math.max(worst,
@@ -386,10 +391,10 @@ public final class CarriageRoll {
 
     // body lean on the springs, a spring damper toward a share of the max lean set by how far the load sits off center
     public static void stepSuspension(Roll roll, double halfGauge, double dt) {
-        double max = Math.toRadians(LoconauticsConfig.SUSPENSION_LEAN_DEGREES.get());
+        double max = Math.toRadians(SUSPENSION_LEAN_DEGREES);
         double target = max * Math.max(-1.0, Math.min(1.0, roll.offset / Math.max(halfGauge, 1.0e-3)));
         double omega = 2.0 * Math.PI * SUSPENSION_HZ;
-        double zeta = LoconauticsConfig.DERAIL_WHEEL_LIFT_DAMPING.get();
+        double zeta = RollDynamics.WHEEL_LIFT_DAMPING;
         roll.suspensionRate += (omega * omega * (target - roll.suspension) - 2.0 * zeta * omega * roll.suspensionRate) * dt;
         roll.suspension += roll.suspensionRate * dt;
     }

@@ -24,6 +24,8 @@ import java.util.UUID;
 import static com.lycoris.loconautics.foundation.LogFormat.shortId;
 
 public final class TrainDerailment {
+    static final double MAX_END_IMPACT = 10.0;
+
     private TrainDerailment() {
     }
 
@@ -95,12 +97,12 @@ public final class TrainDerailment {
             }
             if (full) {
                 double impact = SableTrainDriver.trainMass(sub) * approach * 20.0;
-                if (impact > LoconauticsConfig.DERAIL_MAX_END_IMPACT.get()) {
+                if (impact > MAX_END_IMPACT) {
                     TrainKnockback.launchOnDerail(train, DERAIL_LAUNCH_LIFT);
                 }
                 LoconauticsConstants.LOGGER.info(
                         "[sabletrain] car {} ran every bogey off the track end, impact {} vs {}",
-                        train.id(), SableTrainDriver.f(impact), SableTrainDriver.f(LoconauticsConfig.DERAIL_MAX_END_IMPACT.get()));
+                        train.id(), SableTrainDriver.f(impact), SableTrainDriver.f(MAX_END_IMPACT));
                 return;
             }
             if (train.hasOffTrackBogey()) {

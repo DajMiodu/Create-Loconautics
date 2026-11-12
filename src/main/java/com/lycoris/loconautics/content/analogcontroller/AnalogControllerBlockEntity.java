@@ -197,10 +197,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
                 com.lycoris.loconautics.config.LoconauticsConfig.ANALOG_DECAY_TICKS::get, 30, "analog_decay_ticks");
     }
 
-    private int getNegativeCap() {
-        return com.lycoris.loconautics.config.command.ConfigWalker.getOrDefault(
-                com.lycoris.loconautics.config.LoconauticsConfig.ANALOG_NEGATIVE_CAP::get, 5, "analog_negative_cap");
-    }
+    private static final int NEGATIVE_CAP = 5;
     
     private static final long TOGGLE_DEBOUNCE_TICKS = 3;
     private long lastToggleTick = -TOGGLE_DEBOUNCE_TICKS;
@@ -376,7 +373,7 @@ public class AnalogControllerBlockEntity extends SmartBlockEntity implements Men
 
     private int manualTarget() {
         if (locked && heldInput() == 0) return currentPower;
-        return driveInput > 0 ? maxPower : driveInput < 0 ? -Math.min(maxPower, getNegativeCap()) : 0;
+        return driveInput > 0 ? maxPower : driveInput < 0 ? -Math.min(maxPower, NEGATIVE_CAP) : 0;
     }
 
     private int manualInterval(int step) {

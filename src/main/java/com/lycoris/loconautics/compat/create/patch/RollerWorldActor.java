@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public final class RollerWorldActor {
+    static final int HEADROOM_CLEAR_DEPTH = 2;
+
 
     private static final int TUNNEL_PAVE_MODE = 0;
 
@@ -89,7 +91,7 @@ public final class RollerWorldActor {
     }
 
     private static void clearHeadroom(ServerLevel world, BlockPos rollerPos, BlockPos surface, Direction up) {
-        int depth = LoconauticsConfig.rollerHeadroomClearDepth.get();
+        int depth = HEADROOM_CLEAR_DEPTH;
         for (int i = 1; i <= depth; i++) {
             BlockPos above = surface.relative(up, i);
             if (GhostWheelBodies.isWheelBodyAt(world, above)) continue;

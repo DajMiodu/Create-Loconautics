@@ -79,6 +79,16 @@ import java.util.Objects;
 import java.util.Set;
 
 public class FireboxBlockEntity extends BlockEntity implements IHaveGoggleInformation {
+    static final double BURN_MASS_DIVISOR = 20000.0;
+    static final float WATER_PER_BODY_PER_TICK = 2.0f;
+    static final float WATER_RECYCLE_FRACTION = 0.65f;
+    static final float TEMPERATURE_JITTER_C = 10.0f;
+    static final float WATER_JITTER_MB = 120.0f;
+    static final float TAKEOFF_MIN_RPM = 4.0f;
+    public static final float TAKEOFF_MAX_RPM = 128.0f;
+    static final float PRESSURE_VENT_PER_TICK = 0.004f;
+    static final float PRESSURE_IDLE_BLEED_PER_TICK = 0.002f;
+
 
     public static final int FUEL_SLOTS = 1;
 
@@ -389,7 +399,7 @@ public class FireboxBlockEntity extends BlockEntity implements IHaveGoggleInform
                         * structure.temperatureCap() * draftChoke() * warmthEfficiency()
                         * (1f + LOW_WATER_RISE_BOOST * lowWater(waterTank.getFluidAmount(), waterTank.getCapacity()))
                 : 0f;
-        float vent = (float) (double) LoconauticsConfig.PRESSURE_VENT_PER_TICK.get() * valveOpening();
+        float vent = (float) PRESSURE_VENT_PER_TICK * valveOpening();
         float bleed = fed ? 0f : idleBleed();
         float draw = takeoffDraw();
         float before = steamPressure;
@@ -409,7 +419,7 @@ public class FireboxBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     private float takeoffDraw() {
-        float maxRpm = (float) (double) LoconauticsConfig.TAKEOFF_MAX_RPM.get();
+        float maxRpm = (float) TAKEOFF_MAX_RPM;
         if (maxRpm <= 0f) return 0f;
         float load = Math.max(0f, Math.min(1f, lastStressRatio)) * Math.min(1f, shaftRpm() / maxRpm);
         return (float) (double) LoconauticsConfig.PRESSURE_RISE_PER_TICK.get() * load * TAKEOFF_DRAW_MULTIPLIER;
@@ -423,7 +433,7 @@ public class FireboxBlockEntity extends BlockEntity implements IHaveGoggleInform
     private float idleBleed() {
         boolean canLose = structure != null
                 && (structure.hasTakeoff() || structure.hasSafetyValve() || hasBoundValve());
-        return canLose ? (float) (double) LoconauticsConfig.PRESSURE_IDLE_BLEED_PER_TICK.get() : 0f;
+        return canLose ? (float) PRESSURE_IDLE_BLEED_PER_TICK : 0f;
     }
 
     @Nullable
@@ -447,11 +457,8 @@ public class FireboxBlockEntity extends BlockEntity implements IHaveGoggleInform
     private float burnRate() {
         double mass = Math.max(0.0, lastTrainMass);
         float stress = Math.max(0f, Math.min(1f, lastStressRatio));
-        float load = 1f
-                + stress * (float) (double) LoconauticsConfig.BURN_STRESS_FACTOR.get()
-                + (float) (mass / LoconauticsConfig.BURN_MASS_DIVISOR.get());
-        return load * structure.burnMultiplier()
-                * (float) (double) LoconauticsConfig.BURN_RATE_SCALE.get();
+        float load = 1f + stress + (float) (mass / BURN_MASS_DIVISOR);
+        return load * structure.burnMultiplier();
     }
 
     private boolean consumeFuel() {
@@ -537,7 +544,7 @@ public class FireboxBlockEntity extends BlockEntity implements IHaveGoggleInform
             return false;
         }
 
-        float perTick = (float) (double) LoconauticsConfig.WATER_PER_BODY_PER_TICK.get();
+        float perTick = (float) WATER_PER_BODY_PER_TICK;
         int wanted = Math.round(structure.boilerCapacity() * perTick * outputFraction());
         if (wanted <= 0) {
             lastWaterDrawn = 0;
@@ -550,7 +557,7 @@ public class FireboxBlockEntity extends BlockEntity implements IHaveGoggleInform
             return false;
         }
 
-        float recycle = (float) (double) LoconauticsConfig.WATER_RECYCLE_FRACTION.get();
+        float recycle = (float) WATER_RECYCLE_FRACTION;
         injector.returnWater((int) (drawn * recycle));
         return true;
     }
@@ -621,8 +628,8 @@ public class FireboxBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (structure == null || lockedOut) return 0f;
         float fraction = outputFraction();
         if (fraction <= 0f) return 0f;
-        float min = (float) (double) LoconauticsConfig.TAKEOFF_MIN_RPM.get();
-        float max = (float) (double) LoconauticsConfig.TAKEOFF_MAX_RPM.get();
+        float min = (float) TAKEOFF_MIN_RPM;
+        float max = (float) TAKEOFF_MAX_RPM;
         return quantize4((min + (max - min) * fraction) * takeoffRegulator());
     }
 
@@ -687,14 +694,14 @@ public class FireboxBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     private float rollTemperatureJitter() {
-        float amplitude = (float) (double) LoconauticsConfig.TEMPERATURE_JITTER_C.get();
+        float amplitude = (float) TEMPERATURE_JITTER_C;
         if (amplitude <= 0f || level == null) return 0f;
         float triangular = level.random.nextFloat() - level.random.nextFloat();
         return triangular * amplitude * temperatureFraction();
     }
 
     private float rollWaterJitter() {
-        float amplitude = (float) (double) LoconauticsConfig.WATER_JITTER_MB.get();
+        float amplitude = (float) WATER_JITTER_MB;
         if (amplitude <= 0f || level == null) return 0f;
         if (dispWater <= 0 || inflowCooldown <= 0) return 0f;
         float triangular = level.random.nextFloat() - level.random.nextFloat();
@@ -725,7 +732,7 @@ public class FireboxBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (structure == null) return 0f;
         return structure.boilerCapacity()
                 * (float) (double) LoconauticsConfig.SU_PER_BODY_BLOCK.get()
-                * (float) (double) LoconauticsConfig.TAKEOFF_MAX_RPM.get();
+                * (float) TAKEOFF_MAX_RPM;
     }
 
     public int getWaterCapacity() {

@@ -19,6 +19,10 @@ import org.joml.Vector3d;
 import static com.lycoris.loconautics.foundation.LogFormat.f;
 
 public final class RollDynamics {
+    static final double WHEEL_LIFT_DEGREES = 8.0;
+    static final double WHEEL_LIFT_DAMPING = 0.35;
+    static final double CURVE_LIFT_MAX_DEGREES = 3.0;
+
 
     private RollDynamics() {
     }
@@ -34,7 +38,7 @@ public final class RollDynamics {
 
     // the unclamped linear hinge stiffness, the torque that holds a centered car at the reference lift
     public static double hingeStiffness(double mass, double gN, double half) {
-        double phiRef = Math.toRadians(LoconauticsConfig.DERAIL_WHEEL_LIFT_DEGREES.get());
+        double phiRef = Math.toRadians(WHEEL_LIFT_DEGREES);
         return mass * gN * half / phiRef;
     }
 
@@ -67,7 +71,7 @@ public final class RollDynamics {
         }
         double dt = s.dt();
         double stiffness = Math.min(hingeStiffness(mass, gN, frame.half), 0.25 * inertia / (dt * dt));
-        double ratio = LoconauticsConfig.DERAIL_WHEEL_LIFT_DAMPING.get();
+        double ratio = WHEEL_LIFT_DAMPING;
         double damping = Math.min(2.0 * ratio * Math.sqrt(stiffness * inertia), 0.5 * inertia / dt);
         double rate = s.handle().getAngularVelocity(new Vector3d()).dot(frame.tangent);
         double lift = Math.min(Math.max(0.0, side * phi), CarriageRoll.holdAngle());
@@ -143,8 +147,8 @@ public final class RollDynamics {
         double height = relative.dot(frame.up0);
         double gSide = gravity.dot(frame.lateral) * outside;
         double hold = mass * (gN * (frame.half - outside * offset) - gSide * height);
-        double phiRef = Math.toRadians(LoconauticsConfig.DERAIL_WHEEL_LIFT_DEGREES.get());
-        double phiCap = Math.toRadians(LoconauticsConfig.DERAIL_CURVE_LIFT_MAX_DEGREES.get())
+        double phiRef = Math.toRadians(WHEEL_LIFT_DEGREES);
+        double phiCap = Math.toRadians(CURVE_LIFT_MAX_DEGREES)
                 * (1.0 - FAST_CURVE_CUT * CarriageRoll.speedBlend(speed));
         double allowed = hold + phiCap / phiRef * mass * gN * frame.half;
         Vector3d guide = s.pose().transformPosition(

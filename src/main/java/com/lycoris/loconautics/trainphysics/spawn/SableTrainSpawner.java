@@ -80,6 +80,8 @@ import java.util.UUID;
 import static com.lycoris.loconautics.foundation.LogFormat.v3d;
 
 public final class SableTrainSpawner {
+    static final int RAIL_SEARCH_VERTICAL_RANGE = 16;
+
 
     private static final double REACH = 12.0;
     private static final int MAX_BLOCKS = 4096;
@@ -1539,7 +1541,7 @@ public final class SableTrainSpawner {
         String refused = rail == null ? String.format("no rail under the bogey at %s, scanned r%d and %d down",
                         v3d(SubLevelData.worldOfOffset(sub, bogey.localPos())),
                         LoconauticsConfig.RAIL_SEARCH_RADIUS.get(),
-                        LoconauticsConfig.RAIL_SEARCH_VERTICAL_RANGE.get())
+                        RAIL_SEARCH_VERTICAL_RANGE)
                 : rail.railheadWithin(RAILHEAD_PROBE) ? "a railhead is within " + RAILHEAD_PROBE
                 : graph != null && rail.graph() != graph ? "that rail is on another graph"
                 : !seatFitsBogey(level, sub, bogey, rail, fwd, maxLateral)
@@ -1709,7 +1711,7 @@ public final class SableTrainSpawner {
     private static void edgeRailBelow(ServerLevel level, ServerSubLevel host, Vec3 origin, Vec3 look, Hit best,
                                       boolean hanging) {
         RailEdgeSearch.Found found = RailEdgeSearch.nearest(level.dimension(), host, origin, look,
-                LoconauticsConfig.RAIL_SEARCH_RADIUS.get() + 0.5, LoconauticsConfig.RAIL_SEARCH_VERTICAL_RANGE.get(),
+                LoconauticsConfig.RAIL_SEARCH_RADIUS.get() + 0.5, RAIL_SEARCH_VERTICAL_RANGE,
                 hanging);
         if (found != null && found.distSqr() < best.distSqr) {
             best.hit = new TrackHit(found.location(), found.upNormal(), Mth.floor(found.railY()));
@@ -1718,7 +1720,7 @@ public final class SableTrainSpawner {
     }
 
     private static double searchReach() {
-        return LoconauticsConfig.RAIL_SEARCH_RADIUS.get() + LoconauticsConfig.RAIL_SEARCH_VERTICAL_RANGE.get() + 1.0;
+        return LoconauticsConfig.RAIL_SEARCH_RADIUS.get() + RAIL_SEARCH_VERTICAL_RANGE + 1.0;
     }
 
     // the plot frame is a rigid move of the world one, so a squared block offset compares across hosts unchanged
@@ -1730,7 +1732,7 @@ public final class SableTrainSpawner {
     private static void scanRailBelow(ServerLevel level, ServerSubLevel host, BlockPos origin, Vec3 look, Hit best,
                                      boolean hanging) {
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        int down = LoconauticsConfig.RAIL_SEARCH_VERTICAL_RANGE.get();
+        int down = RAIL_SEARCH_VERTICAL_RANGE;
         int radius = LoconauticsConfig.RAIL_SEARCH_RADIUS.get();
         for (int dy = hanging ? -down : 0; dy <= (hanging ? 0 : down); dy++) {
             for (int dx = -radius; dx <= radius; dx++) {

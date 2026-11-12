@@ -21,15 +21,19 @@ import net.minecraft.world.phys.Vec3;
 import java.util.UUID;
 
 public final class TrainPropulsion {
+    static final double MASS_EXPONENT = 0.5;
+    static final double MIN_ACCELERATION = 0.75;
+    static final double MAX_ACCELERATION = 6.0;
+
 
     public static final double MPS2_TO_BPT2 = 0.05 * 0.05;
 
     static double tractionAccelLimit(SableTrain train, double consistMass) {
         double massRatio = LoconauticsConfig.DYNAMICS_REFERENCE_MASS.get() / Math.max(1.0, consistMass);
         double scaled = LoconauticsConfig.DYNAMICS_BASE_ACCELERATION.get()
-                * Math.pow(massRatio, LoconauticsConfig.DYNAMICS_MASS_EXPONENT.get());
-        double limit = Math.max(LoconauticsConfig.DYNAMICS_MIN_ACCELERATION.get(),
-                Math.min(scaled, LoconauticsConfig.DYNAMICS_MAX_ACCELERATION.get()));
+                * Math.pow(massRatio, MASS_EXPONENT);
+        double limit = Math.max(MIN_ACCELERATION,
+                Math.min(scaled, MAX_ACCELERATION));
         double boosted = limit * ConsistPower.driverBoost(train);
         return isMonorail(train) ? boosted * MONORAIL_TRACTION_BOOST : boosted;
     }

@@ -1,7 +1,6 @@
 package com.lycoris.loconautics.trainphysics.spawn;
 
 import com.lycoris.loconautics.LoconauticsConstants;
-import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.network.packets.train.SableTrainSyncPacket;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.common.sable.SubLevelData;
@@ -652,7 +651,7 @@ public final class SubLevelSplitWatcher {
             return scanCar(level, sub, railDir, donors, reference, originalTrain, origSub, offTrackLocal,
                     donorRadiusSq, adoption, Set.of(), new HashSet<>(), new HashSet<>(), true, merge);
         }
-        int max = merge ? Integer.MAX_VALUE : LoconauticsConfig.MAX_BOGEYS_PER_CARRIAGE.get();
+        int max = merge ? Integer.MAX_VALUE : com.lycoris.loconautics.config.LoconauticsConfig.MAX_BOGEYS_PER_CARRIAGE.get();
         if (car == null || car.bogeys().size() <= max) {
             return car;
         }

@@ -12,6 +12,8 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 
 public final class ExplosionSubLevelPush {
+    static final double MIN_DISTANCE = 1.0;
+
 
     private ExplosionSubLevelPush() {
     }
@@ -30,7 +32,7 @@ public final class ExplosionSubLevelPush {
             return;
         }
         double strength = power * LoconauticsConfig.EXPLOSION_SUBLEVEL_PUSH_STRENGTH.get();
-        double minDistance = Math.max(0.1, LoconauticsConfig.EXPLOSION_SUBLEVEL_PUSH_MIN_DISTANCE.get());
+        double minDistance = Math.max(0.1, MIN_DISTANCE);
         double upward = LoconauticsConfig.EXPLOSION_SUBLEVEL_PUSH_UPWARD.get();
 
         for (ServerSubLevel sub : container.getAllSubLevels()) {

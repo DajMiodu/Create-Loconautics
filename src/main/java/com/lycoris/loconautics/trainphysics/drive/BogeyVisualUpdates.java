@@ -1,6 +1,5 @@
 package com.lycoris.loconautics.trainphysics.drive;
 
-import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.trainphysics.PoseTweak;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.SableTrain.Car;
@@ -46,10 +45,7 @@ public final class BogeyVisualUpdates {
         for (SableTrain.Bogey bogey : car.bogeys()) {
             BlockPos worldPos = sub.getPlot().getCenterBlock().offset(bogey.localPos());
             if (subLevel.getBlockEntity(worldPos) instanceof AbstractBogeyBlockEntity be) {
-                double vv = train.speed() * train.speed() * 400.0;
-                double kappa = bogey.rail().signedLateralCurvature();
-
-                org.joml.Vector3f offsetLocal = bogeyPivotOffset(vv, kappa);
+                org.joml.Vector3f offsetLocal = new org.joml.Vector3f();
                 org.joml.Vector3d counter = PoseTweak.counter(sub,
                         new org.joml.Vector3d(worldPos.getX() + 0.5, worldPos.getY() + 0.5, worldPos.getZ() + 0.5),
                         car.carriage().referenceForward(), train.poseTweak());
@@ -66,7 +62,7 @@ public final class BogeyVisualUpdates {
                         new org.joml.Vector3d(worldPos.getX() + 0.5, worldPos.getY() + 0.5, worldPos.getZ() + 0.5),
                         car.carriage().referenceForward(), train.poseTweak());
                 BogeyYawVisual.setRailPose(be, railLinkOf(idleRail),
-                        bogeyPivotOffset(train.speed() * train.speed() * 400.0, idleRail.signedLateralCurvature()),
+                        new org.joml.Vector3f(),
                         new Vector3f((float) counter.x, (float) counter.y, (float) counter.z));
             }
         }
@@ -105,16 +101,6 @@ public final class BogeyVisualUpdates {
                 BogeyYawVisual.clearRailBodyPose(be);
             }
         }
-    }
-
-    static org.joml.Vector3f bogeyPivotOffset(double vv, double kappa) {
-        double swayMax = LoconauticsConfig.BOGEY_SWAY_MAX.get();
-        double sway = clamp(LoconauticsConfig.BOGEY_SWAY_GAIN.get() * vv * kappa, -swayMax, swayMax);
-        return new org.joml.Vector3f((float) sway, 0.0f, 0.0f);
-    }
-
-    static double clamp(double v, double lo, double hi) {
-        return v < lo ? lo : (v > hi ? hi : v);
     }
 
     static void updateWheels(SableTrain train) {

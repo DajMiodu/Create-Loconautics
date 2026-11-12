@@ -7,17 +7,8 @@ public final class DiagnosticsConfig {
     private DiagnosticsConfig() {
     }
 
-    public static ModConfigSpec.BooleanValue DEBUG_OUTPUT;
-
     public static boolean debugOutput() {
-        if (DEBUG_OUTPUT == null) {
-            return false;
-        }
-        try {
-            return DEBUG_OUTPUT.get();
-        } catch (IllegalStateException notLoaded) {
-            return false;
-        }
+        return LoconauticsConfig.DEBUG;
     }
 
     public enum Channel {
@@ -49,11 +40,6 @@ public final class DiagnosticsConfig {
     }
 
     public static void define(ModConfigSpec.Builder builder) {
-        DEBUG_OUTPUT = builder
-                .comment("Master switch for developer output: log lines, debug chat messages, debug lines and the tick meter.",
-                        "Leave off unless you are chasing a bug, it also gates the channels below.")
-                .define("debugOutput", false);
-
         for (Channel channel : Channel.values()) {
             channel.define(builder);
         }

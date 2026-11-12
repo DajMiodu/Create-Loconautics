@@ -29,6 +29,10 @@ import java.util.List;
 public class BearingAxleBlockEntity extends KineticBlockEntity
         implements IHaveGoggleInformation, MenuProvider, LinkHolder {
 
+    static final double MASS_DIVISOR = 10.0;
+    static final double BASE_IMPACT = 1.0;
+    static final double SLOPE_STRESS_PER_DEGREE = 0.5;
+
     private double totalMassKg;
     private double slopeAngleDeg;
 
@@ -195,10 +199,10 @@ public class BearingAxleBlockEntity extends KineticBlockEntity
             return 0.0;
         }
         double slope = LoconauticsConfig.SLOPE_EFFECTS_ENABLED.get()
-                ? LoconauticsConfig.SLOPE_STRESS_FACTOR.get() * slopeAngleDeg
+                ? SLOPE_STRESS_PER_DEGREE * slopeAngleDeg
                 : 0.0;
-        return AxleGearing.stressImpact(LoconauticsConfig.BASE_IMPACT.get(), massShare,
-                LoconauticsConfig.MASS_DIVISOR.get(), slope,
+        return AxleGearing.stressImpact(BASE_IMPACT, massShare,
+                MASS_DIVISOR, slope,
                 opposed ? LoconauticsConfig.OPPOSED_STRESS_FACTOR.get() : 1.0);
     }
 

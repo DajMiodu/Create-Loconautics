@@ -1,7 +1,6 @@
 package com.lycoris.loconautics.trainphysics.glue;
 
 import com.lycoris.loconautics.LoconauticsConstants;
-import com.lycoris.loconautics.config.LoconauticsConfig;
 import com.lycoris.loconautics.trainphysics.PoseTweak;
 import com.lycoris.loconautics.trainphysics.SableTrain;
 import com.lycoris.loconautics.trainphysics.SableTrain.Car;
@@ -276,7 +275,7 @@ public final class RailSnap {
         double omegaWritten = omegaR;
         if (roll.curveHeld(now)) {
             double limit = Math.max(roll.curveBase,
-                    Math.toRadians(LoconauticsConfig.DERAIL_CURVE_LIFT_MAX_DEGREES.get()) + CURVE_CLAMP_MARGIN);
+                    Math.toRadians(RollDynamics.CURVE_LIFT_MAX_DEGREES) + CURVE_CLAMP_MARGIN);
             if (Math.abs(phi) > limit) {
                 written = Math.copySign(limit, phi);
                 omegaWritten = omegaR * phi > 0.0 ? 0.0 : omegaR;

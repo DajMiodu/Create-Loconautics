@@ -20,48 +20,25 @@ public final class LoconauticsConfig {
     public static ModConfigSpec.BooleanValue GEARING_CAP_AT_CREATE_TOP_SPEED;
     public static ModConfigSpec.IntValue MAX_BOGEYS_PER_CARRIAGE;
 
-    public static ModConfigSpec.IntValue STATION_SCAN_WIDTH;
-    public static ModConfigSpec.IntValue STATION_SCAN_HEIGHT;
-    public static ModConfigSpec.IntValue STATION_SCAN_DEPTH;
     public static ModConfigSpec.BooleanValue STATION_LOAD_CHUNKS;
 
     public static ModConfigSpec.DoubleValue DYNAMICS_REFERENCE_MASS;
     public static ModConfigSpec.DoubleValue DYNAMICS_BASE_ACCELERATION;
-    public static ModConfigSpec.DoubleValue DYNAMICS_MASS_EXPONENT;
-    public static ModConfigSpec.DoubleValue DYNAMICS_MIN_ACCELERATION;
-    public static ModConfigSpec.DoubleValue DYNAMICS_MAX_ACCELERATION;
     public static ModConfigSpec.DoubleValue DYNAMICS_BASE_DECELERATION;
-    public static ModConfigSpec.DoubleValue DYNAMICS_TWO_DRIVER_ACCELERATION;
-    public static ModConfigSpec.DoubleValue DYNAMICS_THREE_DRIVER_ACCELERATION;
     public static ModConfigSpec.DoubleValue DYNAMICS_ROLLING_RESISTANCE;
     public static ModConfigSpec.BooleanValue SLOPE_EFFECTS_ENABLED;
-    public static ModConfigSpec.DoubleValue SLOPE_STRESS_FACTOR;
 
-    public static ModConfigSpec.DoubleValue BOGEY_SWAY_GAIN;
-    public static ModConfigSpec.DoubleValue BOGEY_SWAY_MAX;
     public static ModConfigSpec.BooleanValue BOGEY_PHYSICS_PIVOT;
 
     public static ModConfigSpec.BooleanValue WRENCH_RELOCATION_ENABLED;
     public static ModConfigSpec.BooleanValue WRENCH_RELOCATION_DERAILED_ONLY;
 
     public static ModConfigSpec.IntValue RAIL_SEARCH_RADIUS;
-    public static ModConfigSpec.IntValue RAIL_SEARCH_VERTICAL_RANGE;
-    public static ModConfigSpec.DoubleValue RAIL_HOP_MAX_ANGLE;
 
     public static ModConfigSpec.DoubleValue DERAIL_MAX_TILT_DEGREES;
-    public static ModConfigSpec.DoubleValue DERAIL_ROLL_UNGLUE_DEGREES;
-    public static ModConfigSpec.DoubleValue DERAIL_ROLL_SLOW_SPEED;
-    public static ModConfigSpec.DoubleValue DERAIL_ROLL_FAST_SPEED;
-    public static ModConfigSpec.DoubleValue DERAIL_WHEEL_LIFT_DEGREES;
-    public static ModConfigSpec.DoubleValue DERAIL_WHEEL_LIFT_MAX_DEGREES;
-    public static ModConfigSpec.DoubleValue DERAIL_WHEEL_LIFT_DAMPING;
-    public static ModConfigSpec.DoubleValue SUSPENSION_LEAN_DEGREES;
     public static ModConfigSpec.BooleanValue DERAIL_ON_EXTERNAL_FORCE;
-    public static ModConfigSpec.DoubleValue DERAIL_EXTERNAL_LIFT_RATIO;
     public static ModConfigSpec.BooleanValue DERAIL_ON_CURVE;
-    public static ModConfigSpec.DoubleValue DERAIL_CURVE_LIFT_MAX_DEGREES;
     public static ModConfigSpec.BooleanValue DERAIL_AT_TRACK_END;
-    public static ModConfigSpec.DoubleValue DERAIL_MAX_END_IMPACT;
     public static ModConfigSpec.DoubleValue DERAILED_SLIP_FACTOR;
     public static ModConfigSpec.DoubleValue DERAIL_COLLISION_SPEED;
     public static ModConfigSpec.BooleanValue DERAIL_COUPLED_COLLISION;
@@ -72,27 +49,15 @@ public final class LoconauticsConfig {
     public static ModConfigSpec.EnumValue<Realism> BOILER_REALISM;
     public static ModConfigSpec.DoubleValue AMBIENT_TEMPERATURE_C;
     public static ModConfigSpec.DoubleValue WORKING_TEMPERATURE_C;
-    public static ModConfigSpec.DoubleValue TEMPERATURE_JITTER_C;
-    public static ModConfigSpec.DoubleValue WATER_JITTER_MB;
 
     public static ModConfigSpec.IntValue WARMUP_TICKS;
     public static ModConfigSpec.DoubleValue SU_PER_BODY_BLOCK;
-    public static ModConfigSpec.DoubleValue TAKEOFF_MIN_RPM;
-    public static ModConfigSpec.DoubleValue TAKEOFF_MAX_RPM;
 
-    public static ModConfigSpec.DoubleValue BURN_STRESS_FACTOR;
-    public static ModConfigSpec.DoubleValue BURN_MASS_DIVISOR;
-    public static ModConfigSpec.DoubleValue BURN_RATE_SCALE;
-
-    public static ModConfigSpec.DoubleValue WATER_PER_BODY_PER_TICK;
-    public static ModConfigSpec.DoubleValue WATER_RECYCLE_FRACTION;
     public static ModConfigSpec.IntValue BOILER_MAX_LENGTH;
     public static ModConfigSpec.IntValue BODY_WATER_CAPACITY;
     public static ModConfigSpec.IntValue INJECTOR_TANK_CAPACITY;
 
     public static ModConfigSpec.DoubleValue PRESSURE_RISE_PER_TICK;
-    public static ModConfigSpec.DoubleValue PRESSURE_VENT_PER_TICK;
-    public static ModConfigSpec.DoubleValue PRESSURE_IDLE_BLEED_PER_TICK;
     public static ModConfigSpec.DoubleValue BURST_PRESSURE;
     public static ModConfigSpec.IntValue CROWN_SHEET_TICKS;
     public static ModConfigSpec.IntValue DRAFT_CHOKE_TICKS;
@@ -103,19 +68,14 @@ public final class LoconauticsConfig {
     public static ModConfigSpec.DoubleValue CRASH_IMPACT_THRESHOLD;
     public static ModConfigSpec.DoubleValue CRASH_EXPLOSION_POWER;
 
-    public static ModConfigSpec.DoubleValue MASS_DIVISOR;
-    public static ModConfigSpec.DoubleValue BASE_IMPACT;
     public static ModConfigSpec.DoubleValue OPPOSED_STRESS_FACTOR;
     public static ModConfigSpec.IntValue ANALOG_DECAY_TICKS;
-    public static ModConfigSpec.IntValue ANALOG_NEGATIVE_CAP;
     public static ModConfigSpec.DoubleValue TRANSMISSION_SU_IMPACT;
     public static ModConfigSpec.DoubleValue TURNTABLE_SU_IMPACT;
 
     public static ModConfigSpec.DoubleValue STEEL_CABLE_MAX_RANGE;
 
     public static ModConfigSpec.IntValue KNUCKLE_SCAN_INTERVAL;
-    public static ModConfigSpec.DoubleValue COUPLER_TWIST_STIFFNESS;
-    public static ModConfigSpec.DoubleValue COUPLER_TWIST_SLACK_DEGREES;
 
     public static ModConfigSpec.IntValue HOSE_MAX_LENGTH;
 
@@ -123,27 +83,16 @@ public final class LoconauticsConfig {
     public static ModConfigSpec.DoubleValue EXPLOSION_SUBLEVEL_PUSH_RADIUS_MULTIPLIER;
     public static ModConfigSpec.DoubleValue EXPLOSION_SUBLEVEL_PUSH_STRENGTH;
     public static ModConfigSpec.DoubleValue EXPLOSION_SUBLEVEL_PUSH_UPWARD;
-    public static ModConfigSpec.DoubleValue EXPLOSION_SUBLEVEL_PUSH_MIN_DISTANCE;
-
-    public static ModConfigSpec.DoubleValue DEMOLITION_CHARGE_BASE_POWER;
-    public static ModConfigSpec.IntValue DEMOLITION_CHARGE_MAX_CHARGES;
-    public static ModConfigSpec.IntValue DEMOLITION_CHARGE_FUSE_TICKS;
 
     public static final boolean DEBUG = false;
 
     public static ModConfigSpec.BooleanValue CBC_DERAIL_ENABLED;
-    public static ModConfigSpec.DoubleValue CBC_KNOCKBACK_MOMENTUM_SCALE;
-    public static ModConfigSpec.DoubleValue CBC_KNOCKBACK_BASE_SPEED;
-    public static ModConfigSpec.DoubleValue CBC_KNOCKBACK_UPWARD;
-    public static ModConfigSpec.IntValue CBC_GHOST_WHEEL_HIDE_TICKS;
     public static ModConfigSpec.BooleanValue CBC_RECOIL_ENABLED;
-    public static ModConfigSpec.DoubleValue CBC_RECOIL_MOMENTUM_SCALE;
     public static ModConfigSpec.BooleanValue CBC_GLOBAL_KNOCKBACK_ENABLED;
     public static ModConfigSpec.BooleanValue CC_REMOTE_CONTROL;
 
     public static ModConfigSpec.BooleanValue enableRollerPatch;
     public static ModConfigSpec.BooleanValue enablePloughPatch;
-    public static ModConfigSpec.IntValue rollerHeadroomClearDepth;
     public static ModConfigSpec.BooleanValue requireMaterialConsumption;
 
     public static ModConfigSpec.DoubleValue SMOKESTACK_PARTICLES_PER_TICK;
@@ -219,18 +168,6 @@ public final class LoconauticsConfig {
 
         BUILDER.translation(TRANSLATION_PREFIX + "train.station").push("station");
 
-        STATION_SCAN_WIDTH = BUILDER
-                .translation(TRANSLATION_PREFIX + "train.station.scanWidth")
-                .defineInRange("scanWidth", 8, 0, 16);
-
-        STATION_SCAN_HEIGHT = BUILDER
-                .translation(TRANSLATION_PREFIX + "train.station.scanHeight")
-                .defineInRange("scanHeight", 24, 1, 48);
-
-        STATION_SCAN_DEPTH = BUILDER
-                .translation(TRANSLATION_PREFIX + "train.station.scanDepth")
-                .defineInRange("scanDepth", 3, 0, 16);
-
         STATION_LOAD_CHUNKS = BUILDER
                 .translation(TRANSLATION_PREFIX + "train.station.loadChunksWhileStopped")
                 .define("loadChunksWhileStopped", true);
@@ -250,37 +187,10 @@ public final class LoconauticsConfig {
                 .translation(TRANSLATION_PREFIX + "train.dynamics.baseAcceleration")
                 .defineInRange("baseAcceleration", 3.0, 0.0, 1000.0);
 
-        DYNAMICS_MASS_EXPONENT = BUILDER
-                .comment("How fast acceleration falls as the consist gets heavier. 1 is strictly proportional, 0 ignores mass.",
-                        "Lower keeps long rakes playable.")
-                .translation(TRANSLATION_PREFIX + "train.dynamics.massExponent")
-                .defineInRange("massExponent", 0.5, 0.0, 2.0);
-
-        DYNAMICS_MIN_ACCELERATION = BUILDER
-                .comment("Floor under the scaled acceleration, so the heaviest rake still pulls away.")
-                .translation(TRANSLATION_PREFIX + "train.dynamics.minAcceleration")
-                .defineInRange("minAcceleration", 0.75, 0.0, 1000.0);
-
-        DYNAMICS_MAX_ACCELERATION = BUILDER
-                .comment("Ceiling over the scaled acceleration, so a near empty cart does not launch.")
-                .translation(TRANSLATION_PREFIX + "train.dynamics.maxAcceleration")
-                .defineInRange("maxAcceleration", 6.0, 0.0, 1000.0);
-
         DYNAMICS_BASE_DECELERATION = BUILDER
                 .comment("How hard the brakes bite, the same number whatever the train is hauling.")
                 .translation(TRANSLATION_PREFIX + "train.dynamics.baseDeceleration")
                 .defineInRange("baseDeceleration", 3.0, 0.0, 1000.0);
-
-        DYNAMICS_TWO_DRIVER_ACCELERATION = BUILDER
-                .comment("Acceleration multiplier when two seated drivers of one consist push the same way.",
-                        "Top speed does not change, drivers pushing opposite ways cancel out.")
-                .translation(TRANSLATION_PREFIX + "train.dynamics.twoDriverAcceleration")
-                .defineInRange("twoDriverAcceleration", 1.5, 1.0, 10.0);
-
-        DYNAMICS_THREE_DRIVER_ACCELERATION = BUILDER
-                .comment("Acceleration multiplier when three or more seated drivers of one consist push the same way.")
-                .translation(TRANSLATION_PREFIX + "train.dynamics.threeDriverAcceleration")
-                .defineInRange("threeDriverAcceleration", 2.0, 1.0, 10.0);
 
         DYNAMICS_ROLLING_RESISTANCE = BUILDER
                 .comment("How hard a car with no power and no brake slows down on its own.",
@@ -294,23 +204,9 @@ public final class LoconauticsConfig {
                 .translation(TRANSLATION_PREFIX + "train.dynamics.slopeEffects")
                 .define("slopeEffects", true);
 
-        SLOPE_STRESS_FACTOR = BUILDER
-                .comment("Extra stress impact per degree of grade while climbing, split across the working axles.",
-                        "Raising it makes steep climbs stall the network, 0 makes slopes free.")
-                .translation(TRANSLATION_PREFIX + "train.dynamics.slopeStressPerDegree")
-                .defineInRange("slopeStressPerDegree", 0.5, 0.0, 100.0);
-
         BUILDER.pop();
 
         BUILDER.translation(TRANSLATION_PREFIX + "train.visual").push("visual");
-
-        BOGEY_SWAY_GAIN = BUILDER
-                .translation(TRANSLATION_PREFIX + "train.visual.bogeySwayGain")
-                .defineInRange("bogeySwayGain", 0.0, 0.0, 1000.0);
-
-        BOGEY_SWAY_MAX = BUILDER
-                .translation(TRANSLATION_PREFIX + "train.visual.bogeySwayMax")
-                .defineInRange("bogeySwayMax", 1.0, 0.0, 4.0);
 
         BOGEY_PHYSICS_PIVOT = BUILDER
                 .translation(TRANSLATION_PREFIX + "train.visual.bogeyPhysicsPivot")
@@ -338,16 +234,6 @@ public final class LoconauticsConfig {
                 .translation(TRANSLATION_PREFIX + "track.railSearchRadius")
                 .defineInRange("railSearchRadius", 3, 0, 16);
 
-        RAIL_SEARCH_VERTICAL_RANGE = BUILDER
-                .translation(TRANSLATION_PREFIX + "track.railSearchVerticalRange")
-                .defineInRange("railSearchVerticalRange", 16, 0, 64);
-
-        RAIL_HOP_MAX_ANGLE = BUILDER
-                .comment("How far a rail may point away from a Train's heading and still count as a hop target.",
-                        "Raise it and a Train takes sharper mismatched joins, which can snap it sideways.")
-                .translation(TRANSLATION_PREFIX + "track.railHopMaxAngleDegrees")
-                .defineInRange("railHopMaxAngleDegrees", 72.5, 0.0, 90.0);
-
         BUILDER.translation(TRANSLATION_PREFIX + "track.derailment").push("derailment");
 
         DERAIL_MAX_TILT_DEGREES = BUILDER
@@ -356,60 +242,18 @@ public final class LoconauticsConfig {
                 .translation(TRANSLATION_PREFIX + "track.derailment.maxTiltDegrees")
                 .defineInRange("maxTiltDegrees", 55.0, 0.0, 180.0);
 
-        DERAIL_ROLL_UNGLUE_DEGREES = BUILDER
-                .comment("Roll angle a fast Carriage can lean before it comes off the rail.")
-                .defineInRange("rollUnglueDegrees", 12.0, 1.0, 90.0);
-
-        DERAIL_ROLL_SLOW_SPEED = BUILDER
-                .comment("Speed in blocks per second at and below which a leaning Carriage only comes off once it is really falling over.")
-                .defineInRange("rollSlowSpeed", 2.0, 0.0, 1000.0);
-
-        DERAIL_ROLL_FAST_SPEED = BUILDER
-                .comment("Speed in blocks per second at and above which a leaning Carriage comes off at rollUnglueDegrees.",
-                        "Between the two speeds the angle blends smoothly.")
-                .defineInRange("rollFastSpeed", 10.0, 0.1, 1000.0);
-
-        DERAIL_WHEEL_LIFT_DEGREES = BUILDER
-                .comment("How far the wheels lift for an overturning push twice as strong as gravity can hold. Higher lifts more.")
-                .defineInRange("wheelLiftDegrees", 8.0, 1.0, 45.0);
-
-        DERAIL_WHEEL_LIFT_MAX_DEGREES = BUILDER
-                .comment("The most the wheel hinge holds a lean. A load that needs more than this tips the Carriage over.")
-                .defineInRange("wheelLiftMaxDegrees", 20.0, 1.0, 60.0);
-
-        DERAIL_WHEEL_LIFT_DAMPING = BUILDER
-                .comment("How much a leaning Carriage wobbles before it settles. 1 settles with no bounce, lower rocks longer.")
-                .defineInRange("wheelLiftDamping", 0.35, 0.05, 1.0);
-
-        SUSPENSION_LEAN_DEGREES = BUILDER
-                .comment("How far a Carriage body leans on its springs when the load sits right over one rail. The wheels stay on the rail, 0 keeps the body level.")
-                .defineInRange("suspensionLeanDegrees", 2.0, 0.0, 10.0);
-
         DERAIL_ON_EXTERNAL_FORCE = BUILDER
                 .comment("On, a strong enough upward push such as the Physics Staff lifts a Train off the rail. Off, nothing can lift it off.")
                 .translation(TRANSLATION_PREFIX + "track.derailment.derailOnExternalForce")
                 .define("derailOnExternalForce", true);
 
-        DERAIL_EXTERNAL_LIFT_RATIO = BUILDER
-                .comment("Upward push that lets go of the rail on a Carriage that can lean, as a share of its own weight. 0 leaves it to the wheel lift alone.",
-                        "Holding a Train up already costs 1.0, so keep this well above it or a staff drag throws it off.")
-                .defineInRange("externalLiftRatio", 25.0, 0.0, 1000.0);
-
         DERAIL_ON_CURVE = BUILDER
                 .comment("Off, a fast curve only lifts the wheels on the outside a little. On, curves are full physics and a car taken too fast tips off.")
                 .define("derailOnCurve", false);
 
-        DERAIL_CURVE_LIFT_MAX_DEGREES = BUILDER
-                .comment("The most a curve lifts the outside wheels while derailOnCurve is off.")
-                .defineInRange("curveLiftMaxDegrees", 3.0, 0.0, 30.0);
-
         DERAIL_AT_TRACK_END = BUILDER
                 .translation(TRANSLATION_PREFIX + "track.derailment.derailAtTrackEnd")
                 .define("derailAtTrackEnd", true);
-
-        DERAIL_MAX_END_IMPACT = BUILDER
-                .translation(TRANSLATION_PREFIX + "track.derailment.maxEndImpact")
-                .defineInRange("maxEndImpact", 10.0, 0.0, 1.0e9);
 
         DERAILED_SLIP_FACTOR = BUILDER
                 .translation(TRANSLATION_PREFIX + "track.derailment.derailedSlipFactor")
@@ -453,38 +297,11 @@ public final class LoconauticsConfig {
         WORKING_TEMPERATURE_C = BUILDER
                 .defineInRange("workingTemperatureC", 200.0, 0.0, 2000.0);
 
-        TEMPERATURE_JITTER_C = BUILDER
-                .defineInRange("temperatureJitterC", 10.0, 0.0, 200.0);
-
-        WATER_JITTER_MB = BUILDER
-                .defineInRange("waterJitterMb", 120.0, 0.0, 10000.0);
-
         WARMUP_TICKS = BUILDER
                 .defineInRange("warmupTicks", 1800, 20, 72000);
 
         SU_PER_BODY_BLOCK = BUILDER
                 .defineInRange("suPerBodyBlock", 83.0, 0.0, 100000.0);
-
-        TAKEOFF_MIN_RPM = BUILDER
-                .defineInRange("takeoffMinRpm", 4.0, 0.0, 256.0);
-
-        TAKEOFF_MAX_RPM = BUILDER
-                .defineInRange("takeoffMaxRpm", 128.0, 0.0, 256.0);
-
-        BURN_STRESS_FACTOR = BUILDER
-                .defineInRange("burnStressFactor", 1.0, 0.0, 100.0);
-
-        BURN_MASS_DIVISOR = BUILDER
-                .defineInRange("burnMassDivisor", 20000.0, 1.0, 10000000.0);
-
-        BURN_RATE_SCALE = BUILDER
-                .defineInRange("burnRateScale", 1.0, 0.01, 100.0);
-
-        WATER_PER_BODY_PER_TICK = BUILDER
-                .defineInRange("waterPerBodyPerTick", 2.0, 0.0, 1000.0);
-
-        WATER_RECYCLE_FRACTION = BUILDER
-                .defineInRange("waterRecycleFraction", 0.65, 0.0, 0.99);
 
         BOILER_MAX_LENGTH = BUILDER
                 .comment("Most body blocks a boiler may span along its length before it stops working.",
@@ -501,12 +318,6 @@ public final class LoconauticsConfig {
 
         PRESSURE_RISE_PER_TICK = BUILDER
                 .defineInRange("pressureRisePerTick", 0.0015, 0.0, 1.0);
-
-        PRESSURE_VENT_PER_TICK = BUILDER
-                .defineInRange("pressureVentPerTick", 0.004, 0.0, 1.0);
-
-        PRESSURE_IDLE_BLEED_PER_TICK = BUILDER
-                .defineInRange("pressureIdleBleedPerTick", 0.002, 0.0, 1.0);
 
         BURST_PRESSURE = BUILDER
                 .defineInRange("burstPressure", 1.6, 1.0, 10.0);
@@ -548,14 +359,6 @@ public final class LoconauticsConfig {
 
         BUILDER.translation(TRANSLATION_PREFIX + "blocks.bearing_axle").push("bearing_axle");
 
-        MASS_DIVISOR = BUILDER
-                .translation(TRANSLATION_PREFIX + "blocks.bearing_axle.massDivisor")
-                .defineInRange("massDivisor", 10.0, 1.0, 100000.0);
-
-        BASE_IMPACT = BUILDER
-                .translation(TRANSLATION_PREFIX + "blocks.bearing_axle.baseImpact")
-                .defineInRange("baseImpact", 1.0, 0.0, 100.0);
-
         OPPOSED_STRESS_FACTOR = BUILDER
                 .comment("Stress multiplier for a Bearing Axle pushing against the rest of its train.",
                         "Raising it makes a fight between two engines expensive instead of merely slow.")
@@ -569,10 +372,6 @@ public final class LoconauticsConfig {
         ANALOG_DECAY_TICKS = BUILDER
                 .translation(TRANSLATION_PREFIX + "blocks.analog_controller.decayTicks")
                 .defineInRange("decayTicks", 20, 1, 200);
-
-        ANALOG_NEGATIVE_CAP = BUILDER
-                .translation(TRANSLATION_PREFIX + "blocks.analog_controller.negativeCap")
-                .defineInRange("negativeCap", 5, 0, 15);
 
         BUILDER.pop();
 
@@ -614,17 +413,6 @@ public final class LoconauticsConfig {
                 .defineInRange("scanInterval", 5, 1, 100);
 
         BUILDER.pop();
-        BUILDER.push("twist");
-
-        COUPLER_TWIST_STIFFNESS = BUILDER
-                .comment("How hard a coupler resists two Carriages leaning apart, as a share of the lighter one's wheel hinge. 0 turns it off.")
-                .defineInRange("twistStiffness", 2.0, 0.0, 8.0);
-
-        COUPLER_TWIST_SLACK_DEGREES = BUILDER
-                .comment("Free twist in a coupler before it starts passing lean to the next Carriage.")
-                .defineInRange("twistSlackDegrees", 3.0, 0.0, 15.0);
-
-        BUILDER.pop();
         BUILDER.pop();
 
         BUILDER.translation(TRANSLATION_PREFIX + "hose").push("hose");
@@ -654,27 +442,8 @@ public final class LoconauticsConfig {
                 .translation(TRANSLATION_PREFIX + "explosions.sub_level_push.subLevelPushUpward")
                 .defineInRange("subLevelPushUpward", 0.3, 0.0, 10.0);
 
-        EXPLOSION_SUBLEVEL_PUSH_MIN_DISTANCE = BUILDER
-                .translation(TRANSLATION_PREFIX + "explosions.sub_level_push.subLevelPushMinDistance")
-                .defineInRange("subLevelPushMinDistance", 1.0, 0.1, 16.0);
-
         BUILDER.pop();
 
-        BUILDER.translation(TRANSLATION_PREFIX + "explosions.demolition_charge").push("demolition_charge");
-
-        DEMOLITION_CHARGE_BASE_POWER = BUILDER
-                .translation(TRANSLATION_PREFIX + "explosions.demolition_charge.basePower")
-                .defineInRange("basePower", 4.0, 0.1, 1000.0);
-
-        DEMOLITION_CHARGE_MAX_CHARGES = BUILDER
-                .translation(TRANSLATION_PREFIX + "explosions.demolition_charge.maxCharges")
-                .defineInRange("maxCharges", 4, 1, 4);
-
-        DEMOLITION_CHARGE_FUSE_TICKS = BUILDER
-                .translation(TRANSLATION_PREFIX + "explosions.demolition_charge.fuseTicks")
-                .defineInRange("fuseTicks", 80, 1, 2000);
-
-        BUILDER.pop();
         BUILDER.pop();
 
         BUILDER.translation(TRANSLATION_PREFIX + "compat").push("compat");
@@ -697,27 +466,12 @@ public final class LoconauticsConfig {
             CBC_DERAIL_ENABLED = BUILDER
                     .define("derailEnabled", true);
 
-            CBC_KNOCKBACK_MOMENTUM_SCALE = BUILDER
-                    .defineInRange("knockbackMomentumScale", 1.0, 0.0, 1000.0);
-
-            CBC_KNOCKBACK_BASE_SPEED = BUILDER
-                    .defineInRange("knockbackBaseSpeed", 15.0, 0.0, 1.0e6);
-
-            CBC_KNOCKBACK_UPWARD = BUILDER
-                    .defineInRange("knockbackUpward", 0.6, 0.0, 10.0);
-
-            CBC_GHOST_WHEEL_HIDE_TICKS = BUILDER
-                    .defineInRange("ghostWheelHideTicks", 20, 1, 1200);
-
             BUILDER.pop();
 
             BUILDER.push("recoil");
 
             CBC_RECOIL_ENABLED = BUILDER
                     .define("recoilEnabled", true);
-
-            CBC_RECOIL_MOMENTUM_SCALE = BUILDER
-                    .defineInRange("recoilMomentumScale", 1.0, 0.0, 1000.0);
 
             BUILDER.pop();
 
@@ -743,10 +497,6 @@ public final class LoconauticsConfig {
         enablePloughPatch = BUILDER
                 .translation(TRANSLATION_PREFIX + "patch.enablePloughPatch")
                 .define("enablePloughPatch", true);
-
-        rollerHeadroomClearDepth = BUILDER
-                .translation(TRANSLATION_PREFIX + "patch.rollerHeadroomClearDepth")
-                .defineInRange("rollerHeadroomClearDepth", 2, 0, 8);
 
         requireMaterialConsumption = BUILDER
                 .translation(TRANSLATION_PREFIX + "patch.requireMaterialConsumption")
