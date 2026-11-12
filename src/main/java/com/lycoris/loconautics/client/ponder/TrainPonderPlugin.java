@@ -47,6 +47,7 @@ public class TrainPonderPlugin implements PonderPlugin {
 
         helper.forComponents(LoconauticsRegistries.BEARING_AXLE.getId())
                 .addStoryBoard("train/train", TrainScenes::wheels)
+                .addStoryBoard("train/train", TrainScenes::front)
                 .addStoryBoard("train/train", TrainScenes::frequency)
                 .addStoryBoard("train/train", TrainScenes::drivetrain)
                 .addStoryBoard("train/train", TrainScenes::controls)

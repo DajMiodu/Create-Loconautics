@@ -100,6 +100,44 @@ public class TrainScenes {
         scene.idle(80);
     }
 
+    public static void front(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = open(builder, "locomotive_front", "Setting the Front of a Locomotive");
+        showTrack(scene, util);
+
+        centered(scene, util, util.select().fromTo(BOGEY, AXLE));
+        scene.idle(20);
+        scene.overlay().showText(70)
+                .text("Bearing Axles mark the front of a locomotive")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(AXLE).add(SHIFT, 0, 0));
+        scene.idle(80);
+
+        scene.overlay().chaseBoundingBoxOutline(PonderPalette.GREEN, "front", new AABB(BOGEY).move(SHIFT, 0, 0), 70);
+        scene.overlay().showText(70)
+                .text("The front is the side of the axle that touches the bogey")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().centerOf(BOGEY).add(SHIFT, 0, 0));
+        scene.idle(80);
+
+        scene.overlay().chaseBoundingBoxOutline(PonderPalette.RED, "rear", new AABB(TRANSMISSION).move(SHIFT, 0, 0), 70);
+        scene.overlay().showText(70)
+                .text("The shaft end of the axle is always the rear")
+                .attachKeyFrame()
+                .colored(PonderPalette.RED)
+                .placeNearTarget()
+                .pointAt(util.vector().centerOf(TRANSMISSION).add(SHIFT, 0, 0));
+        scene.idle(80);
+
+        scene.overlay().showText(80)
+                .text("Assembly and Stations use that end to tell which way the train faces")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().centerOf(BOGEY).add(SHIFT, 0, 0));
+        scene.idle(90);
+    }
+
     public static void drivetrain(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = open(builder, "locomotive_drive", "Powering Locomotives with Transmissions");
         showTrack(scene, util);
