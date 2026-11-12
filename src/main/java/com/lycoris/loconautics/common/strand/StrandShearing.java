@@ -79,6 +79,7 @@ public final class StrandShearing {
             if (manager == null) continue;
             for (AttachedRopePhysicsObject rope : manager.all()) {
                 if (!rope.isActive() || !rope.areAttachmentsLoaded(level)) continue;
+                if (!wrench && kind == 0 && !carriesFluid(level, rope.getUUID())) continue;
                 double distance = hitDistanceSquared(eye, end, rope.getPoints());
                 if (distance < limit) {
                     limit = distance;
@@ -96,6 +97,12 @@ public final class StrandShearing {
         level.playSound(null, at.x, at.y, at.z, wrench ? SoundEvents.CHAIN_BREAK : SoundEvents.SHEEP_SHEAR,
                 SoundSource.PLAYERS, 1, 1);
         return true;
+    }
+
+    private static boolean carriesFluid(ServerLevel level, UUID id) {
+        var strands = SteelCableStrandManager.get(level);
+        var strand = strands == null ? null : strands.get(id);
+        return strand != null && strand.type.carriesFluid();
     }
 
     private static double hitDistanceSquared(Vec3 from, Vec3 to, List<Vector3d> points) {
