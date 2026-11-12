@@ -60,7 +60,7 @@ public final class StrandRenderer {
                                  @Nullable SegmentSwell swell) {
         Minecraft mc = Minecraft.getInstance();
         Level level = mc.level;
-        if (level == null) {
+        if (level == null || middleModel.get() == null || knotModel.get() == null) {
             return;
         }
         SuperByteBuffer middle = CachedBuffers.partialFacing(
