@@ -1,6 +1,8 @@
 package com.lycoris.loconautics.network.packets.variantpicker;
 
 import com.lycoris.loconautics.LoconauticsConstants;
+import com.lycoris.loconautics.content.conductorshat.ConductorsGoggles;
+import com.lycoris.loconautics.content.conductorshat.ConductorsGogglesItem;
 import com.lycoris.loconautics.content.conductorshat.ConductorsHatItem;
 import com.lycoris.loconautics.content.conductorshat.ConductorsHats;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -37,8 +39,15 @@ public record HatColorApplyPacket(InteractionHand hand, int colorId) implements 
         if (!(context.player() instanceof ServerPlayer player)) return;
         context.enqueueWork(() -> {
             ItemStack held = player.getItemInHand(packet.hand());
-            if (!(held.getItem() instanceof ConductorsHatItem current)) return;
             DyeColor chosen = DyeColor.byId(packet.colorId());
+            if (held.getItem() instanceof ConductorsGogglesItem currentGoggles) {
+                var goggles = ConductorsGoggles.GOGGLES.get(chosen);
+                if (chosen != currentGoggles.getColor() && goggles != null) {
+                    player.setItemInHand(packet.hand(), new ItemStack(goggles.get(), held.getCount()));
+                }
+                return;
+            }
+            if (!(held.getItem() instanceof ConductorsHatItem current)) return;
             if (chosen == current.getColor()) return;
             var hat = ConductorsHats.HATS.get(chosen);
             if (hat == null) return;
