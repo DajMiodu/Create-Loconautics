@@ -58,7 +58,7 @@ public final class BogeyRenderFrame {
                     .mul(BogeyRailPoints.worldFrame(walked, new Quaternionf())));
             dropTwist(local);
             scaleTurn(local);
-            Quaternionf lean = SableTrainClientRegistry.lean(sub.getUniqueId());
+            Quaternionf lean = BogeyRenderConfig.rolling() ? SableTrainClientRegistry.lean(sub.getUniqueId()) : null;
             if (lean != null) {
                 local.premul(new Quaternionf(lean).conjugate()).normalize();
             }
