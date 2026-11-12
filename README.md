@@ -5,12 +5,7 @@
 <h1 align="center">Create: Loconautics</h1>
 
 <p align="center">
-  <a href="https://discord.gg/zBqu9Utret"><img src="https://img.shields.io/static/v1?label=Discord&message=Join&color=5865F2&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://www.curseforge.com/minecraft/mc-mods/createloconautics"><img src="https://img.shields.io/static/v1?label=CurseForge&message=Download&color=F16436&logo=curseforge&logoColor=white" alt="CurseForge"></a>
-  <a href="https://modrinth.com/mod/loconautics"><img src="https://img.shields.io/static/v1?label=Modrinth&message=Download&color=1BD96A&logo=modrinth&logoColor=white" alt="Modrinth"></a>
-  <a href="https://ko-fi.com/createloconautics"><img src="https://img.shields.io/static/v1?label=Kofi&message=Support&color=FF5E5B&logo=kofi&logoColor=white" alt="Ko-fi"></a>
-  <a href="https://www.youtube.com/@Loconautics"><img src="https://img.shields.io/static/v1?label=YouTube&message=Subscribe&color=FF0000&logo=youtube&logoColor=white" alt="YouTube"></a>
-  <a href="https://www.instagram.com/loconauticsmod/"><img src="https://img.shields.io/static/v1?label=Instagram&message=Follow&color=E4405F&logo=instagram&logoColor=white" alt="Instagram"></a>
+  <a href="https://discord.gg/zBqu9Utret"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
 </p>
 
 Create: Loconautics is a Create addon for NeoForge 1.21.1 that makes Create trains work with Sable. Instead of Create's carriage contraption entities, every train car is a Sable sub level, so a train is a real physics body. It can bump into things, derail, cross portals and carry other sub levels.

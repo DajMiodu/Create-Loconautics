@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = SequencedAssemblyRecipe.class, remap = false)
 public abstract class SequencedAssemblyFinishMixin {
 
-    @Inject(method = "advance", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/processing/sequenced/SequencedAssemblyRecipe;rollResult(Lnet/minecraft/util/RandomSource;)Lnet/minecraft/world/item/ItemStack;"), remap = false)
+    @Inject(method = "advance", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/processing/sequenced/SequencedAssemblyRecipe;rollResult(Lnet/minecraft/util/RandomSource;)Lnet/minecraft/world/item/ItemStack;"), remap = false, require = 0)
     private void loconautics$finished(CallbackInfoReturnable<?> cir) {
         TrainAdvancements.sequencedAssemblyFinished();
     }
