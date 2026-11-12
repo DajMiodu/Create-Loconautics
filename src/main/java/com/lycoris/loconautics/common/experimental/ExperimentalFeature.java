@@ -36,7 +36,8 @@ public enum ExperimentalFeature {
             IndustrialBlocks.TANK_ITEM.get(),
             CeriseneBlocks.RAW_CERISENE.get(),
             CeriseneBlocks.CERISENE_BLOCK_ITEM.get(),
-            CeriseneBlocks.CERISENE_BUCKET.get()));
+            CeriseneBlocks.CERISENE_BUCKET.get())),
+    SCREW_LINK("screwLink", () -> List.of(LoconauticsRegistries.SCREW_LINK_ITEM.get()));
 
     private static Map<Item, ExperimentalFeature> byItem;
 
