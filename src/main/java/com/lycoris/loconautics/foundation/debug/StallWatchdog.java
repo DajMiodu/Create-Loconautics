@@ -24,7 +24,7 @@ public final class StallWatchdog {
         serverThread = Thread.currentThread();
         lastTickNanos = System.nanoTime();
         tickCount++;
-        if (watcher == null) {
+        if (watcher == null && PortalTrace.on()) {
             watcher = new Thread(StallWatchdog::watch, "loconautics stall watchdog");
             watcher.setDaemon(true);
             watcher.start();
