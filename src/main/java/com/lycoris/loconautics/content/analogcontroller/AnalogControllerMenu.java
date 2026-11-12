@@ -5,12 +5,16 @@ import com.lycoris.loconautics.client.ClientAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 public class AnalogControllerMenu extends BindFrequencyMenu<AnalogControllerBlockEntity> {
+
+    public static final int AUTOFILL_BUTTON = 0;
 
     public static final String FORWARD_KEY  = "gui.loconautics.bind_frequency.speed";
     public static final String BACKWARD_KEY = "gui.loconautics.bind_frequency.direction";
@@ -38,6 +42,17 @@ public class AnalogControllerMenu extends BindFrequencyMenu<AnalogControllerBloc
     @Override
     protected int rowCount() {
         return 4;
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (id != AUTOFILL_BUTTON) {
+            return super.clickMenuButton(player, id);
+        }
+        if (player instanceof ServerPlayer serverPlayer && contentHolder != null) {
+            AnalogControllerAutofill.run(serverPlayer, contentHolder, ghostInventory);
+        }
+        return true;
     }
 
     @Override
