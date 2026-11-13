@@ -31,6 +31,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -98,13 +99,76 @@ public class FluidHatchBlock extends Block implements IBE<FluidHatchBlockEntity>
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction face = context.getClickedFace().getOpposite();
-        BlockState state = defaultBlockState().setValue(FACING, face)
+        return defaultBlockState().setValue(FACING, face)
                 .setValue(RAISED, onBarrel(context.getLevel(), context.getClickedPos(), face))
-                .setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER);
-        if (face.getAxis().isVertical()) {
-            state = state.setValue(LID_HINGE, context.getHorizontalDirection().get2DDataValue());
+                .setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER)
+                .setValue(LID_HINGE, hingeFor(face, hingeSideAimedAt(context, face)));
+    }
+
+    private static Direction hingeSideAimedAt(BlockPlaceContext context, Direction face) {
+        Vec3 offset = context.getClickLocation().subtract(Vec3.atCenterOf(context.getClickedPos()));
+        Direction best = null;
+        double bestOffset = 0.15;
+        for (Direction side : Direction.values()) {
+            if (side.getAxis() == face.getAxis()) {
+                continue;
+            }
+            double along = side.getAxis().choose(offset.x, offset.y, offset.z) * side.getAxisDirection().getStep();
+            if (along > bestOffset) {
+                best = side;
+                bestOffset = along;
+            }
         }
-        return state;
+        if (best != null) {
+            return best;
+        }
+        return face.getAxis().isVertical() ? context.getHorizontalDirection() : Direction.UP;
+    }
+
+    // the rotations mirror HatchRenderer, the lid hinge sits on the model's +z edge before they run
+    public static Direction hingeSide(Direction facing, int hinge) {
+        double h = Math.toRadians(hinge * 90.0 + (facing == Direction.SOUTH ? 180.0 : 0.0));
+        double[] v = {Math.sin(h), 0.0, Math.cos(h)};
+        switch (facing) {
+            case UP -> rotateX(v, 180);
+            case NORTH -> rotateX(v, 90);
+            case SOUTH -> rotateX(v, 270);
+            case WEST -> {
+                rotateX(v, 90);
+                rotateY(v, 90);
+            }
+            case EAST -> {
+                rotateX(v, 90);
+                rotateY(v, 270);
+            }
+            default -> { }
+        }
+        return Direction.getNearest(v[0], v[1], v[2]);
+    }
+
+    public static int hingeFor(Direction facing, Direction side) {
+        for (int hinge = 0; hinge < 4; hinge++) {
+            if (hingeSide(facing, hinge) == side) {
+                return hinge;
+            }
+        }
+        return 0;
+    }
+
+    private static void rotateX(double[] v, double degrees) {
+        double a = Math.toRadians(degrees);
+        double y = v[1] * Math.cos(a) - v[2] * Math.sin(a);
+        double z = v[1] * Math.sin(a) + v[2] * Math.cos(a);
+        v[1] = y;
+        v[2] = z;
+    }
+
+    private static void rotateY(double[] v, double degrees) {
+        double a = Math.toRadians(degrees);
+        double x = v[0] * Math.cos(a) + v[2] * Math.sin(a);
+        double z = -v[0] * Math.sin(a) + v[2] * Math.cos(a);
+        v[0] = x;
+        v[2] = z;
     }
 
     @Override
