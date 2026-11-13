@@ -35,10 +35,10 @@ public class HoseNozzleBlock extends Block
         BlockSubLevelAssemblyListener, SimpleWaterloggedBlock {
 
     private static final VoxelShape SHAPE = Shapes.or(
-            Shapes.box(0.28125, 0.0, 0.28125, 0.71875, 0.375, 0.71875),
-            Shapes.box(0.34375, 0.375, 0.34375, 0.65625, 0.5, 0.65625));
+            Shapes.box(0.28125, 0.0, 0.28125, 0.71875, 0.4375, 0.71875),
+            Shapes.box(0.34375, 0.4375, 0.34375, 0.65625, 0.5625, 0.65625));
 
-    private static final VoxelShape PHYSICS_SHAPE = Shapes.box(0.28125, 0.0, 0.28125, 0.71875, 0.3125, 0.71875);
+    private static final VoxelShape PHYSICS_SHAPE = Shapes.box(0.28125, 0.0, 0.28125, 0.71875, 0.375, 0.71875);
 
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
