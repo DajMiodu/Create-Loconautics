@@ -14,7 +14,9 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -26,13 +28,15 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class FluidHatchBlock extends Block implements IBE<FluidHatchBlockEntity>, IWrenchable {
+public class FluidHatchBlock extends Block implements IBE<FluidHatchBlockEntity>, IWrenchable, SimpleWaterloggedBlock {
 
     public static final EnumProperty<Direction> FACING =
             EnumProperty.create("facing", Direction.class, d -> true);
@@ -42,6 +46,8 @@ public class FluidHatchBlock extends Block implements IBE<FluidHatchBlockEntity>
     public static final IntegerProperty LID_HINGE = IntegerProperty.create("lid_hinge", 0, 3);
 
     public static final BooleanProperty RAISED = BooleanProperty.create("raised");
+
+    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
     public static final double BARREL_BULGE = 0.5;
 
@@ -67,12 +73,12 @@ public class FluidHatchBlock extends Block implements IBE<FluidHatchBlockEntity>
         super(properties);
         registerDefaultState(stateDefinition.any()
                 .setValue(FACING, Direction.DOWN).setValue(OPEN, false).setValue(LID_HINGE, 0)
-                .setValue(RAISED, false));
+                .setValue(RAISED, false).setValue(WATERLOGGED, false));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, OPEN, LID_HINGE, RAISED);
+        builder.add(FACING, OPEN, LID_HINGE, RAISED, WATERLOGGED);
     }
 
     private static boolean onBarrel(BlockGetter level, BlockPos pos, Direction face) {
@@ -93,11 +99,26 @@ public class FluidHatchBlock extends Block implements IBE<FluidHatchBlockEntity>
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction face = context.getClickedFace().getOpposite();
         BlockState state = defaultBlockState().setValue(FACING, face)
-                .setValue(RAISED, onBarrel(context.getLevel(), context.getClickedPos(), face));
+                .setValue(RAISED, onBarrel(context.getLevel(), context.getClickedPos(), face))
+                .setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER);
         if (face.getAxis().isVertical()) {
             state = state.setValue(LID_HINGE, context.getHorizontalDirection().get2DDataValue());
         }
         return state;
+    }
+
+    @Override
+    protected FluidState getFluidState(BlockState state) {
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
+                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+        if (state.getValue(WATERLOGGED)) {
+            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+        }
+        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
 
     @Override
