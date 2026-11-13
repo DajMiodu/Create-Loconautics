@@ -2,12 +2,15 @@ package com.lycoris.loconautics.content.controls.panel;
 
 import com.lycoris.loconautics.content.combustion.SmallEngineBlock;
 import com.lycoris.loconautics.content.transmission.TransmissionBlock;
+import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.redstone.link.RedstoneLinkBlock;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -45,6 +48,7 @@ public abstract class LinkBoundBlockItem extends PanelBlockItem {
         if (player.isShiftKeyDown() && boundLink(stack) != null) {
             if (!level.isClientSide) {
                 stack.remove(targetComponent());
+                stack.remove(LoconauticsRegistries.BOUND_BLOCK.get());
                 player.displayClientMessage(Component.translatable(langPrefix() + ".cleared"), true);
             }
             return InteractionResultHolder.success(stack);
@@ -61,10 +65,7 @@ public abstract class LinkBoundBlockItem extends PanelBlockItem {
         Player player = context.getPlayer();
         if (state.getBlock() instanceof SmallEngineBlock || state.getBlock() instanceof TransmissionBlock) {
             if (!level.isClientSide) {
-                context.getItemInHand().set(targetComponent(), pos);
-                if (player != null) {
-                    player.displayClientMessage(Component.translatable(langPrefix() + ".bound"), true);
-                }
+                bind(context.getItemInHand(), player, state, pos);
             }
             return InteractionResult.SUCCESS;
         }
@@ -73,13 +74,22 @@ public abstract class LinkBoundBlockItem extends PanelBlockItem {
 
         boolean receiver = state.getValue(RedstoneLinkBlock.RECEIVER);
         if (!level.isClientSide) {
-            if (receiver) context.getItemInHand().set(targetComponent(), pos);
-            if (player != null) {
-                player.displayClientMessage(Component.translatable(
-                        langPrefix() + (receiver ? ".bound" : ".not_receiver")), true);
+            if (receiver) {
+                bind(context.getItemInHand(), player, state, pos);
+            } else if (player != null) {
+                player.displayClientMessage(Component.translatable(langPrefix() + ".not_receiver"), true);
             }
         }
         return InteractionResult.SUCCESS;
+    }
+
+    private void bind(ItemStack stack, @Nullable Player player, BlockState state, BlockPos pos) {
+        stack.set(targetComponent(), pos);
+        stack.set(LoconauticsRegistries.BOUND_BLOCK.get(), BuiltInRegistries.BLOCK.getKey(state.getBlock()));
+        if (player != null) {
+            player.displayClientMessage(Component.translatable("gui.loconautics.bound_message",
+                    state.getBlock().getName()).withStyle(ChatFormatting.GREEN), true);
+        }
     }
 
     @Override
@@ -90,10 +100,10 @@ public abstract class LinkBoundBlockItem extends PanelBlockItem {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
-        BlockPos link = boundLink(stack);
-        if (link != null) {
-            tooltip.add(Component.translatable(langPrefix() + ".bound_to",
-                            link.getX(), link.getY(), link.getZ())
+        ResourceLocation bound = stack.get(LoconauticsRegistries.BOUND_BLOCK.get());
+        if (boundLink(stack) != null && bound != null) {
+            tooltip.add(Component.translatable("gui.loconautics.bound_to",
+                            BuiltInRegistries.BLOCK.get(bound).getName())
                     .withStyle(ChatFormatting.GREEN));
         }
     }

@@ -162,6 +162,13 @@ public final class LoconauticsRegistries {
                             .networkSynchronized(BlockPos.STREAM_CODEC)
                             .build());
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<net.minecraft.resources.ResourceLocation>>
+            BOUND_BLOCK = DATA_COMPONENTS.register("bound_block", () ->
+                    DataComponentType.<net.minecraft.resources.ResourceLocation>builder()
+                            .persistent(net.minecraft.resources.ResourceLocation.CODEC)
+                            .networkSynchronized(net.minecraft.resources.ResourceLocation.STREAM_CODEC)
+                            .build());
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>>
             STEEL_CABLE_FIRST_CONNECTION = DATA_COMPONENTS.register("steel_cable_first_connection", () ->
                     DataComponentType.<BlockPos>builder()
