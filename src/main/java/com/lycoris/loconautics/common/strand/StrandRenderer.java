@@ -50,13 +50,13 @@ public final class StrandRenderer {
                                  ClientStrands strands, PartialModel middleModel, PartialModel knotModel,
                                  double groundOffset, @Nullable UUID outlined) {
         renderAll(ps, buffer, camera, partialTick, strands, middleModel, knotModel, groundOffset, outlined, null,
-                null);
+                null, null);
     }
 
     public static void renderAll(PoseStack ps, MultiBufferSource buffer, Vec3 camera, float partialTick,
                                  ClientStrands strands, PartialModel middleModel, PartialModel knotModel,
                                  double groundOffset, @Nullable UUID outlined,
-                                 @Nullable Predicate<Vector3d> endKnotAt,
+                                 @Nullable Predicate<Vector3d> endKnotAt, @Nullable PartialModel endKnotModel,
                                  @Nullable SegmentSwell swell) {
         Minecraft mc = Minecraft.getInstance();
         Level level = mc.level;
@@ -67,6 +67,8 @@ public final class StrandRenderer {
                 middleModel, AllBlocks.ROPE.getDefaultState(), Direction.NORTH);
         SuperByteBuffer knot = CachedBuffers.partialFacing(
                 knotModel, AllBlocks.ROPE.getDefaultState(), Direction.NORTH);
+        SuperByteBuffer endKnot = endKnotModel == null || endKnotModel.get() == null ? knot
+                : CachedBuffers.partialFacing(endKnotModel, AllBlocks.ROPE.getDefaultState(), Direction.NORTH);
 
         for (Map.Entry<UUID, ClientStrands.Strand> entry : strands.entries()) {
             if (endGone(level, entry.getValue().start()) || endGone(level, entry.getValue().end())) {
@@ -100,10 +102,10 @@ public final class StrandRenderer {
                 RenderPoint first = render.get(0);
                 RenderPoint last = render.get(render.size() - 1);
                 if (endKnotAt.test(first.position()) && !cutAt(entry.getValue(), first.position())) {
-                    renderKnot(level, ps, vb, knot, first, camera);
+                    renderKnot(level, ps, vb, endKnot, first, camera);
                 }
                 if (endKnotAt.test(last.position()) && !cutAt(entry.getValue(), last.position())) {
-                    renderKnot(level, ps, vb, knot, last, camera);
+                    renderKnot(level, ps, vb, endKnot, last, camera);
                 }
             }
             if (entry.getKey().equals(outlined)) {
