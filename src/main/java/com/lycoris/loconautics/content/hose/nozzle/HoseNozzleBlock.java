@@ -5,13 +5,19 @@ import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import dev.ryanhcode.sable.api.block.BlockSubLevelAssemblyListener;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,7 +32,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class HoseNozzleBlock extends Block
         implements IWrenchable, IBE<HoseNozzleBlockEntity>, dev.ryanhcode.sable.api.block.BlockSubLevelCollisionShape,
-        BlockSubLevelAssemblyListener {
+        BlockSubLevelAssemblyListener, SimpleWaterloggedBlock {
 
     private static final VoxelShape SHAPE = Shapes.or(
             Shapes.box(0.28125, 0.0, 0.28125, 0.71875, 0.375, 0.71875),
@@ -35,15 +41,36 @@ public class HoseNozzleBlock extends Block
     private static final VoxelShape PHYSICS_SHAPE = Shapes.box(0.28125, 0.0, 0.28125, 0.71875, 0.3125, 0.71875);
 
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
     public HoseNozzleBlock(BlockBehaviour.Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(POWERED, false));
+        registerDefaultState(defaultBlockState().setValue(POWERED, false).setValue(WATERLOGGED, false));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(POWERED);
+        builder.add(POWERED, WATERLOGGED);
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        FluidState fluid = context.getLevel().getFluidState(context.getClickedPos());
+        return defaultBlockState().setValue(WATERLOGGED, fluid.getType() == Fluids.WATER);
+    }
+
+    @Override
+    protected FluidState getFluidState(BlockState state) {
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
+                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+        if (state.getValue(WATERLOGGED)) {
+            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+        }
+        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
 
     @Override
