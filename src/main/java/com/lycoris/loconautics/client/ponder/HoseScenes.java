@@ -1,5 +1,7 @@
 package com.lycoris.loconautics.client.ponder;
 
+import com.lycoris.loconautics.content.hose.winch.HoseWinchBlock;
+import com.lycoris.loconautics.content.hose.winch.HoseWinchBlockEntity;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
@@ -14,7 +16,9 @@ import net.createmod.ponder.api.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
@@ -50,6 +54,23 @@ public class HoseScenes {
     private static final BlockPos SOCKET_LEVER = new BlockPos(1, 2, 2);
 
     private static final Vec3 DOCK_DROP = new Vec3(0.0, -0.8125, 0.0);
+
+    private static final BlockPos F_WINCH_MOUNT = new BlockPos(2, 1, 4);
+    private static final BlockPos F_WINCH = new BlockPos(2, 2, 4);
+    private static final BlockPos F_PUMP = new BlockPos(2, 3, 4);
+    private static final BlockPos F_SOURCE = new BlockPos(2, 4, 4);
+    private static final BlockPos F_COG = new BlockPos(3, 3, 4);
+    private static final BlockPos F_SHAFT_NEAR = new BlockPos(3, 2, 4);
+    private static final BlockPos F_SHAFT_FAR = new BlockPos(3, 1, 4);
+    private static final BlockPos F_SHAFT_BASE = new BlockPos(3, 0, 4);
+    private static final BlockPos F_TANK = new BlockPos(2, 1, 1);
+    private static final BlockPos F_SOCKET = new BlockPos(2, 2, 1);
+    private static final BlockPos F_DOCKED = new BlockPos(2, 3, 1);
+    private static final BlockPos F_LOOSE = new BlockPos(4, 1, 1);
+    private static final Vec3 END_F_DOCKED = new Vec3(2.5, 2.6875, 1.5);
+    private static final Vec3 END_F_LOOSE = new Vec3(4.5, 1.5, 1.5);
+    private static final Vec3 PULL_OUT_F = new Vec3(2.0, -1.1875, 0.0);
+    private static final int HOSE_LEAD_TICKS = 1;
 
     public static void winch(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = open(builder, "hose_winch", "Reeling Hoses using Hose Winches");
@@ -222,68 +243,90 @@ public class HoseScenes {
     }
 
     public static void fluid(SceneBuilder builder, SceneBuildingUtil util) {
-        CreateSceneBuilder scene = open(builder, "hose_fluid", "Pumping through Hoses");
-        station(scene, util);
-        scene.world().showSection(util.select().position(NOZZLE), Direction.DOWN);
-        scene.world().showSection(util.select().position(HATCH), Direction.DOWN);
-        scene.idle(15);
+        CreateSceneBuilder scene = open(builder, "hose_fluid", "Pumping Fluids through Hoses", F_SHAFT_BASE);
+        Selection pump = util.select().position(F_PUMP);
+        Selection drive = fDrive(util);
 
-        scene.world().showSection(util.select().fromTo(TANK_LOW, TANK_HIGH), Direction.DOWN);
+        scene.world().showSection(util.select().position(F_WINCH_MOUNT), Direction.DOWN);
         scene.idle(5);
-        fill(scene);
-        scene.world().showSection(util.select().position(PUMP), Direction.SOUTH);
-        scene.idle(15);
+        hosed(scene, F_WINCH);
+        scene.world().showSection(util.select().position(F_WINCH), Direction.DOWN);
+        scene.idle(5);
+        scene.world().modifyBlock(F_SOCKET, state -> state.setValue(BlockStateProperties.OPEN, true), false);
+        scene.world().showSection(util.select().fromTo(F_TANK, F_SOCKET), Direction.DOWN);
+        scene.idle(8);
+        ElementLink<WorldSectionElement> nozzle =
+                scene.world().showIndependentSection(util.select().position(F_DOCKED), Direction.DOWN);
+        scene.world().moveSection(nozzle, DOCK_DROP, 0);
+        scene.idle(8);
+        hose(scene, F_WINCH, END_F_DOCKED, 0.0f);
+        scene.world().showSection(pump, Direction.DOWN);
+        scene.idle(5);
+        scene.world().showSection(util.select().position(F_SOURCE), Direction.DOWN);
+        scene.idle(5);
+        scene.world().modifyBlockEntity(F_SOURCE, FluidTankBlockEntity.class, be -> be.getTankInventory()
+                .fill(new FluidStack(Fluids.WATER, 24000), FluidAction.EXECUTE));
+        scene.idle(10);
         scene.overlay().showText(60)
                 .text("Hoses need a Mechanical Pump on the face opposite the mount")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(PUMP));
+                .pointAt(util.vector().topOf(F_PUMP));
         scene.idle(70);
 
-        scene.world().showSection(util.select().position(PUMP_COG), Direction.DOWN);
+        scene.world().showSection(util.select().position(F_COG), Direction.DOWN);
         scene.idle(5);
-        scene.world().showSection(util.select().fromTo(PUMP_SHAFT_NEAR, PUMP_SHAFT_FAR), Direction.NORTH);
+        scene.world().restoreBlocks(util.select().position(F_SHAFT_BASE));
+        scene.world().showSection(util.select().fromTo(F_SHAFT_NEAR, F_SHAFT_FAR), Direction.DOWN);
         scene.idle(15);
-        scene.world().setKineticSpeed(pumpLine(util), 64.0f);
-        scene.world().propagatePipeChange(PUMP);
-        scene.effects().rotationSpeedIndicator(PUMP_COG);
-        scene.overlay().showLine(PonderPalette.BLUE, util.vector().topOf(PUMP), util.vector().topOf(NOZZLE), 90);
+        pumpSpeed(scene, pump, drive, 64.0f);
+        scene.world().propagatePipeChange(F_PUMP);
+        scene.effects().rotationSpeedIndicator(F_COG);
         scene.overlay().showText(60)
                 .text("Pump speed sets how far the pressure reaches...")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().blockSurface(WINCH, Direction.NORTH));
+                .pointAt(util.vector().centerOf(F_COG));
         scene.idle(70);
 
         scene.overlay().showText(60)
-                .text("...up to 28 blocks at the top speed")
+                .text("...a hose only works once the pressure covers its whole length")
                 .placeNearTarget()
-                .pointAt(util.vector().blockSurface(WINCH, Direction.NORTH));
+                .pointAt(util.vector().topOf(F_WINCH));
         scene.idle(70);
 
-        scene.overlay().showOutline(PonderPalette.GREEN, "hatch", util.select().position(HATCH), 70);
+        scene.overlay().showOutline(PonderPalette.GREEN, "socket", util.select().position(F_SOCKET), 70);
+        scene.world().modifyBlockEntity(F_TANK, FluidTankBlockEntity.class, be -> be.getTankInventory()
+                .fill(new FluidStack(Fluids.WATER, 8000), FluidAction.EXECUTE));
         scene.overlay().showText(60)
-                .text("Docked, everything pumped goes into the hatch's tank")
+                .text("Docked in a Nozzle Socket, everything pumped goes into it")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(HATCH));
+                .pointAt(util.vector().topOf(F_SOCKET));
         scene.idle(70);
 
+        pumpSpeed(scene, pump, drive, -64.0f);
+        scene.world().propagatePipeChange(F_PUMP);
+        scene.effects().rotationDirectionIndicator(F_COG);
         scene.overlay().showText(60)
-                .text("It can pull fluid back out the other way too")
-                .placeNearTarget()
-                .pointAt(util.vector().topOf(HATCH));
-        scene.idle(70);
-
-        scene.world().modifyBlock(NOZZLE, state -> state.setValue(BlockStateProperties.POWERED, false), false);
-        scene.effects().emitParticles(util.vector().topOf(NOZZLE),
-                scene.effects().simpleParticleEmitter(ParticleTypes.FALLING_WATER,
-                        util.vector().of(0.0, -0.15, 0.2)), 3.0f, 40);
-        scene.overlay().showText(60)
-                .text("A loose nozzle sprays, and the jet pushes it back")
+                .text("A reversed pump pulls Fluid back out through the hose")
                 .attachKeyFrame()
                 .placeNearTarget()
-                .pointAt(util.vector().topOf(NOZZLE));
+                .pointAt(util.vector().topOf(F_PUMP));
+        scene.idle(70);
+
+        pumpSpeed(scene, pump, drive, 64.0f);
+        scene.world().propagatePipeChange(F_PUMP);
+        scene.world().modifyBlock(F_DOCKED, state -> state.setValue(BlockStateProperties.POWERED, false), false);
+        drag(scene, nozzle, PULL_OUT_F, F_WINCH, END_F_DOCKED, END_F_LOOSE, 0.0f, 20);
+        scene.effects().emitParticles(new Vec3(4.5, 1.2, 1.5),
+                scene.effects().simpleParticleEmitter(ParticleTypes.FALLING_WATER, new Vec3(0.0, -0.15, 0.0)),
+                3.0f, 40);
+        scene.overlay().showText(60)
+                .text("A loose nozzle sprays what is pumped, and the jet pushes it back")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(F_LOOSE));
         scene.idle(70);
     }
 
@@ -427,6 +470,74 @@ public class HoseScenes {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         scene.title(id, title);
         scene.configureBasePlate(0, 0, 5);
+        scene.showBasePlate();
+        scene.idle(5);
+        return scene;
+    }
+
+    private static Selection fDrive(SceneBuildingUtil util) {
+        return util.select().position(F_COG).add(util.select().fromTo(F_SHAFT_BASE, F_SHAFT_NEAR));
+    }
+
+    // a cogwheel meshing with the pump turns the other way
+    private static void pumpSpeed(CreateSceneBuilder scene, Selection pump, Selection drive, float speed) {
+        scene.world().setKineticSpeed(pump, speed);
+        scene.world().setKineticSpeed(drive, -speed);
+    }
+
+    // an empty winch has its own model, it only swaps to the coiled one once a hose is attached
+    private static void hosed(CreateSceneBuilder scene, BlockPos winch) {
+        scene.world().modifyBlock(winch, state -> state.setValue(HoseWinchBlock.HAS_COIL, true), false);
+        coil(scene, winch);
+    }
+
+    // the coil only draws while the winch has a strand, so it gets one with no rope points yet
+    private static void coil(CreateSceneBuilder scene, BlockPos winch) {
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean("HasStrand", true);
+        scene.world().modifyBlockEntity(winch, HoseWinchBlockEntity.class,
+                be -> be.readClient(tag, be.getLevel().registryAccess()));
+    }
+
+    // the winch shows the points it got one tick ago, so the hose end is sent one tick ahead of the nozzle
+    private static void drag(CreateSceneBuilder scene, ElementLink<WorldSectionElement> nozzle, Vec3 delta,
+                             BlockPos winch, Vec3 from, Vec3 to, float speed, int ticks) {
+        scene.world().moveSection(nozzle, delta, ticks);
+        for (int i = 1; i <= ticks; i++) {
+            hose(scene, winch, from.lerp(to, Math.min(1.0, (double) (i + HOSE_LEAD_TICKS) / ticks)), speed);
+            scene.idle(1);
+        }
+    }
+
+    // draws the real hose the winch renders from its synced rope points, a gentle sag between the two ends
+    private static void hose(CreateSceneBuilder scene, BlockPos winch, Vec3 end, float speed) {
+        Vec3 start = new Vec3(0.5, 0.5, 0.5);
+        Vec3 span = end.subtract(winch.getX(), winch.getY(), winch.getZ()).subtract(start);
+        int segments = Math.max(2, (int) Math.ceil(span.length()));
+        int[] packed = new int[(segments + 1) * 3];
+        for (int i = 0; i <= segments; i++) {
+            double t = (double) i / segments;
+            double sag = -0.4 * Math.sin(Math.PI * t) * Math.min(1.0, span.length() / 3.0);
+            double y = Math.max(start.y + span.y * t + sag, 1.1 - winch.getY());
+            packed[i * 3] = Float.floatToIntBits((float) (start.x + span.x * t));
+            packed[i * 3 + 1] = Float.floatToIntBits((float) y);
+            packed[i * 3 + 2] = Float.floatToIntBits((float) (start.z + span.z * t));
+        }
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean("HasStrand", true);
+        tag.putFloat("Length", (float) span.length());
+        tag.putFloat("Speed", speed);
+        tag.putIntArray("RopePts", packed);
+        scene.world().modifyBlockEntity(winch, HoseWinchBlockEntity.class,
+                be -> be.readClient(tag, be.getLevel().registryAccess()));
+    }
+
+    // a casing sunk into the plate stays out of sight until the parts that turn it are shown
+    private static CreateSceneBuilder open(SceneBuilder builder, String id, String title, BlockPos sunk) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        scene.title(id, title);
+        scene.configureBasePlate(0, 0, 5);
+        scene.world().setBlock(sunk, Blocks.SNOW_BLOCK.defaultBlockState(), false);
         scene.showBasePlate();
         scene.idle(5);
         return scene;
