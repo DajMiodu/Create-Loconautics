@@ -1,4 +1,3 @@
-
 plugins {
     id 'java-library'
     id 'net.neoforged.moddev' version '2.0.140'
@@ -12,12 +11,29 @@ tasks.named('wrapper', Wrapper).configure {
 version = mod_version
 group = mod_group_id
 
-// I'm going to kill you lyc
+def modId = providers.gradleProperty('mod_id').get()
+
+// release me im kidnapped by lyc
 repositories {
-    maven { url = "https://maven.createmod.net" }
-    maven { url = "https://maven.ithundxr.dev/snapshots" }
-    maven { url = "https://maven.blamejared.com" }
-    maven { url = "https://maven.theillusivec4.top/" }
+    maven {
+        url = "https://maven.createmod.net"
+    }
+
+    maven {
+        url = "https://maven.ithundxr.dev/snapshots"
+    }
+
+    maven {
+        url = "https://maven.blamejared.com"
+    }
+
+    maven {
+        name = "IllusiveC4"
+        url = "https://maven.theillusivec4.top/"
+        content {
+            includeGroup("top.theillusivec4.curios")
+        }
+    }
 
     maven {
         name = "TerraformersMC"
@@ -31,19 +47,35 @@ repositories {
         }
     }
 
-    maven {
-        name = "RyanHCode Maven"
-        url = "https://maven.ryanhcode.dev/releases"
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "RyanHCode Maven"
+                url = "https://maven.ryanhcode.dev/releases"
+            }
+        }
+        filter {
+            includeGroup("dev.ryanhcode.sable")
+            includeGroup("dev.ryanhcode.sable-companion")
+            includeGroup("dev.simulated_team.simulated")
+        }
     }
 
     exclusiveContent {
-        forRepository { maven { name = "Modrinth"; url = "https://api.modrinth.com/maven" } }
-        filter { includeGroup("maven.modrinth") }
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup("maven.modrinth")
+        }
     }
 }
 
 base {
-    archivesName = mod_id
+    archivesName = modId
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -59,7 +91,7 @@ neoForge {
     runs {
         client {
             client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+            systemProperty 'neoforge.enabledGameTestNamespaces', modId
             programArguments.addAll '--username',
                     (findProperty('mcUser') ?: 'Lyc').toString()
         }
@@ -67,17 +99,17 @@ neoForge {
         server {
             server()
             programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+            systemProperty 'neoforge.enabledGameTestNamespaces', modId
         }
 
         gameTestServer {
             type = "gameTestServer"
-            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+            systemProperty 'neoforge.enabledGameTestNamespaces', modId
         }
 
         data {
             data()
-            programArguments.addAll '--mod', mod_id,
+            programArguments.addAll '--mod', modId,
                     '--all',
                     '--output', file('src/generated/resources/').getAbsolutePath(),
                     '--existing', file('src/main/resources/').getAbsolutePath()
@@ -91,7 +123,7 @@ neoForge {
     }
 
     mods {
-        "${mod_id}" {
+        "${modId}" {
             sourceSet(sourceSets.main)
         }
     }
@@ -103,6 +135,7 @@ sourceSets.main.resources {
 
 configurations {
     runtimeClasspath.extendsFrom localRuntime
+
     sableJarExtraction
     aeroBundle
 }
@@ -133,19 +166,36 @@ tasks.register('extractAeronautics', Copy) {
     from({ configurations.aeroBundle.collect { zipTree(it) } }) {
         include 'META-INF/jarjar/dev.eriksonn.aeronautics.aeronautics-neoforge-*.jar'
     }
-    eachFile { it.relativePath = new RelativePath(true, 'aeronautics-neoforge.jar') }
+
+    eachFile {
+        it.relativePath = new RelativePath(true, 'aeronautics-neoforge.jar')
+    }
+
     includeEmptyDirs = false
     into layout.buildDirectory.dir('generated/aero-deps')
 }
 
 dependencies {
-    aeroBundle("maven.modrinth:oWaK0Q19:1.3.2+mc1.21.1") { transitive = false }
+    aeroBundle("maven.modrinth:oWaK0Q19:1.3.2+mc1.21.1") {
+        transitive = false
+    }
+
     compileOnly fileTree(layout.buildDirectory.dir('generated/aero-deps')) {
         builtBy(tasks.named('extractAeronautics'))
     }
-    compileOnly("maven.modrinth:GWp4jCJj:5.11.7") { transitive = false }
-    compileOnly("maven.modrinth:ApkoHNO9:1.1.4") { transitive = false }
-    compileOnly("top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1") { transitive = false }
+
+    compileOnly("maven.modrinth:GWp4jCJj:5.11.7") {
+        transitive = false
+    }
+
+    compileOnly("maven.modrinth:ApkoHNO9:1.1.4") {
+        transitive = false
+    }
+
+    compileOnly("top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1") {
+        transitive = false
+    }
+
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") {
         transitive = false
     }
@@ -158,27 +208,12 @@ dependencies {
 
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
 
-    // Lyc I'm going to kill you
     implementation("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:${sable_version}") {
-        exclude group: 'com.tterrag.registrate', module: 'Registrate'
-    }
-
-    runtimeOnly("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:${sable_version}") {
         exclude group: 'com.tterrag.registrate', module: 'Registrate'
     }
 
     implementation(
             "dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sableCompanionVersion}"
-    )
-
-    implementation(
-            "dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${simulatedVersion}"
-    ) {
-        transitive = false
-    }
-
-    implementation(
-            "foundry.veil:veil-neoforge-${minecraft_version}:${veilVersion}"
     )
 
     sableJarExtraction(
@@ -190,6 +225,16 @@ dependencies {
     compileOnly fileTree(layout.buildDirectory.dir('generated/sable-deps')) {
         builtBy(tasks.named('extractSableRapier'))
     }
+
+    implementation(
+            "dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${simulatedVersion}"
+    ) {
+        transitive = false
+    }
+
+    implementation(
+            "foundry.veil:veil-neoforge-${minecraft_version}:${veilVersion}"
+    )
 
     compileOnly(
             "cc.tweaked:cc-tweaked-${minecraft_version}-forge-api:${cc_tweaked_version}"
@@ -204,12 +249,12 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
     var replaceProperties = [
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
+            neo_version             : neo_version,
             loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
+            mod_id                  : modId,
+            mod_name                : mod_name,
+            mod_license             : mod_license,
+            mod_version             : mod_version,
     ]
 
     inputs.properties replaceProperties
