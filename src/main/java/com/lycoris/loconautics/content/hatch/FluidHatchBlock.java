@@ -2,14 +2,18 @@ package com.lycoris.loconautics.content.hatch;
 
 import com.lycoris.loconautics.content.boiler.BoilerTags;
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
+import com.simibubi.create.AllItems;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
@@ -88,12 +92,26 @@ public class FluidHatchBlock extends Block implements IBE<FluidHatchBlockEntity>
 
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        Level level = context.getLevel();
-        if (!level.isClientSide) {
-            int next = (state.getValue(LID_HINGE) + 1) % 4;
-            level.setBlock(context.getClickedPos(), state.setValue(LID_HINGE, next), Block.UPDATE_ALL);
+        FluidHatchBlockEntity be = getBlockEntity(context.getLevel(), context.getClickedPos());
+        if (be != null && be.isDocked()) {
+            return InteractionResult.PASS;
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return IWrenchable.super.onWrenched(state, context);
+    }
+
+    @Override
+    public BlockState getRotatedBlockState(BlockState state, Direction targetedFace) {
+        Direction.Axis axis = targetedFace.getAxis();
+        Direction side = hingeSide(state.getValue(FACING), state.getValue(LID_HINGE));
+        Direction facing = state.getValue(FACING).getClockWise(axis);
+        return state.setValue(FACING, facing).setValue(LID_HINGE, hingeFor(facing, side.getClockWise(axis)));
+    }
+
+    @Override
+    public BlockState updateAfterWrenched(BlockState newState, UseOnContext context) {
+        BlockState state = newState.setValue(RAISED,
+                onBarrel(context.getLevel(), context.getClickedPos(), newState.getValue(FACING)));
+        return IWrenchable.super.updateAfterWrenched(state, context);
     }
 
     @Override
@@ -194,6 +212,15 @@ public class FluidHatchBlock extends Block implements IBE<FluidHatchBlockEntity>
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         int face = state.getValue(FACING).get3DDataValue();
         return state.getValue(RAISED) ? SHAPES_RAISED[face] : SHAPES[face];
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                              Player player, InteractionHand hand, BlockHitResult hit) {
+        if (AllItems.WRENCH.isIn(stack)) {
+            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
 
     @Override
