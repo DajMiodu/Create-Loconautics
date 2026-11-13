@@ -1187,5 +1187,12 @@
   "loconautics.ponder.train_casing_shaft.text_1": "Bogeys can be fitted with a Shaft by right clicking them with one",
   "loconautics.ponder.train_casing_shaft.text_2": "Rotation from one side passes straight through, like an encased Shaft",
   "loconautics.ponder.train_casing_shaft.text_3": "Sneak and Right click with a Wrench to remove the Shaft again",
-  "loconautics.ponder.train_casing_shaft.text_4": "Without the Shaft, rotation stops at the Bogey"
+  "loconautics.ponder.train_casing_shaft.text_4": "Without the Shaft, rotation stops at the Bogey",
+  "loconautics.ponder.nozzle_socket.header": "Docking Nozzles in Nozzle Sockets",
+  "loconautics.ponder.nozzle_socket.text_1": "Nozzle Sockets hold a nozzle upright and take its Fluid",
+  "loconautics.ponder.nozzle_socket.text_2": "Right click the lid to open it",
+  "loconautics.ponder.nozzle_socket.text_3": "A nozzle that comes near an open socket docks itself",
+  "loconautics.ponder.nozzle_socket.text_4": "Alone, a socket stores Water in its own tank",
+  "loconautics.ponder.nozzle_socket.text_5": "With a Fluid Tank behind it, the Fluid goes there instead",
+  "loconautics.ponder.nozzle_socket.text_6": "A Redstone signal shuts docking and pops the nozzle out"
 }

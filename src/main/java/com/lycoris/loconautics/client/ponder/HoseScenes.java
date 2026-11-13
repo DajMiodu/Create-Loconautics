@@ -1,10 +1,13 @@
 package com.lycoris.loconautics.client.ponder;
 
 import com.lycoris.loconautics.registry.LoconauticsRegistries;
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import net.createmod.catnip.math.Pointing;
 import net.createmod.ponder.api.PonderPalette;
+import net.createmod.ponder.api.element.ElementLink;
+import net.createmod.ponder.api.element.WorldSectionElement;
 import net.createmod.ponder.api.scene.SceneBuilder;
 import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.ponder.api.scene.Selection;
@@ -14,6 +17,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 
@@ -38,6 +42,14 @@ public class HoseScenes {
     private static final BlockPos NOZZLE = new BlockPos(4, 2, 4);
 
     private static final BlockPos CAMPFIRE = new BlockPos(4, 1, 1);
+
+    private static final BlockPos SOCKET_MOUNT = new BlockPos(2, 1, 2);
+    private static final BlockPos SOCKET_ALONE = new BlockPos(2, 2, 2);
+    private static final BlockPos NOZZLE_ALONE = new BlockPos(2, 3, 2);
+    private static final BlockPos SCAFFOLD = new BlockPos(1, 1, 2);
+    private static final BlockPos SOCKET_LEVER = new BlockPos(1, 2, 2);
+
+    private static final Vec3 DOCK_DROP = new Vec3(0.0, -0.8125, 0.0);
 
     public static void winch(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = open(builder, "hose_winch", "Reeling Hoses using Hose Winches");
@@ -321,6 +333,77 @@ public class HoseScenes {
                 .attachKeyFrame()
                 .placeNearTarget()
                 .pointAt(util.vector().topOf(NOZZLE));
+        scene.idle(70);
+    }
+
+    public static void socket(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = open(builder, "nozzle_socket", "Docking Nozzles in Nozzle Sockets");
+
+        scene.world().showSection(util.select().position(SOCKET_MOUNT), Direction.DOWN);
+        scene.idle(5);
+        scene.world().showSection(util.select().position(SOCKET_ALONE), Direction.DOWN);
+        scene.idle(10);
+        scene.overlay().showText(60)
+                .text("Nozzle Sockets hold a nozzle upright and take its Fluid")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(SOCKET_ALONE));
+        scene.idle(70);
+
+        scene.overlay().showControls(util.vector().topOf(SOCKET_ALONE), Pointing.DOWN, 30)
+                .rightClick();
+        scene.idle(10);
+        scene.world().modifyBlock(SOCKET_ALONE, state -> state.setValue(BlockStateProperties.OPEN, true), false);
+        scene.overlay().showText(50)
+                .text("Right click the lid to open it")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(SOCKET_ALONE));
+        scene.idle(55);
+
+        ElementLink<WorldSectionElement> nozzle =
+                scene.world().showIndependentSection(util.select().position(NOZZLE_ALONE), Direction.DOWN);
+        scene.idle(15);
+        scene.world().moveSection(nozzle, DOCK_DROP, 12);
+        scene.overlay().showText(60)
+                .text("A nozzle that comes near an open socket docks itself")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(SOCKET_ALONE));
+        scene.idle(70);
+
+        scene.overlay().showText(60)
+                .text("Alone, a socket stores Water in its own tank")
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(SOCKET_ALONE));
+        scene.idle(70);
+
+        scene.world().setBlock(SOCKET_MOUNT, AllBlocks.FLUID_TANK.getDefaultState(), true);
+        scene.idle(5);
+        scene.world().modifyBlockEntity(SOCKET_MOUNT, FluidTankBlockEntity.class, be -> be.getTankInventory()
+                .fill(new FluidStack(Fluids.WATER, 8000), FluidAction.EXECUTE));
+        scene.overlay().showText(60)
+                .text("With a Fluid Tank behind it, the Fluid goes there instead")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(SOCKET_MOUNT));
+        scene.idle(70);
+
+        scene.world().showSection(util.select().position(SCAFFOLD), Direction.DOWN);
+        scene.idle(5);
+        scene.world().showSection(util.select().position(SOCKET_LEVER), Direction.DOWN);
+        scene.idle(10);
+        scene.overlay().showControls(util.vector().topOf(SOCKET_LEVER), Pointing.DOWN, 30)
+                .rightClick();
+        scene.idle(10);
+        scene.world().toggleRedstonePower(util.select().position(SOCKET_LEVER));
+        scene.effects().indicateRedstone(SOCKET_LEVER);
+        scene.world().moveSection(nozzle, new Vec3(0.0, 1.0, 0.0), 8);
+        scene.overlay().showText(60)
+                .text("A Redstone signal shuts docking and pops the nozzle out")
+                .attachKeyFrame()
+                .placeNearTarget()
+                .pointAt(util.vector().topOf(SOCKET_ALONE));
         scene.idle(70);
     }
 

@@ -30,6 +30,10 @@ public class HosePonderPlugin implements PonderPlugin {
                 .addStoryBoard("hose/hose", HoseScenes::connect)
                 .addStoryBoard("hose/hose", HoseScenes::nozzle)
                 .addStoryBoard("hose/hose", HoseScenes::fluid)
-                .addStoryBoard("hose/hose", HoseScenes::spray);
+                .addStoryBoard("hose/hose", HoseScenes::spray)
+                .addStoryBoard("hose/socket", HoseScenes::socket);
+
+        helper.forComponents(LoconauticsConstants.id("fluid_hatch_gray"))
+                .addStoryBoard("hose/socket", HoseScenes::socket);
     }
 }
