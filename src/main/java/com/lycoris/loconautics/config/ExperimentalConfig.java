@@ -2,6 +2,7 @@ package com.lycoris.loconautics.config;
 
 import com.lycoris.loconautics.LoconauticsConstants;
 import com.lycoris.loconautics.common.experimental.ExperimentalFeature;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.EnumMap;
@@ -27,6 +28,9 @@ public final class ExperimentalConfig {
     }
 
     public static boolean enabled(ExperimentalFeature feature) {
+        if (!FMLLoader.isProduction()) {
+            return true;
+        }
         return SPEC.isLoaded() && VALUES.get(feature).get();
     }
 
