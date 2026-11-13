@@ -1,19 +1,22 @@
 {
     "parent": "minecraft:block/block",
+    "render_type": "minecraft:cutout",
     "textures": {
-        "1": "loconautics:block/hose/knot"
+        "0": "loconautics:block/hose/knot",
+        "particle": "loconautics:block/hose/knot"
     },
     "elements": [
         {
-            "from": [6, 6, 6],
-            "to": [10, 10, 10],
+            "from": [6, 5.5, 6],
+            "to": [10, 10.5, 10],
+            "rotation": {"angle": 0, "axis": "y", "origin": [8, 5.5, 8]},
             "faces": {
-                "north": {"uv": [0, 0, 16, 16], "texture": "#1"},
-                "east": {"uv": [0, 0, 16, 16], "texture": "#1"},
-                "south": {"uv": [0, 0, 16, 16], "texture": "#1"},
-                "west": {"uv": [0, 0, 16, 16], "texture": "#1"},
-                "up": {"uv": [0, 0, 16, 16], "texture": "#1"},
-                "down": {"uv": [0, 0, 16, 16], "texture": "#1"}
+                "north": {"uv": [0, 0, 4, 5], "texture": "#0"},
+                "east": {"uv": [0, 0, 4, 5], "texture": "#0"},
+                "south": {"uv": [0, 0, 4, 5], "texture": "#0"},
+                "west": {"uv": [0, 0, 4, 5], "texture": "#0"},
+                "up": {"uv": [8, 0, 12, 4], "texture": "#0"},
+                "down": {"uv": [8, 0, 12, 4], "texture": "#0"}
             }
         }
     ]
