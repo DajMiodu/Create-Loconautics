@@ -5,6 +5,7 @@ import com.lycoris.loconautics.client.RopeRendering;
 import com.lycoris.loconautics.common.strand.StrandRenderer;
 import com.lycoris.loconautics.content.steelcable.SteelCableHover;
 import com.lycoris.loconautics.common.strand.StrandAnchors;
+import com.lycoris.loconautics.content.hose.HoseNozzleKnot;
 import com.lycoris.loconautics.content.hose.HoseSwell;
 import com.lycoris.loconautics.content.hose.rope.HoseRope;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -134,6 +135,7 @@ public class HoseWinchRenderer implements BlockEntityRenderer<HoseWinchBlockEnti
         SuperByteBuffer knot = CachedBuffers.partialFacing(
                 LoconauticsPartialModels.HOSE_KNOT, be.getBlockState(), Direction.NORTH);
 
+        boolean nozzleKnot = liveNozzle != null && LoconauticsPartialModels.HOSE_NOZZLE_KNOT.get() != null;
         Quaternionf orient = new Quaternionf();
         double cumDist = 0.0;
         for (int i = 0; i < points.size() - 1; i++) {
@@ -144,7 +146,7 @@ public class HoseWinchRenderer implements BlockEntityRenderer<HoseWinchBlockEnti
                 continue;
             }
 
-            if (i > 0) {
+            if (i > 0 && !(nozzleKnot && i == points.size() - 2)) {
                 renderKnot(ps, vb, ownerPos, p0, orient, worldLight(level, worldPoints.get(i)), knot);
             }
 
@@ -160,7 +162,16 @@ public class HoseWinchRenderer implements BlockEntityRenderer<HoseWinchBlockEnti
             ps.popPose();
             cumDist += length;
         }
-        renderKnot(ps, vb, ownerPos, points.getLast(), orient, worldLight(level, worldPoints.getLast()), knot);
+        if (nozzleKnot) {
+            SuperByteBuffer nozzleBuffer = CachedBuffers.partialFacing(
+                    LoconauticsPartialModels.HOSE_NOZZLE_KNOT, be.getBlockState(), Direction.NORTH);
+            Quaternionf nozzleOrient = HoseNozzleKnot.atNozzle(orient);
+            org.joml.Vector3f back = HoseNozzleKnot.backOff(nozzleOrient);
+            renderKnot(ps, vb, ownerPos, points.getLast().add(back.x, back.y, back.z), nozzleOrient,
+                    worldLight(level, worldPoints.getLast()), nozzleBuffer);
+        } else {
+            renderKnot(ps, vb, ownerPos, points.getLast(), orient, worldLight(level, worldPoints.getLast()), knot);
+        }
 
         if (holdingHoseItem()) {
             RopeRendering.renderHitbox(ps, buffer, points, ownerPos, (float) HoseRope.COLLISION_RADIUS);

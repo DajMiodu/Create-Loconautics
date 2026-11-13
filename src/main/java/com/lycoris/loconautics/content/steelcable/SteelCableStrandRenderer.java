@@ -19,7 +19,7 @@ public final class SteelCableStrandRenderer {
         StrandRenderer.renderAll(ps, buffer, camera, partialTick, StrandKind.HOSE_LINK.clientStrands(),
                 LoconauticsPartialModels.HOSE_STRAND, LoconauticsPartialModels.HOSE_KNOT,
                 0.0, SteelCableHover.hovered,
-                com.lycoris.loconautics.content.hose.nozzle.HoseNozzleBlockEntity::clientNozzleAt,
+                be -> be instanceof com.lycoris.loconautics.content.hose.nozzle.HoseNozzleBlockEntity,
                 LoconauticsPartialModels.HOSE_NOZZLE_KNOT,
                 com.lycoris.loconautics.content.hose.flow.ClientHoseFlow::swell);
     }

@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -56,7 +57,7 @@ public final class StrandRenderer {
     public static void renderAll(PoseStack ps, MultiBufferSource buffer, Vec3 camera, float partialTick,
                                  ClientStrands strands, PartialModel middleModel, PartialModel knotModel,
                                  double groundOffset, @Nullable UUID outlined,
-                                 @Nullable Predicate<Vector3d> endKnotAt, @Nullable PartialModel endKnotModel,
+                                 @Nullable Predicate<BlockEntity> endKnotOn, @Nullable PartialModel endKnotModel,
                                  @Nullable SegmentSwell swell) {
         Minecraft mc = Minecraft.getInstance();
         Level level = mc.level;
@@ -79,6 +80,8 @@ public final class StrandRenderer {
                 continue;
             }
             VertexConsumer vb = buffer.getBuffer(RenderType.solid());
+            boolean knotAtStart = endKnotOn != null && endKnotOn.test(holderAt(level, entry.getValue().start()));
+            boolean knotAtEnd = endKnotOn != null && endKnotOn.test(holderAt(level, entry.getValue().end()));
             double total = 0.0;
             if (swell != null) {
                 for (int i = 1; i < render.size(); i++) {
@@ -94,24 +97,47 @@ public final class StrandRenderer {
                 Vector3d mid = new Vector3d((from.position().x + to.x) * 0.5, (from.position().y + to.y) * 0.5,
                         (from.position().z + to.z) * 0.5);
                 if (!cutAt(entry.getValue(), mid)) {
-                    renderSegment(level, ps, vb, middle, knot, from, length, camera, i > 1, girth);
+                    boolean drawKnot = i > 1 && !(knotAtStart && i == 2) && !(knotAtEnd && i == render.size() - 1);
+                    renderSegment(level, ps, vb, middle, knot, from, length, camera, drawKnot, girth);
                 }
                 cum += length;
             }
-            if (endKnotAt != null) {
+            if (endKnotOn != null) {
                 RenderPoint first = render.get(0);
                 RenderPoint last = render.get(render.size() - 1);
-                if (endKnotAt.test(first.position()) && !cutAt(entry.getValue(), first.position())) {
+                if (knotAtStart && !cutAt(entry.getValue(), first.position())) {
                     renderKnot(level, ps, vb, endKnot, first, camera);
                 }
-                if (endKnotAt.test(last.position()) && !cutAt(entry.getValue(), last.position())) {
-                    renderKnot(level, ps, vb, endKnot, last, camera);
+                if (knotAtEnd && !cutAt(entry.getValue(), last.position())) {
+                    Quaternionf nozzleOrient = com.lycoris.loconautics.content.hose.HoseNozzleKnot
+                            .atNozzle(last.orientation());
+                    org.joml.Vector3f back = com.lycoris.loconautics.content.hose.HoseNozzleKnot
+                            .backOff(nozzleOrient);
+                    RenderPoint flipped = new RenderPoint(nozzleOrient,
+                            new Vector3d(last.position()).add(back.x, back.y, back.z));
+                    renderKnot(level, ps, vb, endKnot, flipped, camera);
                 }
             }
             if (entry.getKey().equals(outlined)) {
                 renderOutline(ps, buffer, render, camera);
             }
         }
+    }
+
+    @Nullable
+    private static BlockEntity holderAt(Level level, @Nullable StrandEnd end) {
+        if (end == null) {
+            return null;
+        }
+        Level holderLevel = level;
+        if (end.subLevelId() != null) {
+            SubLevelContainer container = SubLevelContainer.getContainer(level);
+            if (container == null || !(container.getSubLevel(end.subLevelId()) instanceof ClientSubLevel sub)) {
+                return null;
+            }
+            holderLevel = sub.getLevel();
+        }
+        return holderLevel.getBlockEntity(end.local());
     }
 
     // an end on a body this level does not hold is a strand left over from before a teleport

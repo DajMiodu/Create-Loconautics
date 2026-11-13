@@ -58,7 +58,6 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
 
     private static final int UNDOCK_SAFETY_TICKS = 10;
     private static final int REDOCK_COOLDOWN_TICKS = 10;
-    private static final java.util.Set<HoseNozzleBlockEntity> CLIENT_NOZZLES = new java.util.HashSet<>();
     private static final int LINK_SPRAY_FLOW = 16;
     private static final int LINK_FLOW_LINGER_TICKS = 3;
     private static final float LINK_SPRAY_STRENGTH = 0.5f;
@@ -411,29 +410,6 @@ public class HoseNozzleBlockEntity extends SmartBlockEntity
     public void invalidate() {
         super.invalidate();
         NozzleDockService.unregister(this);
-        CLIENT_NOZZLES.remove(this);
-    }
-
-    @Override
-    public void initialize() {
-        super.initialize();
-        if (level != null && level.isClientSide) {
-            CLIENT_NOZZLES.add(this);
-        }
-    }
-
-    public static boolean clientNozzleAt(org.joml.Vector3d world) {
-        for (HoseNozzleBlockEntity nozzle : CLIENT_NOZZLES) {
-            if (nozzle.level == null) {
-                continue;
-            }
-            Vec3 anchor = nozzle.getAttachmentPoint();
-            Vec3 at = dev.ryanhcode.sable.Sable.HELPER.projectOutOfSubLevel(nozzle.level, anchor);
-            if (at.distanceToSqr(world.x, world.y, world.z) < 0.09) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
