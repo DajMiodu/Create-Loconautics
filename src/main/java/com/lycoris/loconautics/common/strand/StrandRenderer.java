@@ -97,7 +97,7 @@ public final class StrandRenderer {
                 Vector3d mid = new Vector3d((from.position().x + to.x) * 0.5, (from.position().y + to.y) * 0.5,
                         (from.position().z + to.z) * 0.5);
                 if (!cutAt(entry.getValue(), mid)) {
-                    boolean drawKnot = i > 1 && !(knotAtStart && i == 2) && !(knotAtEnd && i == render.size() - 1);
+                    boolean drawKnot = i > 1 && !(knotAtStart && i == 2);
                     renderSegment(level, ps, vb, middle, knot, from, length, camera, drawKnot, girth);
                 }
                 cum += length;
@@ -106,7 +106,7 @@ public final class StrandRenderer {
                 RenderPoint first = render.get(0);
                 RenderPoint last = render.get(render.size() - 1);
                 if (knotAtStart && !cutAt(entry.getValue(), first.position())) {
-                    renderKnot(level, ps, vb, endKnot, first, camera);
+                    renderKnot(level, ps, vb, endKnot, first, camera, 1.0f);
                 }
                 if (knotAtEnd && !cutAt(entry.getValue(), last.position())) {
                     Quaternionf nozzleOrient = com.lycoris.loconautics.content.hose.HoseNozzleKnot
@@ -115,7 +115,8 @@ public final class StrandRenderer {
                             .backOff(nozzleOrient);
                     RenderPoint flipped = new RenderPoint(nozzleOrient,
                             new Vector3d(last.position()).add(back.x, back.y, back.z));
-                    renderKnot(level, ps, vb, endKnot, flipped, camera);
+                    renderKnot(level, ps, vb, endKnot, flipped, camera,
+                            com.lycoris.loconautics.content.hose.HoseNozzleKnot.INFLATE);
                 }
             }
             if (entry.getKey().equals(outlined)) {
@@ -157,11 +158,12 @@ public final class StrandRenderer {
     }
 
     private static void renderKnot(Level level, PoseStack ps, VertexConsumer vb, SuperByteBuffer knot,
-                                   RenderPoint at, Vec3 camera) {
+                                   RenderPoint at, Vec3 camera, float scale) {
         Vector3d p = at.position();
         ps.pushPose();
         ps.translate(p.x - camera.x, p.y - camera.y, p.z - camera.z);
         ps.mulPose(at.orientation());
+        ps.scale(scale, scale, scale);
         ps.translate(-0.5, -0.5, -0.5);
         knot.light(LevelRenderer.getLightColor(level, BlockPos.containing(p.x, p.y, p.z))).renderInto(ps, vb);
         ps.popPose();

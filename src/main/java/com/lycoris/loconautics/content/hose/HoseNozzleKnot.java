@@ -5,7 +5,9 @@ import org.joml.Vector3f;
 
 public final class HoseNozzleKnot {
 
-    private static final float BACK_OFF = -2.0f / 16.0f;
+    public static final float INFLATE = 1.06f;
+
+    private static final float BACK_OFF = 1.0f / 16.0f;
 
     private HoseNozzleKnot() {
     }

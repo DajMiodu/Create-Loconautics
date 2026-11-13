@@ -146,8 +146,8 @@ public class HoseWinchRenderer implements BlockEntityRenderer<HoseWinchBlockEnti
                 continue;
             }
 
-            if (i > 0 && !(nozzleKnot && i == points.size() - 2)) {
-                renderKnot(ps, vb, ownerPos, p0, orient, worldLight(level, worldPoints.get(i)), knot);
+            if (i > 0) {
+                renderKnot(ps, vb, ownerPos, p0, orient, worldLight(level, worldPoints.get(i)), knot, 1.0f);
             }
 
             SuperByteBuffer middle = CachedBuffers.partialFacing(
@@ -168,9 +168,10 @@ public class HoseWinchRenderer implements BlockEntityRenderer<HoseWinchBlockEnti
             Quaternionf nozzleOrient = HoseNozzleKnot.atNozzle(orient);
             org.joml.Vector3f back = HoseNozzleKnot.backOff(nozzleOrient);
             renderKnot(ps, vb, ownerPos, points.getLast().add(back.x, back.y, back.z), nozzleOrient,
-                    worldLight(level, worldPoints.getLast()), nozzleBuffer);
+                    worldLight(level, worldPoints.getLast()), nozzleBuffer, HoseNozzleKnot.INFLATE);
         } else {
-            renderKnot(ps, vb, ownerPos, points.getLast(), orient, worldLight(level, worldPoints.getLast()), knot);
+            renderKnot(ps, vb, ownerPos, points.getLast(), orient, worldLight(level, worldPoints.getLast()), knot,
+                    1.0f);
         }
 
         if (holdingHoseItem()) {
@@ -225,10 +226,11 @@ public class HoseWinchRenderer implements BlockEntityRenderer<HoseWinchBlockEnti
     }
 
     private static void renderKnot(PoseStack ps, VertexConsumer vb, BlockPos ownerPos,
-                                   Vec3 point, Quaternionf orient, int light, SuperByteBuffer knot) {
+                                   Vec3 point, Quaternionf orient, int light, SuperByteBuffer knot, float scale) {
         ps.pushPose();
         ps.translate(point.x - ownerPos.getX(), point.y - ownerPos.getY(), point.z - ownerPos.getZ());
         ps.mulPose(orient);
+        ps.scale(scale, scale, scale);
         ps.translate(-0.5, -0.5, -0.5);
         knot.light(light).renderInto(ps, vb);
         ps.popPose();

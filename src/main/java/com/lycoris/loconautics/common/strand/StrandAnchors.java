@@ -5,7 +5,7 @@ import net.minecraft.world.phys.Vec3;
 
 public final class StrandAnchors {
 
-    private static final double HOSE_NOZZLE_OFFSET = 3.0 / 16.0;
+    private static final double HOSE_NOZZLE_OFFSET = 0.0;
 
     private StrandAnchors() {
     }
