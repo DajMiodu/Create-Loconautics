@@ -17,9 +17,8 @@ public class HosePonderPlugin implements PonderPlugin {
     public void registerScenes(PonderSceneRegistrationHelper<ResourceLocation> helper) {
         helper.forComponents(LoconauticsRegistries.HOSE.getId())
                 .addStoryBoard("hose/hose", HoseScenes::connect)
-                .addStoryBoard("hose/hose", HoseScenes::nozzle)
                 .addStoryBoard("hose/hose", HoseScenes::fluid)
-                .addStoryBoard("hose/hose", HoseScenes::spray);
+                .addStoryBoard("hose/rope_connector", HoseScenes::ropeConnector);
 
         helper.forComponents(LoconauticsRegistries.HOSE_WINCH.getId())
                 .addStoryBoard("hose/hose", HoseScenes::winch)
@@ -27,9 +26,19 @@ public class HosePonderPlugin implements PonderPlugin {
                 .addStoryBoard("hose/hose", HoseScenes::fluid);
 
         helper.forComponents(LoconauticsRegistries.HOSE_NOZZLE.getId())
-                .addStoryBoard("hose/hose", HoseScenes::connect)
                 .addStoryBoard("hose/hose", HoseScenes::nozzle)
                 .addStoryBoard("hose/hose", HoseScenes::fluid)
-                .addStoryBoard("hose/hose", HoseScenes::spray);
+                .addStoryBoard("hose/socket", HoseScenes::socket);
+
+        helper.forComponents(LoconauticsRegistries.HOSE_CONNECTOR.getId())
+                .addStoryBoard("hose/connector", HoseScenes::connector)
+                .addStoryBoard("hose/rope_connector", HoseScenes::ropeConnector);
+
+        helper.forComponents(LoconauticsConstants.id("fluid_hatch_gray"))
+                .addStoryBoard("hose/socket", HoseScenes::socket)
+                .addStoryBoard("hose/hose", HoseScenes::nozzle);
+
+        helper.forComponents(ResourceLocation.fromNamespaceAndPath("simulated", "rope_connector"))
+                .addStoryBoard("hose/rope_connector", HoseScenes::ropeConnector);
     }
 }
