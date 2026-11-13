@@ -11,21 +11,11 @@ tasks.named('wrapper', Wrapper).configure {
 version = mod_version
 group = mod_group_id
 
-def modId = providers.gradleProperty('mod_id').get()
-
-// release me im kidnapped by lyc
+// Help, I'm kidnapped by lyc
 repositories {
-    maven {
-        url = "https://maven.createmod.net"
-    }
-
-    maven {
-        url = "https://maven.ithundxr.dev/snapshots"
-    }
-
-    maven {
-        url = "https://maven.blamejared.com"
-    }
+    maven { url = "https://maven.createmod.net" }
+    maven { url = "https://maven.ithundxr.dev/snapshots" }
+    maven { url = "https://maven.blamejared.com" }
 
     maven {
         name = "IllusiveC4"
@@ -75,7 +65,7 @@ repositories {
 }
 
 base {
-    archivesName = modId
+    archivesName = mod_id
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -91,7 +81,7 @@ neoForge {
     runs {
         client {
             client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', modId
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
             programArguments.addAll '--username',
                     (findProperty('mcUser') ?: 'Lyc').toString()
         }
@@ -99,17 +89,17 @@ neoForge {
         server {
             server()
             programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', modId
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
         }
 
         gameTestServer {
             type = "gameTestServer"
-            systemProperty 'neoforge.enabledGameTestNamespaces', modId
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
         }
 
         data {
             data()
-            programArguments.addAll '--mod', modId,
+            programArguments.addAll '--mod', mod_id,
                     '--all',
                     '--output', file('src/generated/resources/').getAbsolutePath(),
                     '--existing', file('src/main/resources/').getAbsolutePath()
@@ -123,7 +113,7 @@ neoForge {
     }
 
     mods {
-        "${modId}" {
+        "${mod_id}" {
             sourceSet(sourceSets.main)
         }
     }
@@ -148,6 +138,9 @@ def simulatedVersion =
 
 def veilVersion =
         providers.gradleProperty('veil_version').orElse('4.3.2').get()
+
+def aeronauticsVersion =
+        providers.gradleProperty('aeronautics_version').orElse('1.3.2').get()
 
 tasks.register('extractSableRapier', Copy) {
     from({ configurations.sableJarExtraction.collect { zipTree(it) } }) {
@@ -176,7 +169,7 @@ tasks.register('extractAeronautics', Copy) {
 }
 
 dependencies {
-    aeroBundle("maven.modrinth:oWaK0Q19:1.3.2+mc1.21.1") {
+    aeroBundle("maven.modrinth:oWaK0Q19:${aeronauticsVersion}+mc${minecraft_version}") {
         transitive = false
     }
 
@@ -232,9 +225,10 @@ dependencies {
         transitive = false
     }
 
-    implementation(
-            "foundry.veil:veil-neoforge-${minecraft_version}:${veilVersion}"
-    )
+    implementation("foundry.veil:veil-neoforge-${minecraft_version}:${veilVersion}") {
+        exclude group: 'maven.modrinth'
+        exclude group: 'me.fallenbreath'
+    }
 
     compileOnly(
             "cc.tweaked:cc-tweaked-${minecraft_version}-forge-api:${cc_tweaked_version}"
@@ -247,11 +241,11 @@ dependencies {
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
     var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
+            minecraft_version       : minecraft_version,
+            minecraft_version_range : minecraft_version_range,
             neo_version             : neo_version,
-            loader_version_range   : loader_version_range,
-            mod_id                  : modId,
+            loader_version_range    : loader_version_range,
+            mod_id                  : mod_id,
             mod_name                : mod_name,
             mod_license             : mod_license,
             mod_version             : mod_version,
