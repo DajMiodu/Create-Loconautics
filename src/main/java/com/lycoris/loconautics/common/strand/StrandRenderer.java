@@ -102,9 +102,15 @@ public final class StrandRenderer {
                 }
                 cum += length;
             }
+            RenderPoint first = render.get(0);
+            RenderPoint last = render.get(render.size() - 1);
+            if (!knotAtStart && !cutAt(entry.getValue(), first.position())) {
+                renderKnot(level, ps, vb, knot, first, camera, 1.0f);
+            }
+            if (!knotAtEnd && !cutAt(entry.getValue(), last.position())) {
+                renderKnot(level, ps, vb, knot, last, camera, 1.0f);
+            }
             if (endKnotOn != null) {
-                RenderPoint first = render.get(0);
-                RenderPoint last = render.get(render.size() - 1);
                 if (knotAtStart && !cutAt(entry.getValue(), first.position())) {
                     renderKnot(level, ps, vb, endKnot, first, camera, 1.0f);
                 }
